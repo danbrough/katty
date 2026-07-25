@@ -9,12 +9,15 @@ import kotlinx.io.files.Path
 
 
 open class KTerminal(val terminal: Terminal, val history: History) {
-  constructor(historyFile: Path? = null) : this(Terminal(interactive = true), DefaultHistory(historyFile))
+  constructor(historyFile: Path? = null) : this(
+    Terminal(interactive = true),
+    DefaultHistory(historyFile)
+  )
 
   var cursorPos: Int = 0
   var promptLength: Int = 0
 
-  var currentLine: String = ""
+  var currentLine: StringBuilder = StringBuilder()
 
   /**
    * Must update the [promptLength] property with the character length of the prompt returned
@@ -32,7 +35,7 @@ open class KTerminal(val terminal: Terminal, val history: History) {
     keyboardActions.addAll(KeyboardActions.DefaultActions)
 
   open fun runCommand(cmd: String) {
-
+    terminal.rawPrint("${SystemLineSeparator}running command: <$cmd>")
   }
 
   fun cmdLoop() {
@@ -57,22 +60,39 @@ open class KTerminal(val terminal: Terminal, val history: History) {
           terminal.println()
           return
         }
+
         KeyboardActionResult.CONTINUE -> continue
         KeyboardActionResult.ADD_TO_LINE, null -> {}
       }
 
       if (firstKey.key.length == 1) {
-        terminal.print(firstKey.key)
-        currentLine += firstKey.key
+        val c = firstKey.key.first()
+        currentLine.insert(cursorPos - promptLength, c)
+        terminal.rawPrint(currentLine.substring(cursorPos - promptLength))
         cursorPos++
+        terminal.cursor.move {
+          startOfLine()
+          right(cursorPos)
+        }
       } else {
         terminal.println(terminal.theme.danger("${SystemLineSeparator}Unknown key: ${firstKey.key}"))
         cursorPos = 0
-        currentLine = ""
+        currentLine.clear()
       }
     }
   }
 
+
+  open fun showHistory(up: Boolean) {
+    val line = (if (up) history.previous() else history.next()) ?: return
+    terminal.cursor.move {
+      left(cursorPos - promptLength)
+      clearLineAfterCursor()
+    }
+    terminal.rawPrint(line)
+    cursorPos = line.length + promptLength
+    currentLine.clear().insert(0,line)
+  }
   fun run() {
     history.loadHistory()
     runCatching {

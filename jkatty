@@ -1,6 +1,6 @@
 #!/bin/bash
 
-JARFILE=`./gradlew -q :demo:getShadowJar`
+JARFILE=`./gradlew --console=plain -q :demo:getShadowJar | tail -n 1`
 
 echo jarfile: $JARFILE
 exec java -jar $JARFILE "$@"
