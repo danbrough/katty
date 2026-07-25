@@ -1,7 +1,9 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.konan.target.HostManager
 
 plugins {
   alias(libs.plugins.kotlin.multiplatform)
+
 }
 
 kotlin {
@@ -10,7 +12,7 @@ kotlin {
   linuxX64()
   linuxArm64()
 
-  if (HostManager.hostIsMac){
+  if (HostManager.hostIsMac) {
     macosX64()
     macosArm64()
   }
@@ -24,4 +26,6 @@ kotlin {
       }
     }
   }
+
+
 }

@@ -17,12 +17,13 @@ object KeyboardActions {
   }
 
   val Enter = KeyboardAction({ key == "Enter" }) {
-    //terminal.println(" command [$currentLine]")
     cursorPos = 0
     if (currentLine.isNotBlank()) {
       history.addToHistory(currentLine)
       runCommand(currentLine)
     }
+    terminal.println()
+    cursorPos = 0
     currentLine = ""
     KeyboardActionResult.CONTINUE
   }
@@ -68,7 +69,16 @@ object KeyboardActions {
     KeyboardActionResult.CONTINUE
   }
 
-  val DefaultActions = listOf(CtrlDCtrlCToExit, Enter,LeftArrow,RightArrow,Backspace)
+  val End = KeyboardAction({key == "End"}){
+    cursorPos = promptLength + currentLine.length
+    terminal.cursor.move {
+      startOfLine()
+      right(cursorPos)
+    }
+    KeyboardActionResult.CONTINUE
+  }
+
+  val DefaultActions = listOf(CtrlDCtrlCToExit, Enter,LeftArrow,RightArrow,Backspace,Home,End)
 }
 
 

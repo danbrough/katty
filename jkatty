@@ -1,0 +1,7 @@
+#!/bin/bash
+
+JARFILE=`./gradlew -q :demo:getShadowJar`
+
+echo jarfile: $JARFILE
+exec java -jar $JARFILE "$@"
+

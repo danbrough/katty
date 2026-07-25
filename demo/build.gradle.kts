@@ -1,8 +1,13 @@
+import com.github.jengelman.gradle.plugins.shadow.ShadowBasePlugin.Companion.shadow
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.kotlin.dsl.assign
+import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.konan.target.HostManager
 
 plugins {
   alias(libs.plugins.kotlin.multiplatform)
+  alias(libs.plugins.shadow)
 }
 
 kotlin {
@@ -31,5 +36,19 @@ kotlin {
         entryPoint = "io.github.danbrough.katty.main"
       }
     }
+  }
+
+  tasks.withType<ShadowJar> {
+    mainClass = "io.github.danbrough.katty.JvmMain"
+  }
+}
+
+
+tasks.register("getShadowJar"){
+  description = "Creates and prints the name of the shadow jar"
+  dependsOn("shadowJar")
+  val shadowFile = tasks["shadowJar"].outputs.files
+  doFirst {
+    println(shadowFile.files.first())
   }
 }

@@ -9,12 +9,11 @@ plugins {
 
 
 
-/*
+group = project.property("project.group")!!.toString()
+version = project.property("project.version")!!.toString()
 
-allprojects {
-  afterEvaluate {
-    extensions.findByType<KotlinMultiplatformExtension>()?.apply {
-    }
-  }
+subprojects {
+  group = rootProject.group
+  version = rootProject.version
 }
-*/
+
