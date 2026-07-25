@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.konan.target.HostManager
 
 plugins {
   alias(libs.plugins.kotlin.multiplatform)
@@ -9,6 +10,11 @@ kotlin {
   jvm()
   linuxX64()
   linuxArm64()
+
+  if (HostManager.hostIsMac){
+    macosX64()
+    macosArm64()
+  }
 
   sourceSets {
     commonMain {

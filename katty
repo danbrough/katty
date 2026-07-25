@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ $OSTYPE == darwin* ]] && [[ $HOSTTYPE == "x86_64" ]]; then
-  ./gradlew :test:linkKattyDebugExecutableMacosX64 || exit $?
+  ./gradlew :demo:linkKattyDebugExecutableMacosX64 || exit $?
   exec ./demo/build/bin/macosX64/kattyDebugExecutable/katty.kexe "$@"
 else
   ./gradlew :demo:linkKattyDebugExecutableLinuxX64 || exit $?
