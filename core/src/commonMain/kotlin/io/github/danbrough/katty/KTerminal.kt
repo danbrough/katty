@@ -1,5 +1,6 @@
 package io.github.danbrough.katty
 
+import com.github.ajalt.mordant.input.KeyboardEvent
 import com.github.ajalt.mordant.input.enterRawMode
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
@@ -54,7 +55,7 @@ open class KTerminal(val terminal: Terminal, val history: History) {
 
 
       val actionResult =
-        keyboardActions.firstOrNull { it.matcher(firstKey) }?.action?.invoke(this, firstKey)
+        keyboardActions.firstOrNull { it.matcher(firstKey) }?.invoke(this, firstKey)
       when (actionResult) {
         KeyboardActionResult.EXIT -> {
           terminal.println()
@@ -65,7 +66,7 @@ open class KTerminal(val terminal: Terminal, val history: History) {
         KeyboardActionResult.ADD_TO_LINE, null -> {}
       }
 
-      if (firstKey.key.length == 1) {
+      if (!firstKey.ctrl && !firstKey.alt && firstKey.key.length == 1) {
         val c = firstKey.key.first()
         currentLine.insert(cursorPos - promptLength, c)
         terminal.rawPrint(currentLine.substring(cursorPos - promptLength))
@@ -75,11 +76,19 @@ open class KTerminal(val terminal: Terminal, val history: History) {
           right(cursorPos)
         }
       } else {
-        terminal.println(terminal.theme.danger("${SystemLineSeparator}Unknown key: ${firstKey.key}"))
-        cursorPos = 0
-        currentLine.clear()
+        handleUnknownKey(firstKey)
       }
     }
+  }
+
+  protected open fun handleUnknownKey(key: KeyboardEvent) {
+    var prefix = if (key.ctrl) "Ctrl-" else ""
+    if (key.alt) prefix += "Alt-"
+    if (key.shift) prefix += "Shift-"
+    terminal.rawPrint(terminal.theme.danger("${SystemLineSeparator}Unknown key: $prefix${key.key}$SystemLineSeparator"))
+    println(key)
+    cursorPos = 0
+    currentLine.clear()
   }
 
 
@@ -91,8 +100,9 @@ open class KTerminal(val terminal: Terminal, val history: History) {
     }
     terminal.rawPrint(line)
     cursorPos = line.length + promptLength
-    currentLine.clear().insert(0,line)
+    currentLine.clear().insert(0, line)
   }
+
   fun run() {
     history.loadHistory()
     runCatching {
