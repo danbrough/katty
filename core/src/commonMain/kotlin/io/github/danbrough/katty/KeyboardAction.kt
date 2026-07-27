@@ -130,6 +130,11 @@ object KeyboardActions {
 
   object CtrlW : KeyboardAction({ isCtrlW }) {
     override fun invoke(kTerminal: KTerminal, event: KeyboardEvent): KeyboardActionResult {
+      kTerminal.run{
+        if (currentLine.isBlank()) return KeyboardActionResult.CONTINUE
+        val rest = currentLine.substring(cursorPos - promptLength)
+        terminal.println("Rest [$rest]")
+      }
       return KeyboardActionResult.CONTINUE
     }
   }
