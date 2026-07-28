@@ -132,8 +132,25 @@ object KeyboardActions {
     override fun invoke(kTerminal: KTerminal, event: KeyboardEvent): KeyboardActionResult {
       kTerminal.run{
         if (currentLine.isBlank()) return KeyboardActionResult.CONTINUE
-        val rest = currentLine.substring(cursorPos - promptLength)
-        terminal.println("Rest [$rest]")
+        val index = cursorPos - promptLength
+        val rest = currentLine.substring(index)
+        if (index > 0)
+          if (!currentLine[index-1].isWhitespace()){
+            currentLine.deleteAt(index-1)
+            terminal.cursor.move {
+              left(1)
+              clearLineAfterCursor()
+            }
+            terminal.rawPrint(rest)
+            terminal.cursor.move {
+              left(rest.length)
+            }
+            cursorPos--
+
+            //cursorPos = index-1
+            return KeyboardActionResult.CONTINUE
+          }
+
       }
       return KeyboardActionResult.CONTINUE
     }
