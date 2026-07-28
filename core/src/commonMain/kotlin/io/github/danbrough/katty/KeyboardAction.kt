@@ -130,28 +130,63 @@ object KeyboardActions {
 
   object CtrlW : KeyboardAction({ isCtrlW }) {
     override fun invoke(kTerminal: KTerminal, event: KeyboardEvent): KeyboardActionResult {
-      kTerminal.run{
+      kTerminal.run {
         if (currentLine.isBlank()) return KeyboardActionResult.CONTINUE
-        val index = cursorPos - promptLength
-        val rest = currentLine.substring(index)
-        if (index > 0)
-          if (!currentLine[index-1].isWhitespace()){
-            currentLine.deleteAt(index-1)
-            terminal.cursor.move {
-              left(1)
-              clearLineAfterCursor()
-            }
-            terminal.rawPrint(rest)
-            terminal.cursor.move {
-              left(rest.length)
-            }
-            cursorPos--
+        var index = cursorPos - promptLength
+        if (index == 0) return KeyboardActionResult.CONTINUE
 
-            //cursorPos = index-1
-            return KeyboardActionResult.CONTINUE
+        fun currentCharIsWhitespace(): Boolean =
+          index < currentLine.length && currentLine[index].isWhitespace()
+
+        fun previousCharIsWhitespace(): Boolean = index > 0 && currentLine[index - 1].isWhitespace()
+        fun previousCharIsNotWhitespace(): Boolean =
+          index > 0 && !currentLine[index - 1].isWhitespace()
+
+        val restOfLine = if (index < currentLine.length) currentLine.substring(index) else ""
+
+        if (!previousCharIsWhitespace()) {
+          //example:  "123 45[6]7" =>  "123 [6]7"  ([6] means "cursor at character "6")
+
+          terminal.cursor.move {
+            while (previousCharIsNotWhitespace()) {
+              left(1)
+              cursorPos--
+              index--
+              currentLine.deleteAt(index)
+            }
+            clearLineAfterCursor()
           }
 
+          terminal.rawPrint(restOfLine)
+          terminal.cursor.move {
+            left(restOfLine.length)
+          }
+          return KeyboardActionResult.CONTINUE
+        }
+
+        //else previousCharIsWhitespace
+        //example "123 [4]567" =>  "[4]567"  ([4] means "cursor at character 4)
+        terminal.cursor.move {
+          while (previousCharIsWhitespace()) {
+            left(1)
+            cursorPos--
+            index--
+            currentLine.deleteAt(index)
+          }
+          while (previousCharIsNotWhitespace()) {
+            left(1)
+            cursorPos--
+            index--
+            currentLine.deleteAt(index)
+          }
+          clearLineAfterCursor()
+        }
+        terminal.rawPrint(restOfLine)
+        terminal.cursor.move {
+          left(restOfLine.length)
+        }
       }
+
       return KeyboardActionResult.CONTINUE
     }
   }
