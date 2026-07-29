@@ -49,6 +49,6 @@ tasks.register("getShadowJar"){
   dependsOn("shadowJar")
   val shadowFile = tasks["shadowJar"].outputs.files
   doFirst {
-    println(shadowFile.files.first())
+    println("shadowJar: ${shadowFile.files.first()}")
   }
 }

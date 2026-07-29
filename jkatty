@@ -1,7 +1,10 @@
 #!/bin/bash
 
-JARFILE=`./gradlew --console=plain -q :demo:getShadowJar | tail -n 1`
-
+TMPFILE=`mktemp`
+./gradlew --console=plain :demo:getShadowJar | tee $TMPFILE
+JARFILE=`cat $TMPFILE | awk '/shadowJar:/  {print $2}'`
 echo jarfile: $JARFILE
+rm $TMPFILE
 exec java -jar $JARFILE "$@"
+
 

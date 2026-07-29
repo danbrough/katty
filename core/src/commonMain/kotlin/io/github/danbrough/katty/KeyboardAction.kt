@@ -3,6 +3,9 @@ package io.github.danbrough.katty
 import com.github.ajalt.mordant.input.KeyboardEvent
 import com.github.ajalt.mordant.input.enterRawMode
 import com.github.ajalt.mordant.input.isCtrlC
+import com.github.ajalt.mordant.rendering.TextColors
+import com.github.ajalt.mordant.rendering.TextStyle
+import com.github.ajalt.mordant.rendering.TextStyles
 
 enum class KeyboardActionResult {
   CONTINUE, EXIT, ADD_TO_LINE
@@ -29,20 +32,52 @@ object KeyboardActions {
       }
 
       var searchTerm = ""
-      var prompt = searchPrompt(searchTerm)
-      var searchPromptLength = prompt.length
 
       while (true) {
+        val prompt = searchPrompt(searchTerm)
+        val searchPromptLength = prompt.length
+        var match: String? = null
+
         terminal.cursor.move {
           startOfLine()
           clearLineAfterCursor()
         }
         terminal.rawPrint(prompt)
+
+        if (searchTerm.isNotBlank()) {
+          kTerminal.history.history.firstOrNull {
+            it.contains(searchTerm)
+          }?.also { result ->
+            match = result
+            terminal.rawPrint(
+              result.replace(
+                searchTerm,
+                TextStyles.inverse(searchTerm)
+              )
+            )
+          }
+        }
         val firstKey = terminal.enterRawMode().use { raw ->
-          raw.readKeyOrNull()
-        } ?: continue
+          raw.readKeyOrNull()!!
+        }
+        //println(firstKey)
+
+        if (firstKey.key == "Backspace" && searchTerm.isNotEmpty()) {
+          searchTerm = searchTerm.substring(0, searchTerm.length - 1)
+          terminal.cursor.move {
+            startOfLine()
+            right(searchPromptLength)
+            clearLineAfterCursor()
+          }
+          continue
+        }
 
         if (firstKey.key == "Escape") {
+          break
+        }
+
+        if (firstKey.key == "Enter" && match != null) {
+          kTerminal.runCommand(match)
           break
         }
 
@@ -51,6 +86,14 @@ object KeyboardActions {
         }
       }
 
+
+      kTerminal.cursorPos = 0
+      kTerminal.currentLine.clear()
+      terminal.cursor.move {
+        startOfLine()
+        clearLine()
+      }
+      //terminal.println()
       return KeyboardActionResult.CONTINUE
     }
   }

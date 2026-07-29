@@ -23,6 +23,6 @@ fun demoMain(args: Array<String>) {
     SystemFileSystem.createDirectories(configDir, true)
   }
   val terminal = KTerminal(Path(configDir, "history.txt"))
-  terminal.commandHandlers.add(LsCommandHandler)
+  terminal.commandHandlers.addAll(listOf(LsCommandHandler, CommandHelp, CommandRegex))
   terminal.run()
 }
