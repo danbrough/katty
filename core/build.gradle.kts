@@ -21,8 +21,8 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
-        implementation(libs.mordant)
-        implementation(libs.kotlinx.io.core)
+        api(libs.mordant)
+        api(libs.kotlinx.io.core)
       }
     }
   }

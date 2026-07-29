@@ -30,13 +30,20 @@ open class KTerminal(val terminal: Terminal, val history: History) {
     }
   }
 
+  val commandHandlers: MutableList<CommandHandler> = mutableListOf()
   val keyboardActions: MutableList<KeyboardAction> = mutableListOf()
 
   protected open fun registerDefaultKeyboardActions() =
     keyboardActions.addAll(KeyboardActions.DefaultActions)
 
-  open fun runCommand(cmd: String) {
-    terminal.rawPrint("${SystemLineSeparator}running command: <$cmd>")
+  open fun runCommand(cmdLine: String) {
+    //terminal.rawPrint("${SystemLineSeparator}running command: <$cmdLine>")
+    runCatching {
+      commandHandlers.firstOrNull { it.matches(cmdLine) }?.exec(this, cmdLine)
+    }.exceptionOrNull()?.also {
+      //terminal.rawPrint(terminal.theme.danger("Error: ${it.message}$SystemLineSeparator"))
+      terminal.rawPrint(terminal.theme.danger(it.stackTraceToString()))
+    }
   }
 
   fun cmdLoop() {
