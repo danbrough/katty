@@ -1,7 +1,4 @@
-import com.github.jengelman.gradle.plugins.shadow.ShadowBasePlugin.Companion.shadow
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.gradle.kotlin.dsl.assign
-import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.konan.target.HostManager
 
@@ -16,7 +13,7 @@ kotlin {
   linuxX64()
   linuxArm64()
 
-  if (HostManager.hostIsMac){
+  if (HostManager.hostIsMac) {
     macosX64()
     macosArm64()
   }
@@ -44,7 +41,7 @@ kotlin {
 }
 
 
-tasks.register("getShadowJar"){
+tasks.register("getShadowJar") {
   description = "Creates and prints the name of the shadow jar"
   dependsOn("shadowJar")
   val shadowFile = tasks["shadowJar"].outputs.files
