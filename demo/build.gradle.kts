@@ -1,6 +1,8 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 import org.jetbrains.kotlin.konan.target.HostManager
+import org.jetbrains.kotlin.konan.target.KonanTarget
 
 plugins {
   alias(libs.plugins.kotlin.multiplatform)
@@ -21,8 +23,7 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
-        implementation(libs.kotlinx.io.core)
-        implementation(projects.core)
+        implementation(projects.clikt)
       }
     }
   }
@@ -31,6 +32,7 @@ kotlin {
     binaries {
       executable("katty") {
         entryPoint = "io.github.danbrough.katty.main"
+        if (buildType == NativeBuildType.DEBUG && konanTarget == KonanTarget.LINUX_X64) linkerOpts += "--allow-multiple-definition"
       }
     }
   }

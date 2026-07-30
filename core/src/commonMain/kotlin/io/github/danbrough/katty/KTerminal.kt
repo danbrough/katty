@@ -20,6 +20,8 @@ open class KTerminal(val terminal: Terminal, val history: History) {
 
   var currentLine: StringBuilder = StringBuilder()
 
+  var defaultCommandHandler: CommandHandler = CommandHelp
+
   /**
    * Must update the [promptLength] property with the character length of the prompt returned
    */
@@ -38,8 +40,12 @@ open class KTerminal(val terminal: Terminal, val history: History) {
 
   open fun runCommand(cmdLine: String) {
     //terminal.rawPrint("${SystemLineSeparator}running command: <$cmdLine>")
+    terminal.println()
     runCatching {
-      commandHandlers.firstOrNull { it.matches(cmdLine) }?.exec(this, cmdLine)
+      (commandHandlers.firstOrNull { it.matches(cmdLine) } ?: defaultCommandHandler).exec(
+        this,
+        cmdLine
+      )
     }.exceptionOrNull()?.also {
       //terminal.rawPrint(terminal.theme.danger("Error: ${it.message}$SystemLineSeparator"))
       terminal.rawPrint(terminal.theme.danger(it.stackTraceToString()))
