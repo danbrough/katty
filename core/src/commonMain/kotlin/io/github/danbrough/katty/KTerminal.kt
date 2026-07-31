@@ -38,13 +38,18 @@ open class KTerminal(val terminal: Terminal, val history: History) {
   protected open fun registerDefaultKeyboardActions() =
     keyboardActions.addAll(KeyboardActions.DefaultActions)
 
-  open fun runCommand(cmdLine: String) {
+
+  open fun runCommand(cmdLine: String) = runCommand(parseCommandLineArgs(cmdLine))
+
+  open fun runCommand(args: List<String>) {
     //terminal.rawPrint("${SystemLineSeparator}running command: <$cmdLine>")
+
+
     terminal.println()
     runCatching {
-      (commandHandlers.firstOrNull { it.matches(cmdLine) } ?: defaultCommandHandler).exec(
+      (commandHandlers.firstOrNull { it.matches(args) } ?: defaultCommandHandler).exec(
         this,
-        cmdLine
+        args
       )
     }.exceptionOrNull()?.also {
       //terminal.rawPrint(terminal.theme.danger("Error: ${it.message}$SystemLineSeparator"))

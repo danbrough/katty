@@ -4,9 +4,9 @@
 
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-publish = { id = "com.vanniktech.maven.publish", version.ref = "publish" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+publish = { id = "com.vanniktech.maven.publish", version.ref = "publish" }
 
 [versions]
 
@@ -15,7 +15,7 @@ kotlin = "2.4.10"
 ##  ⬆ = "2.4.20-Beta1"
 ##  ⬆ = "2.4.20-Beta2"
 # https://github.com/Kotlin/kotlinx-io
-kotlinx-io= "0.9.1"
+kotlinx-io = "0.9.1"
 # https://github.com/vanniktech/gradle-maven-publish-plugin
 publish = "0.37.0"
 # https://github.com/Kotlin/dokka
@@ -30,9 +30,14 @@ shadow = "9.6.1"
 mordant = "3.0.2"
 datetime = "0.8.0"
 clikt = "5.1.0"
-
+# https://github.com/orchestr7/ktoml
+ktoml = "0.7.1"
 
 [libraries]
+
+ktoml-core = { module = "com.akuleshov7:ktoml-core", version.ref = "ktoml" }
+ktoml-file = { module = "com.akuleshov7:ktoml-file", version.ref = "ktoml" }
+
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 gradle-kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 gradle-publish-plugin = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "publish" }
@@ -40,7 +45,7 @@ gradle-dokka-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", vers
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
 assertk = { module = "com.willowtreeapps.assertk:assertk", version.ref = "assertk" }
-jline = { module = "org.jline:jline",version.ref="jline"}
+jline = { module = "org.jline:jline", version.ref = "jline" }
 mordant = { module = "com.github.ajalt.mordant:mordant", version.ref = "mordant" }
 mordant-coroutines = { module = "com.github.ajalt.mordant:mordant-coroutines", version.ref = "mordant" }
 mordant-markdown = { module = "com.github.ajalt.mordant:mordant-markdown", version.ref = "mordant" }

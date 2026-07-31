@@ -2,30 +2,25 @@ package io.github.danbrough.katty
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.CliktError
+import com.github.ajalt.clikt.core.Context
+import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.parse
 
 
-open class CliktDefaultCommandHandler() : CommandHandler, CliktCommand("katty") {
+open class CliktDefaultCommandHandler(val kTerminal: KTerminal) : CommandHandler, CliktCommand("katty") {
 
-  //override val allowMultipleSubcommands: Boolean = true
+  override val allowMultipleSubcommands: Boolean = true
 
-  fun splitCommandLine(command: String): List<String> {
-    val list = mutableListOf<String>()
-    // Matches double-quoted strings, single-quoted strings, or unquoted words
-    val regex = Regex("\"([^\"]*)\"|'([^']*)'|(\\S+)")
-    val matches = regex.findAll(command)
-
-    for (match in matches) {
-      when {
-        match.groups[1] != null -> list.add(match.groups[1]!!.value) // Double quotes
-        match.groups[2] != null -> list.add(match.groups[2]!!.value) // Single quotes
-        match.groups[3] != null -> list.add(match.groups[3]!!.value) // Unquoted word
+  init {
+    context {
+      helpOptionNames = helpOptionNames.toMutableList().also {
+        it.addAll(listOf("help"))
       }
     }
-    return list
   }
 
-  override fun matches(cmdLine: String): Boolean {
+
+  override fun matches(args: List<String>): Boolean {
     TODO("Not yet implemented")
   }
 
@@ -33,11 +28,9 @@ open class CliktDefaultCommandHandler() : CommandHandler, CliktCommand("katty") 
     TODO("Not yet implemented")
   }
 
-  override fun exec(kTerminal: KTerminal, cmdLine: String) {
+  override fun exec(kTerminal: KTerminal, args: List<String>) {
     runCatching {
-      val args = splitCommandLine(cmdLine)
-      println("args: $args")
-      parse(args.toTypedArray())
+      parse(args)
     }.exceptionOrNull()?.also {
       if (it is CliktError) {
         echoFormattedHelp(it)
@@ -45,9 +38,16 @@ open class CliktDefaultCommandHandler() : CommandHandler, CliktCommand("katty") 
     }
   }
 
-  override fun run() {}
-
+  override fun run() {
+    currentContext.data["kTerminal"] = kTerminal
+  }
 }
+
+val Context.kTerminal: KTerminal
+  get() = data["kTerminal"] as KTerminal
+
+val CliktCommand.kTerminal: KTerminal
+  get() = currentContext.kTerminal
 
 
 

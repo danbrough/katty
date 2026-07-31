@@ -6,15 +6,14 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 
 object LsCommandHandler : CommandHandler {
-  override fun matches(cmdLine: String): Boolean =
-    cmdLine.matches("^\\s?ls\\s?.*".toRegex())
+  override fun matches(args: List<String>): Boolean = args.firstOrNull() == "ls"
 
   override fun addCompletion(completions: MutableList<String>) {
     TODO("Not yet implemented")
   }
 
-  override fun exec(kTerminal: KTerminal, cmdLine: String) {
-    val dir = if (cmdLine != "ls") cmdLine.substringAfter("ls ") else "."
+  override fun exec(kTerminal: KTerminal, args: List<String>) {
+    val dir = Path(args.getOrNull(1) ?: ".")
     //println("dir $dir")
 
     kTerminal.terminal.println()

@@ -39,6 +39,7 @@ kotlin {
 
   tasks.withType<ShadowJar> {
     mainClass = "io.github.danbrough.katty.JvmMain"
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
   }
 }
 
