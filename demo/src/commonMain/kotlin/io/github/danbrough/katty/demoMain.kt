@@ -18,7 +18,7 @@ import kotlin.time.Clock
 
 class TestCommand() : CliktCommand("test") {
 
-  val message by option().defaultLazy { "Default message at ${Clock.System.now()}" }
+  val message by option().defaultLazy { "Default message at ${Clock.System.now()}" }.help("Message to print")
   val count by option().int().default(1).help("How many times to print the message")
 
   override fun run() {
