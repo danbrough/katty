@@ -112,9 +112,9 @@ object KeyboardActions {
       history.addToHistory(currentLine.toString())
       runCommand(currentLine.toString())
     }
-    /*terminal.println()
+    terminal.println()
     cursorPos = 0
-    currentLine.clear()*/
+    currentLine.clear()
     KeyboardActionResult.CONTINUE
   }
 

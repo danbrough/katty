@@ -24,6 +24,8 @@ kotlin {
     commonMain {
       dependencies {
         implementation(projects.clikt)
+        implementation(libs.kotlinx.datetime)
+        implementation(libs.ktoml.file)
       }
     }
   }

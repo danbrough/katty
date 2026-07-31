@@ -8,6 +8,8 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlin.time.Clock
@@ -19,19 +21,23 @@ class TestCommand() : CliktCommand("test") {
   val count by option().int().default(1)
 
   override fun run() {
-    kTerminal.terminal.println(TextStyles.bold(TextColors.brightMagenta("test command. message: $message count: $count")))
+    for (n in 1..count)
+      kTerminal.terminal.println(TextStyles.bold(TextColors.brightMagenta("test command. message: $message count: $n")))
   }
 }
 
 
 class DateCommand() : CliktCommand("date") {
   override fun run() {
-    kTerminal.terminal.println(TextStyles.bold(TextColors.brightCyan(("$commandName:: date is ${Clock.System.now()}"))))
+    val tz = TimeZone.currentSystemDefault()
+    val date = Clock.System.now().toLocalDateTime(tz)
+    kTerminal.terminal.print(TextStyles.bold(TextColors.brightCyan(("$commandName: $date $tz"))))
   }
 }
 
 
 fun demoMain(args: Array<String>) {
+
 
   val configDir = Path(KattyUtils.getEnv("HOME")!!, ".katty")
 
@@ -45,8 +51,9 @@ fun demoMain(args: Array<String>) {
   }
 
   terminal.commandHandlers.addAll(listOf(LsCommandHandler, CommandRegex))
+
   if (args.isNotEmpty())
-    terminal.runCommand(args.toList(),printNewLine = false)
+    terminal.runCommand(args.toList(), printNewLine = false)
   else
     terminal.run()
 }
