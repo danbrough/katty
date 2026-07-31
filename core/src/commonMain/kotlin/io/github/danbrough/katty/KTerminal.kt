@@ -41,11 +41,13 @@ open class KTerminal(val terminal: Terminal, val history: History) {
 
   open fun runCommand(cmdLine: String) = runCommand(parseCommandLineArgs(cmdLine))
 
-  open fun runCommand(args: List<String>) {
+  open fun runCommand(args: List<String>, printNewLine: Boolean = true) {
     //terminal.rawPrint("${SystemLineSeparator}running command: <$cmdLine>")
+    if (printNewLine)
+      terminal.println()
+    cursorPos = 0
+    currentLine.clear()
 
-
-    terminal.println()
     runCatching {
       (commandHandlers.firstOrNull { it.matches(args) } ?: defaultCommandHandler).exec(
         this,

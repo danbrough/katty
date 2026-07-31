@@ -19,14 +19,14 @@ class TestCommand() : CliktCommand("test") {
   val count by option().int().default(1)
 
   override fun run() {
-    print("test command. message: $message count: $count")
+    kTerminal.terminal.println(TextStyles.bold(TextColors.brightMagenta("test command. message: $message count: $count")))
   }
 }
 
 
 class DateCommand() : CliktCommand("date") {
   override fun run() {
-    kTerminal.terminal.print(TextColors.yellow(TextStyles.bold("$commandName:: date is ${Clock.System.now()}")))
+    kTerminal.terminal.println(TextStyles.bold(TextColors.brightCyan(("$commandName:: date is ${Clock.System.now()}"))))
   }
 }
 
@@ -46,7 +46,7 @@ fun demoMain(args: Array<String>) {
 
   terminal.commandHandlers.addAll(listOf(LsCommandHandler, CommandRegex))
   if (args.isNotEmpty())
-    terminal.runCommand(args.toList())
+    terminal.runCommand(args.toList(),printNewLine = false)
   else
     terminal.run()
 }

@@ -77,8 +77,15 @@ object KeyboardActions {
         }
 
         if (firstKey.key == "Enter" && match != null) {
+          terminal.println("enter")
+          kTerminal.cursorPos = 0
+          kTerminal.currentLine.clear()
+          terminal.cursor.move {
+            startOfLine()
+            clearLine()
+          }
           kTerminal.runCommand(match)
-          break
+          return KeyboardActionResult.CONTINUE
         }
 
         if (firstKey.key.length == 1) {
@@ -105,9 +112,9 @@ object KeyboardActions {
       history.addToHistory(currentLine.toString())
       runCommand(currentLine.toString())
     }
-    terminal.println()
+    /*terminal.println()
     cursorPos = 0
-    currentLine.clear()
+    currentLine.clear()*/
     KeyboardActionResult.CONTINUE
   }
 

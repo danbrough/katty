@@ -20,12 +20,9 @@ open class CliktDefaultCommandHandler(val kTerminal: KTerminal) : CommandHandler
   }
 
 
-  override fun matches(args: List<String>): Boolean {
-    TODO("Not yet implemented")
-  }
+  override fun matches(args: List<String>): Boolean = true
 
   override fun addCompletion(completions: MutableList<String>) {
-    TODO("Not yet implemented")
   }
 
   override fun exec(kTerminal: KTerminal, args: List<String>) {
