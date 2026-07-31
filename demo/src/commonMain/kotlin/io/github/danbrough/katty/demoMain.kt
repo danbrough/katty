@@ -4,6 +4,7 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.defaultLazy
+import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.mordant.rendering.TextColors
@@ -18,7 +19,7 @@ import kotlin.time.Clock
 class TestCommand() : CliktCommand("test") {
 
   val message by option().defaultLazy { "Default message at ${Clock.System.now()}" }
-  val count by option().int().default(1)
+  val count by option().int().default(1).help("How many times to print the message")
 
   override fun run() {
     for (n in 1..count)
