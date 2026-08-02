@@ -1,4 +1,5 @@
 #!/bin/bash
+cd `dirname "$0"`
 
 if [[ $OSTYPE == darwin* ]] && [[ $HOSTTYPE == "x86_64" ]]; then
   ./gradlew :demo:linkKattyDebugExecutableMacosX64 || exit $?

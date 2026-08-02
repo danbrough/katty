@@ -1,3 +1,6 @@
+@file:OptIn(ExperimentalWasmDsl::class)
+
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.konan.target.HostManager
 
 plugins {
@@ -14,6 +17,10 @@ kotlin {
   if (HostManager.hostIsMac) {
     macosX64()
     macosArm64()
+  }
+
+  js {
+    nodejs()
   }
 
   sourceSets {

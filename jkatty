@@ -1,4 +1,5 @@
 #!/bin/bash
+cd `dirname "$0"`
 
 TMPFILE=`mktemp`
 ./gradlew --console=plain :demo:getShadowJar | tee $TMPFILE

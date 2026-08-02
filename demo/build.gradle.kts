@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalWasmDsl::class)
+
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsExec
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget
 
@@ -20,12 +24,17 @@ kotlin {
     macosArm64()
   }
 
+  js{
+    nodejs()
+    binaries.executable()
+  }
+
   sourceSets {
     commonMain {
       dependencies {
         implementation(projects.clikt)
         implementation(libs.kotlinx.datetime)
-        implementation(libs.ktoml.file)
+        implementation(libs.ktoml.core)
       }
     }
   }
@@ -45,7 +54,18 @@ kotlin {
   }
 }
 
+tasks.withType<NodeJsExec>().configureEach {
 
+  doFirst {
+    println("JS FILES: ${this@configureEach.outputs.files.files}")
+    println("JS CMD LINE: ${this@configureEach.commandLine}")
+    println("JS MAIN: ${this@configureEach.npmProject.main.get()}")
+    println("JS MODULES DIR: ${this@configureEach.npmProject.nodeModulesDir.get()}")
+
+
+  }
+
+}
 tasks.register("getShadowJar") {
   description = "Creates and prints the name of the shadow jar"
   dependsOn("shadowJar")
