@@ -3,8 +3,6 @@ package io.github.danbrough.katty
 import com.github.ajalt.mordant.input.KeyboardEvent
 import com.github.ajalt.mordant.input.enterRawMode
 import com.github.ajalt.mordant.input.isCtrlC
-import com.github.ajalt.mordant.rendering.TextColors
-import com.github.ajalt.mordant.rendering.TextStyle
 import com.github.ajalt.mordant.rendering.TextStyles
 
 enum class KeyboardActionResult {
@@ -107,14 +105,11 @@ object KeyboardActions {
 
 
   val Enter = KeyboardAction({ key == "Enter" }) {
-    cursorPos = 0
     if (currentLine.isNotBlank()) {
       history.addToHistory(currentLine.toString())
       runCommand(currentLine.toString())
     }
-    terminal.println()
-    cursorPos = 0
-    currentLine.clear()
+    printPrompt = true
     KeyboardActionResult.CONTINUE
   }
 

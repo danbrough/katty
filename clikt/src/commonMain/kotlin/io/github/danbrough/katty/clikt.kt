@@ -14,7 +14,7 @@ open class CliktDefaultCommandHandler(val kTerminal: KTerminal) : CommandHandler
   init {
     context {
       helpOptionNames = helpOptionNames.toMutableList().also {
-        it.addAll(listOf("help"))
+        it.addAll(listOf("help","-h","?"))
       }
     }
   }
@@ -34,6 +34,8 @@ open class CliktDefaultCommandHandler(val kTerminal: KTerminal) : CommandHandler
       } else throw it
     }
   }
+
+  override fun helpText(): String = help(currentContext)
 
   override fun run() {
     currentContext.data["kTerminal"] = kTerminal

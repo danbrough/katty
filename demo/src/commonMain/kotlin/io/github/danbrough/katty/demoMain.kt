@@ -11,6 +11,7 @@ import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.io.SystemLineSeparator
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlin.time.Clock
@@ -18,12 +19,12 @@ import kotlin.time.Clock
 
 class TestCommand() : CliktCommand("test") {
 
-  val message by option().defaultLazy { "Default message at ${Clock.System.now()}" }.help("Message to print")
+  val message by option().defaultLazy { "Default message at ${Clock.System.now()}" }
+    .help("Message to print")
   val count by option().int().default(1).help("How many times to print the message")
 
   override fun run() {
-    for (n in 1..count)
-      kTerminal.terminal.println(TextStyles.bold(TextColors.brightMagenta("test command. message: $message count: $n")))
+    for (n in 1..count) kTerminal.terminal.print(TextStyles.bold(TextColors.brightMagenta("test command. message: $message count: $n${if (n < count) SystemLineSeparator else ""}")))
   }
 }
 
@@ -43,18 +44,17 @@ fun demoMain(args: Array<String>) {
   val configDir = Path(KattyUtils.getEnv("HOME")!!, ".katty")
 
   if (!SystemFileSystem.exists(configDir)) {
-    //println("Creating configuration dir at $configDir..")
+    //println("Creating configuration dir at $configDir...")
     SystemFileSystem.createDirectories(configDir, true)
   }
   val terminal = KTerminal(Path(configDir, "history.txt"))
-  terminal.defaultCommandHandler = CliktDefaultCommandHandler(terminal).also {
+
+  val cliktCommand = CliktDefaultCommandHandler(terminal).also {
     it.subcommands(TestCommand(), DateCommand())
   }
 
-  terminal.commandHandlers.addAll(listOf(LsCommandHandler, CommandRegex))
+  terminal.commandHandlers.addAll(listOf(LsCommandHandler, DateCommandHandler))
 
-  if (args.isNotEmpty())
-    terminal.runCommand(args.toList(), printNewLine = false)
-  else
-    terminal.run()
+  if (args.isNotEmpty()) terminal.runCommand(args.toList(), printNewLine = false)
+  else terminal.run()
 }

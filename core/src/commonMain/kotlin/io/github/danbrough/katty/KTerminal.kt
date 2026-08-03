@@ -20,7 +20,7 @@ open class KTerminal(val terminal: Terminal, val history: History) {
 
   var currentLine: StringBuilder = StringBuilder()
 
-  var defaultCommandHandler: CommandHandler = CommandHelp
+  var printPrompt: Boolean = true
 
   /**
    * Must update the [promptLength] property with the character length of the prompt returned
@@ -32,7 +32,7 @@ open class KTerminal(val terminal: Terminal, val history: History) {
     }
   }
 
-  val commandHandlers: MutableList<CommandHandler> = mutableListOf()
+  val commandHandlers: MutableList<CommandHandler> = mutableListOf(HelpCommand())
   val keyboardActions: MutableList<KeyboardAction> = mutableListOf()
 
   protected open fun registerDefaultKeyboardActions() =
@@ -49,13 +49,12 @@ open class KTerminal(val terminal: Terminal, val history: History) {
     currentLine.clear()
 
     runCatching {
-      (commandHandlers.firstOrNull { it.matches(args) } ?: defaultCommandHandler).exec(
-        this,
-        args
-      )
+      commandHandlers.filter { it.matches(args) }.forEach {
+        it.exec(this, args)
+      }
     }.exceptionOrNull()?.also {
       //terminal.rawPrint(terminal.theme.danger("Error: ${it.message}$SystemLineSeparator"))
-      terminal.rawPrint(terminal.theme.danger(it.stackTraceToString()))
+      terminal.println(terminal.theme.danger(it.stackTraceToString()))
     }
   }
 
@@ -64,10 +63,16 @@ open class KTerminal(val terminal: Terminal, val history: History) {
     registerDefaultKeyboardActions()
 
     while (true) {
-      if (cursorPos == 0) {
-        terminal.rawPrint(prompt())
+      if (printPrompt) {
+        terminal.rawPrint("$SystemLineSeparator${prompt()}")
         cursorPos = promptLength
+        currentLine.clear()
+        printPrompt = false
       }
+      /*      if (cursorPos == 0) {
+              terminal.print(prompt())
+              cursorPos = promptLength
+            }*/
 
       val firstKey = terminal.enterRawMode().use { raw ->
         raw.readKeyOrNull()
@@ -82,7 +87,10 @@ open class KTerminal(val terminal: Terminal, val history: History) {
           return
         }
 
-        KeyboardActionResult.CONTINUE -> continue
+        KeyboardActionResult.CONTINUE -> {
+          printPrompt = true
+          continue
+        }
         KeyboardActionResult.ADD_TO_LINE, null -> {}
       }
 
