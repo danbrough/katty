@@ -3,6 +3,7 @@
 [plugins]
 
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
@@ -12,8 +13,6 @@ publish = { id = "com.vanniktech.maven.publish", version.ref = "publish" }
 
 # https://plugins.gradle.org/plugin/org.jetbrains.kotlin.jvm
 kotlin = "2.4.10"
-##  ⬆ = "2.4.20-Beta1"
-##  ⬆ = "2.4.20-Beta2"
 # https://github.com/Kotlin/kotlinx-io
 kotlinx-io = "0.9.1"
 # https://github.com/vanniktech/gradle-maven-publish-plugin
@@ -29,10 +28,10 @@ shadow = "9.6.1"
 # https://github.com/ajalt/mordant
 mordant = "3.0.2"
 datetime = "0.8.0"
-##    ⬆ = "0.8.0-0.6.x-compat"
 clikt = "5.1.0"
 # https://github.com/orchestr7/ktoml
 ktoml = "0.7.1"
+kotlinx-serialization = "1.11.0"
 
 [libraries]
 
@@ -51,3 +50,5 @@ mordant = { module = "com.github.ajalt.mordant:mordant", version.ref = "mordant"
 mordant-coroutines = { module = "com.github.ajalt.mordant:mordant-coroutines", version.ref = "mordant" }
 mordant-markdown = { module = "com.github.ajalt.mordant:mordant-markdown", version.ref = "mordant" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
+kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }

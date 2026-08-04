@@ -24,7 +24,7 @@ kotlin {
     macosArm64()
   }
 
-  js{
+  js {
     nodejs()
     binaries.executable()
   }
@@ -32,8 +32,10 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
-        implementation(projects.clikt)
+        //implementation(projects.clikt)
+        implementation(projects.core)
         implementation(libs.kotlinx.datetime)
+        implementation(libs.kotlinx.io.core)
         implementation(libs.ktoml.core)
       }
     }
@@ -55,17 +57,14 @@ kotlin {
 }
 
 tasks.withType<NodeJsExec>().configureEach {
-
   doFirst {
     println("JS FILES: ${this@configureEach.outputs.files.files}")
     println("JS CMD LINE: ${this@configureEach.commandLine}")
     println("JS MAIN: ${this@configureEach.npmProject.main.get()}")
     println("JS MODULES DIR: ${this@configureEach.npmProject.nodeModulesDir.get()}")
-
-
   }
-
 }
+
 tasks.register("getShadowJar") {
   description = "Creates and prints the name of the shadow jar"
   dependsOn("shadowJar")

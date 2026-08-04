@@ -1,22 +1,11 @@
 package io.github.danbrough.katty
 
-import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.core.subcommands
-import com.github.ajalt.clikt.parameters.options.default
-import com.github.ajalt.clikt.parameters.options.defaultLazy
-import com.github.ajalt.clikt.parameters.options.help
-import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.types.int
-import com.github.ajalt.mordant.rendering.TextColors
-import com.github.ajalt.mordant.rendering.TextStyles
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import kotlinx.io.SystemLineSeparator
+
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
-import kotlin.time.Clock
 
 
+/*
 class TestCommand() : CliktCommand("test") {
 
   val message by option().defaultLazy { "Default message at ${Clock.System.now()}" }
@@ -36,6 +25,7 @@ class DateCommand() : CliktCommand("date") {
     kTerminal.terminal.print(TextStyles.bold(TextColors.brightCyan(("$commandName: $date $tz"))))
   }
 }
+*/
 
 
 fun demoMain(args: Array<String>) {
@@ -49,11 +39,13 @@ fun demoMain(args: Array<String>) {
   }
   val terminal = KTerminal(Path(configDir, "history.txt"))
 
-  val cliktCommand = CliktDefaultCommandHandler(terminal).also {
-    it.subcommands(TestCommand(), DateCommand())
-  }
+  /*
+    val cliktCommand = CliktDefaultCommandHandler(terminal).also {
+      it.subcommands(TestCommand(), DateCommand())
+    }
+  */
 
-  terminal.commandHandlers.addAll(listOf(LsCommandHandler, DateCommandHandler))
+  terminal.commandHandlers.addAll(listOf(LsCommandHandler, DateCommandHandler, TomlTestCommand))
 
   if (args.isNotEmpty()) terminal.runCommand(args.toList(), printNewLine = false)
   else terminal.run()

@@ -1,6 +1,7 @@
 package io.github.danbrough.katty
 
 import com.github.ajalt.mordant.rendering.TextStyles
+import kotlinx.io.SystemLineSeparator
 
 open class HelpCommand : CommandHandler {
   override fun matches(args: List<String>): Boolean = args.firstOrNull().let {
@@ -15,10 +16,15 @@ open class HelpCommand : CommandHandler {
     kTerminal: KTerminal,
     args: List<String>
   ) {
-    kTerminal.commandHandlers.forEach {
-      kTerminal.terminal.println(TextStyles.bold(it.helpText()))
+    buildString {
+      kTerminal.commandHandlers.mapNotNull { it.helpText() }.forEach {
+        append(TextStyles.bold(it))
+        append(SystemLineSeparator)
+      }
+    }.also {
+      kTerminal.terminal.rawPrint(it)
     }
-
+    kTerminal.cursorPos = 0
   }
 
   override fun helpText(): String = "help: Prints the help for the available commands"

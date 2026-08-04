@@ -20,8 +20,6 @@ open class KTerminal(val terminal: Terminal, val history: History) {
 
   var currentLine: StringBuilder = StringBuilder()
 
-  var printPrompt: Boolean = true
-
   /**
    * Must update the [promptLength] property with the character length of the prompt returned
    */
@@ -58,53 +56,46 @@ open class KTerminal(val terminal: Terminal, val history: History) {
     }
   }
 
+  fun printPrompt(newLine: Boolean = true){
+    terminal.rawPrint("${if (newLine) SystemLineSeparator else ""}${prompt()}")
+    cursorPos = promptLength
+    currentLine.clear()
+  }
+
   fun cmdLoop() {
 
     registerDefaultKeyboardActions()
 
-    while (true) {
-      if (printPrompt) {
-        terminal.rawPrint("$SystemLineSeparator${prompt()}")
-        cursorPos = promptLength
-        currentLine.clear()
-        printPrompt = false
-      }
-      /*      if (cursorPos == 0) {
-              terminal.print(prompt())
-              cursorPos = promptLength
-            }*/
+    terminal.enterRawMode().use { rawMode->
 
-      val firstKey = terminal.enterRawMode().use { raw ->
-        raw.readKeyOrNull()
-      } ?: continue
+      while (true) {
+        if (cursorPos == 0)
+          printPrompt(newLine = false)
 
 
-      val actionResult =
-        keyboardActions.firstOrNull { it.matcher(firstKey) }?.invoke(this, firstKey)
-      when (actionResult) {
-        KeyboardActionResult.EXIT -> {
-          terminal.println()
-          return
+        val firstKey = rawMode.readKeyOrNull()!!
+
+        val actionResult =
+          keyboardActions.firstOrNull { it.matcher(firstKey) }?.invoke(this, firstKey)
+        when (actionResult) {
+          KeyboardActionResult.EXIT -> {
+            terminal.println()
+            return
+          }
+
+          KeyboardActionResult.CONTINUE -> continue
+          KeyboardActionResult.ADD_TO_LINE, null -> {}
         }
 
-        KeyboardActionResult.CONTINUE -> {
-          printPrompt = true
-          continue
+        if (!firstKey.ctrl && !firstKey.alt && firstKey.key.length == 1) {
+          val c = firstKey.key.first()
+          currentLine.insert(cursorPos - promptLength, c)
+          cursorPos++
+          val restOfLine = currentLine.substring(cursorPos - promptLength-1)
+          terminal.rawPrint(restOfLine)
+        } else {
+          handleUnknownKey(firstKey)
         }
-        KeyboardActionResult.ADD_TO_LINE, null -> {}
-      }
-
-      if (!firstKey.ctrl && !firstKey.alt && firstKey.key.length == 1) {
-        val c = firstKey.key.first()
-        currentLine.insert(cursorPos - promptLength, c)
-        terminal.rawPrint(currentLine.substring(cursorPos - promptLength))
-        cursorPos++
-        terminal.cursor.move {
-          startOfLine()
-          right(cursorPos)
-        }
-      } else {
-        handleUnknownKey(firstKey)
       }
     }
   }

@@ -4,6 +4,7 @@ import com.github.ajalt.mordant.input.KeyboardEvent
 import com.github.ajalt.mordant.input.enterRawMode
 import com.github.ajalt.mordant.input.isCtrlC
 import com.github.ajalt.mordant.rendering.TextStyles
+import kotlinx.io.SystemLineSeparator
 
 enum class KeyboardActionResult {
   CONTINUE, EXIT, ADD_TO_LINE
@@ -75,7 +76,6 @@ object KeyboardActions {
         }
 
         if (firstKey.key == "Enter" && match != null) {
-          terminal.println("enter")
           kTerminal.cursorPos = 0
           kTerminal.currentLine.clear()
           terminal.cursor.move {
@@ -106,10 +106,16 @@ object KeyboardActions {
 
   val Enter = KeyboardAction({ key == "Enter" }) {
     if (currentLine.isNotBlank()) {
-      history.addToHistory(currentLine.toString())
-      runCommand(currentLine.toString())
+      val cmdLine = currentLine.toString().also {
+        currentLine.clear()
+      }
+      history.addToHistory(cmdLine)
+      runCommand(cmdLine)
+
+    } else {
+      terminal.rawPrint("$SystemLineSeparator${prompt()}")
+      cursorPos = promptLength
     }
-    printPrompt = true
     KeyboardActionResult.CONTINUE
   }
 

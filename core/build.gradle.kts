@@ -28,6 +28,7 @@ kotlin {
       dependencies {
         api(libs.mordant)
         api(libs.kotlinx.io.core)
+        implementation(libs.ktoml.core)
       }
     }
   }
