@@ -45,7 +45,7 @@ fun demoMain(args: Array<String>) {
     }
   */
 
-  terminal.commandHandlers.addAll(listOf(LsCommandHandler, DateCommandHandler, TomlTestCommand))
+  terminal.commandHandlers.addAll(listOf(LsCommandHandler, DateCommandHandler, PwdCommand, CdCommand,TomlTestCommand))
 
   if (args.isNotEmpty()) terminal.runCommand(args.toList(), printNewLine = false)
   else terminal.run()

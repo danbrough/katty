@@ -12,6 +12,7 @@ import kotlinx.io.SystemLineSeparator
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
+import kotlinx.io.files.SystemPathSeparator
 import kotlinx.io.readLine
 import kotlin.time.Clock
 
@@ -27,7 +28,12 @@ object LsCommandHandler : CommandHandler {
   }
 
   override fun exec(kTerminal: KTerminal, args: List<String>) {
-    val dir = Path(args.getOrNull(1) ?: ".")
+    val dir = if (args.size == 1) CdCommand.path else {
+      if (args[1] == ".") CdCommand.path
+      else if (args[1] == "..") Path(CdCommand.path,"..")
+      else if (args[1].startsWith(SystemPathSeparator)) Path(args[1])
+      else Path(CdCommand.path,args[1])
+    }
     //println("dir $dir")
 
     SystemFileSystem.list(SystemFileSystem.resolve(Path(dir)))
@@ -61,7 +67,38 @@ object DateCommandHandler : CommandHandler {
   }
 
   override fun helpText(): String = "date: Prints the current date"
+}
 
+object PwdCommand : CommandHandler {
+  override fun matches(args: List<String>): Boolean = args.firstOrNull() == "pwd"
+
+  override fun exec(kTerminal: KTerminal, args: List<String>) {
+    kTerminal.terminal.println(CdCommand.path)
+  }
+
+  override fun helpText(): String = "pwd: Prints the current directory"
+}
+
+object CdCommand : CommandHandler {
+  override fun matches(args: List<String>): Boolean = args.firstOrNull() == "cd"
+  var path: Path = SystemFileSystem.resolve(Path("."))
+  val home = KattyUtils.getEnv("HOME")?.let { SystemFileSystem.resolve(Path(it)) } ?: path
+
+  override fun exec(kTerminal: KTerminal, args: List<String>) {
+    if (args.size == 1) {
+      path = home
+    } else {
+      path = when (args[1]) {
+        "." -> path
+        ".." -> Path(path, "..")
+        else -> if (args[1].startsWith(SystemPathSeparator)) Path(args[1]) else Path(path, args[1])
+      }
+      path = SystemFileSystem.resolve(path)
+    }
+    kTerminal.terminal.println("changed to $path")
+  }
+
+  override fun helpText(): String = "cd: change the current directory"
 }
 
 object TomlTestCommand : CommandHandler {
