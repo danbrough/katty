@@ -93,6 +93,9 @@ open class KTerminal(val terminal: Terminal, val history: History) {
           cursorPos++
           val restOfLine = currentLine.substring(cursorPos - promptLength-1)
           terminal.rawPrint(restOfLine)
+          terminal.cursor.move {
+            left(restOfLine.length-1)
+          }
         } else {
           handleUnknownKey(firstKey)
         }
