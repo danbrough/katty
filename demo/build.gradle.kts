@@ -65,15 +65,25 @@ tasks.withType<NodeJsExec>().configureEach {
     println("JS FILES: ${this@configureEach.outputs.files.files}")
     println("JS CMD LINE: ${this@configureEach.commandLine}")
     println("JS MAIN: ${this@configureEach.npmProject.main.get()}")
+    println("JS EXECUTABLE: ${this@configureEach.executable}")
     println("JS MODULES DIR: ${this@configureEach.npmProject.nodeModulesDir.get()}")
   }
 }
+
+
+
+
 
 tasks.register("getShadowJar") {
   description = "Creates and prints the name of the shadow jar"
   dependsOn("shadowJar")
   val shadowFile = tasks["shadowJar"].outputs.files
+  val nodeExecutable = tasks.withType<NodeJsExec>().firstOrNull()?.executable
+
   doFirst {
     println("shadowJar: ${shadowFile.files.first()}")
+    println("nodeExecutable: $nodeExecutable")
   }
 }
+
+
