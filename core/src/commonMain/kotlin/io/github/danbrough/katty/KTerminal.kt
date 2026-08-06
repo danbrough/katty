@@ -10,8 +10,8 @@ import kotlinx.io.files.Path
 
 
 open class KTerminal(val terminal: Terminal, val history: History) {
-  constructor(historyFile: Path? = null) : this(
-    Terminal(interactive = true),
+  constructor(terminal: Terminal = Terminal(interactive = true),historyFile: Path? = null) : this(
+    terminal,
     DefaultHistory(historyFile)
   )
 
@@ -29,7 +29,6 @@ open class KTerminal(val terminal: Terminal, val history: History) {
       TextStyles.bold(TextColors.brightGreen(it))
     }
   }
-
   val commandHandlers: MutableList<CommandHandler> = mutableListOf(HelpCommand())
   val keyboardActions: MutableList<KeyboardAction> = mutableListOf()
 
@@ -37,6 +36,8 @@ open class KTerminal(val terminal: Terminal, val history: History) {
     keyboardActions.addAll(KeyboardActions.DefaultActions)
 
 
+  fun println(message: String = "") = print("$message$SystemLineSeparator")
+  fun print(message: String) = terminal.print(message)
   open fun runCommand(cmdLine: String) = runCommand(parseCommandLineArgs(cmdLine))
 
   open fun runCommand(args: List<String>, printNewLine: Boolean = true) {
@@ -56,7 +57,7 @@ open class KTerminal(val terminal: Terminal, val history: History) {
     }
   }
 
-  fun printPrompt(newLine: Boolean = true){
+  fun printPrompt(newLine: Boolean = true) {
     terminal.rawPrint("${if (newLine) SystemLineSeparator else ""}${prompt()}")
     cursorPos = promptLength
     currentLine.clear()
@@ -66,7 +67,9 @@ open class KTerminal(val terminal: Terminal, val history: History) {
 
     registerDefaultKeyboardActions()
 
-    terminal.enterRawMode().use { rawMode->
+    terminal.println()
+
+    terminal.enterRawMode().use { rawMode ->
 
       while (true) {
         if (cursorPos == 0)
@@ -91,10 +94,10 @@ open class KTerminal(val terminal: Terminal, val history: History) {
           val c = firstKey.key.first()
           currentLine.insert(cursorPos - promptLength, c)
           cursorPos++
-          val restOfLine = currentLine.substring(cursorPos - promptLength-1)
+          val restOfLine = currentLine.substring(cursorPos - promptLength - 1)
           terminal.rawPrint(restOfLine)
           terminal.cursor.move {
-            left(restOfLine.length-1)
+            left(restOfLine.length - 1)
           }
         } else {
           handleUnknownKey(firstKey)

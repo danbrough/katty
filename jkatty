@@ -1,4 +1,5 @@
 #!/bin/bash
+DIR="$(pwd)"
 cd `dirname "$0"`
 
 TMPFILE=`mktemp`
@@ -6,6 +7,8 @@ TMPFILE=`mktemp`
 JARFILE=`cat $TMPFILE | awk '/shadowJar:/  {print $2}'`
 echo jarfile: $JARFILE
 rm $TMPFILE
+echo changing to dir $DIR
+cd "$DIR"
 exec java -jar $JARFILE "$@"
 
 

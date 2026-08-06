@@ -8,13 +8,26 @@ import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import kotlinx.io.SystemLineSeparator
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.files.SystemPathSeparator
 import kotlinx.io.readLine
 import kotlin.time.Clock
+
+open class BasicCommand(
+  val name: String,
+  val description: String,
+  val job: (KTerminal.(args: List<String>) -> Unit)? = null
+) : CommandHandler {
+  override fun matches(args: List<String>): Boolean = args.firstOrNull() == name
+  override fun exec(kTerminal: KTerminal, args: List<String>) =
+    job?.invoke(kTerminal, args) ?: error("Exec for $name not implemented")
+
+  override fun helpText(): String = "$name: $description"
+
+}
+
 
 /**
  * Some shell commands for the demo
@@ -28,13 +41,12 @@ object LsCommandHandler : CommandHandler {
   }
 
   override fun exec(kTerminal: KTerminal, args: List<String>) {
-    val dir = if (args.size == 1) CdCommand.path else {
-      if (args[1] == ".") CdCommand.path
-      else if (args[1] == "..") Path(CdCommand.path,"..")
+    val dir = if (args.size == 1) Bash.currentDir else {
+      if (args[1] == ".") Bash.currentDir
+      else if (args[1] == "..") Path(Bash.currentDir, "..")
       else if (args[1].startsWith(SystemPathSeparator)) Path(args[1])
-      else Path(CdCommand.path,args[1])
+      else Path(Bash.currentDir, args[1])
     }
-    //println("dir $dir")
 
     SystemFileSystem.list(SystemFileSystem.resolve(Path(dir)))
       .map { it to SystemFileSystem.metadataOrNull(it) }
@@ -55,51 +67,41 @@ object LsCommandHandler : CommandHandler {
 
 }
 
+object Bash {
 
-object DateCommandHandler : CommandHandler {
-  override fun matches(args: List<String>): Boolean = args.firstOrNull() == "date"
+  var currentDir: Path = SystemFileSystem.resolve(Path("."))
 
-  override fun exec(kTerminal: KTerminal, args: List<String>) {
-
-    val msg = "The date is ${Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())}"
-    kTerminal.terminal.rawPrint("${TextStyles.bold(msg)}$SystemLineSeparator")
-    kTerminal.cursorPos = 0
+  val DateCommandHandler = BasicCommand("date", "prints the date") {
+    println("The date is ${Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())}")
   }
 
-  override fun helpText(): String = "date: Prints the current date"
-}
-
-object PwdCommand : CommandHandler {
-  override fun matches(args: List<String>): Boolean = args.firstOrNull() == "pwd"
-
-  override fun exec(kTerminal: KTerminal, args: List<String>) {
-    kTerminal.terminal.println(CdCommand.path)
+  val PwdCommand = BasicCommand("pwd", "prints the current working directory") {
+    println(currentDir)
   }
 
-  override fun helpText(): String = "pwd: Prints the current directory"
-}
+  object CdCommand : BasicCommand("cd", "changes the current directory") {
 
-object CdCommand : CommandHandler {
-  override fun matches(args: List<String>): Boolean = args.firstOrNull() == "cd"
-  var path: Path = SystemFileSystem.resolve(Path("."))
-  val home = KattyUtils.getEnv("HOME")?.let { SystemFileSystem.resolve(Path(it)) } ?: path
+    val home = KattyUtils.getEnv("HOME")?.let { SystemFileSystem.resolve(Path(it)) } ?: currentDir
 
-  override fun exec(kTerminal: KTerminal, args: List<String>) {
-    if (args.size == 1) {
-      path = home
-    } else {
-      path = when (args[1]) {
-        "." -> path
-        ".." -> Path(path, "..")
-        else -> if (args[1].startsWith(SystemPathSeparator)) Path(args[1]) else Path(path, args[1])
+    override fun exec(kTerminal: KTerminal, args: List<String>) {
+      if (args.size == 1) {
+        currentDir = home
+      } else {
+        currentDir = when (args[1]) {
+          "." -> currentDir
+          ".." -> Path(currentDir, "..")
+          else -> if (args[1].startsWith(SystemPathSeparator)) Path(args[1]) else Path(
+            currentDir,
+            args[1]
+          )
+        }
+        currentDir = SystemFileSystem.resolve(currentDir)
       }
-      path = SystemFileSystem.resolve(path)
+      println("changed to $currentDir")
     }
-    kTerminal.terminal.println("changed to $path")
   }
-
-  override fun helpText(): String = "cd: change the current directory"
 }
+
 
 object TomlTestCommand : CommandHandler {
   override fun matches(args: List<String>): Boolean = args.firstOrNull() == "tomlTest"
@@ -110,7 +112,10 @@ object TomlTestCommand : CommandHandler {
     args: List<String>
   ) {
 
-    val path = SystemFileSystem.resolve(Path(args[1]))
+    //val p=  if (args[1].startsWith("..")) Path(CdCommand.path,args[1]) else Path(args[1])
+    val p = Path(args[1])
+
+    val path = SystemFileSystem.resolve(p)
 
     kTerminal.terminal.println("path: $path")
     val lines = sequence {
@@ -122,7 +127,7 @@ object TomlTestCommand : CommandHandler {
         }
       }
     }
-    kTerminal.terminal.println("LINES: ${lines.toList()}")
+    //kTerminal.terminal.println("LINES: ${lines.toList()}")
 
     val file = TomlParser(TomlInputConfig()).parseLines(lines)
     kTerminal.terminal.println("file: ${file.prettyStr()}")

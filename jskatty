@@ -1,7 +1,7 @@
 #!/bin/bash
 cd `dirname "$0"`
 ./gradlew  :demo:jsDevelopmentExecutableCompileSync :demo:kotlinNodeJsSetup :kotlinYarnSetup :kotlinNpmInstall  || exit 1
-exec node build/js/node_modules/katty-demo/kotlin/katty-demo.js
+exec node build/js/node_modules/katty-demo/kotlin/katty-demo.js "$@"
 
 #TMPFILE=`mktemp`
 #./gradlew --console=plain :demo:getShadowJar | tee $TMPFILE
