@@ -1,18 +1,12 @@
 package io.github.danbrough.katty
 
-import com.akuleshov7.ktoml.TomlInputConfig
-import com.akuleshov7.ktoml.TomlOutputConfig
-import com.akuleshov7.ktoml.parsers.TomlParser
-import com.akuleshov7.ktoml.writers.TomlWriter
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.files.SystemPathSeparator
-import kotlinx.io.readLine
 import kotlin.time.Clock
 
 open class BasicCommand(
@@ -103,39 +97,3 @@ object Bash {
 }
 
 
-object TomlTestCommand : CommandHandler {
-  override fun matches(args: List<String>): Boolean = args.firstOrNull() == "tomlTest"
-  override fun helpText(): String = "tomlTest: usage: tomlTest [path to file]"
-
-  override fun exec(
-    kTerminal: KTerminal,
-    args: List<String>
-  ) {
-
-    //val p=  if (args[1].startsWith("..")) Path(CdCommand.path,args[1]) else Path(args[1])
-    val p = Path(args[1])
-
-    val path = SystemFileSystem.resolve(p)
-
-    kTerminal.terminal.println("path: $path")
-    val lines = sequence {
-      SystemFileSystem.source(path).buffered().use { source ->
-        while (true) {
-          val line = source.readLine() ?: return@sequence
-          kTerminal.terminal.println("LINE [$line]")
-          yield(line)
-        }
-      }
-    }
-    //kTerminal.terminal.println("LINES: ${lines.toList()}")
-
-    val file = TomlParser(TomlInputConfig()).parseLines(lines)
-    kTerminal.terminal.println("file: ${file.prettyStr()}")
-    kTerminal.cursorPos = 0
-    TomlWriter(TomlOutputConfig()).writeToString(file).also {
-      kTerminal.terminal.println("file2: $it")
-    }
-
-  }
-
-}

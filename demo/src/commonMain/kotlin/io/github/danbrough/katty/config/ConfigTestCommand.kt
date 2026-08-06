@@ -1,5 +1,7 @@
 package io.github.danbrough.katty.config
 
+import com.akuleshov7.ktoml.TomlInputConfig
+import com.akuleshov7.ktoml.parsers.TomlParser
 import com.github.ajalt.mordant.markdown.Markdown
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.table.horizontalLayout
@@ -40,6 +42,7 @@ class EnvConfigSource(val nameMap: (String) -> String = { it.uppercase().replace
 }
 
 
+
 @Suppress("SpellCheckingInspection")
 private fun KTerminal.configTest(args: List<String>) {
   val mapConfig = HashtableConfigSource()
@@ -55,16 +58,6 @@ private fun KTerminal.configTest(args: List<String>) {
     println("$it: ${TextColors.yellow(config[it] ?: "not set")}")
   }
 
-  terminal.render(horizontalLayout {
-    cell("Spinner:")
-    cell(Spinner.Dots(initial = 2))
-  })
 
-  terminal.println("SPINNER DONE")
 
-  """
-    # Test Title
-  """.trimIndent().also {
-    Markdown(it).render(terminal)
-  }
 }

@@ -5,6 +5,7 @@ import com.github.ajalt.mordant.terminal.Terminal
 import io.github.danbrough.katty.Bash.DateCommandHandler
 import io.github.danbrough.katty.Bash.PwdCommand
 import io.github.danbrough.katty.config.ConfigTestCommand
+import io.github.danbrough.katty.config.DemoTomlCommand
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 
@@ -36,10 +37,15 @@ fun demoMain(args: Array<String>) {
       DemoMarkdownCommand,
       Bash.CdCommand,
       ConfigTestCommand,
-      TomlTestCommand,
+      DemoTomlCommand,
     )
   )
 
-  if (args.isNotEmpty()) terminal.runCommand(args.toList(), printNewLine = false)
-  else terminal.run()
+  if (args.isNotEmpty()) {
+    val interactive = args.firstOrNull() == "-i"
+    val cmdArgs = if (interactive) args.drop(1) else args.toList()
+    terminal.runCommand(cmdArgs, printNewLine = false)
+    if (!interactive) return
+  }
+  terminal.run()
 }

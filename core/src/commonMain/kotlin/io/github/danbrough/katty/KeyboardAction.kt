@@ -4,6 +4,7 @@ import com.github.ajalt.mordant.input.KeyboardEvent
 import com.github.ajalt.mordant.input.enterRawMode
 import com.github.ajalt.mordant.input.isCtrlC
 import com.github.ajalt.mordant.rendering.TextStyles
+import com.github.ajalt.mordant.terminal.CursorMovements
 import kotlinx.io.SystemLineSeparator
 
 enum class KeyboardActionResult {
@@ -109,9 +110,7 @@ object KeyboardActions {
       val cmdLine = currentLine.toString().also {
         currentLine.clear()
       }
-      history.addToHistory(cmdLine)
       runCommand(cmdLine)
-
     } else {
       terminal.rawPrint("$SystemLineSeparator${prompt()}")
       cursorPos = promptLength
@@ -250,9 +249,22 @@ object KeyboardActions {
     showHistory(false)
     KeyboardActionResult.CONTINUE
   }
+
+  val CtrlArrowLeft = KeyboardAction({ isCtrl("ArrowLeft") }) {
+    ctrlArrowLeft()
+    KeyboardActionResult.CONTINUE
+  }
+
+  val CtrlArrowRight = KeyboardAction({ isCtrl("ArrowRight") }) {
+    ctrlArrowRight()
+    KeyboardActionResult.CONTINUE
+  }
+
   val DefaultActions =
     listOf(
       CtrlDCtrlCToExit,
+      CtrlArrowLeft,
+      CtrlArrowRight,
       SearchAction,
       Enter,
       LeftArrow,
@@ -279,3 +291,67 @@ val KeyboardEvent.isCtrlW: Boolean
   get() = isCtrl("w")
 
 
+private fun KTerminal.skipWhitespaceLeft(cursorMovements: CursorMovements): Boolean {
+  var skippedAny = false
+  while (linePos > 0 && (linePos >= currentLine.length || currentLine[linePos].isLetterOrDigit())) {
+    skippedAny = true
+    cursorPos--
+    cursorMovements.left(1)
+  }
+  return skippedAny
+}
+
+private fun KTerminal.skipToWordStartLeft(cursorMovements: CursorMovements): Boolean {
+  var skippedAny = false
+  while (linePos > 1 && (!currentLine[linePos - 1].isWhitespace())) {
+    skippedAny = true
+    cursorPos--
+    cursorMovements.left(1)
+  }
+  return skippedAny
+}
+
+private fun KTerminal.ctrlArrowLeft() {
+  if (cursorPos <= promptLength) return
+  terminal.cursor.move {
+    terminal.cursor.hide(true)
+
+    while (linePos >= currentLine.length) {
+      left(1)
+      cursorPos--
+    }
+
+    while (linePos > 0 && !currentLine[linePos - 1].isLetterOrDigit()) {
+      left(1)
+      cursorPos--
+    }
+
+    while (linePos > 0 && currentLine[linePos - 1].isLetterOrDigit()) {
+      left(1)
+      cursorPos--
+    }
+
+    terminal.cursor.show()
+  }
+}
+
+
+private fun KTerminal.ctrlArrowRight() {
+  if (linePos >= currentLine.length - 1) return
+  terminal.cursor.move {
+    terminal.cursor.hide(true)
+
+    if (linePos < currentLine.length){
+      right(1)
+      cursorPos++
+    }
+
+    while(linePos > 0 && linePos < currentLine.length){
+      if (currentLine[linePos-1].isLetterOrDigit() && !currentLine[linePos].isLetterOrDigit()) break
+      right(1)
+      cursorPos++
+    }
+
+    terminal.cursor.show()
+  }
+}

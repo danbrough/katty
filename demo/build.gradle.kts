@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.konan.target.KonanTarget
 
 plugins {
   alias(libs.plugins.kotlin.multiplatform)
+  alias(libs.plugins.kotlinx.serialization)
   alias(libs.plugins.shadow)
 }
 
@@ -69,10 +70,6 @@ tasks.withType<NodeJsExec>().configureEach {
     println("JS MODULES DIR: ${this@configureEach.npmProject.nodeModulesDir.get()}")
   }
 }
-
-
-
-
 
 tasks.register("getShadowJar") {
   description = "Creates and prints the name of the shadow jar"

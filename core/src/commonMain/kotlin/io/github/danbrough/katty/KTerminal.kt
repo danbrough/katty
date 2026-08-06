@@ -10,15 +10,22 @@ import kotlinx.io.files.Path
 
 
 open class KTerminal(val terminal: Terminal, val history: History) {
-  constructor(terminal: Terminal = Terminal(interactive = true),historyFile: Path? = null) : this(
+  constructor(terminal: Terminal = Terminal(interactive = true), historyFile: Path? = null) : this(
     terminal,
     DefaultHistory(historyFile)
   )
+
+  init {
+    history.loadHistory()
+  }
 
   var cursorPos: Int = 0
   var promptLength: Int = 0
 
   var currentLine: StringBuilder = StringBuilder()
+
+  val linePos: Int
+    get() = cursorPos - promptLength
 
   /**
    * Must update the [promptLength] property with the character length of the prompt returned
@@ -38,7 +45,11 @@ open class KTerminal(val terminal: Terminal, val history: History) {
 
   fun println(message: String = "") = print("$message$SystemLineSeparator")
   fun print(message: String) = terminal.print(message)
-  open fun runCommand(cmdLine: String) = runCommand(parseCommandLineArgs(cmdLine))
+  open fun runCommand(cmdLine: String) {
+    runCommand(parseCommandLineArgs(cmdLine))
+    history.addToHistory(cmdLine)
+    history.saveHistory()
+  }
 
   open fun runCommand(args: List<String>, printNewLine: Boolean = true) {
     //terminal.rawPrint("${SystemLineSeparator}running command: <$cmdLine>")
@@ -138,7 +149,6 @@ open class KTerminal(val terminal: Terminal, val history: History) {
   }
 
   fun run() {
-    history.loadHistory()
     runCatching {
       cmdLoop()
     }.exceptionOrNull().also { err ->
