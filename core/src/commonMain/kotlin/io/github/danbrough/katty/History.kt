@@ -9,6 +9,11 @@ import kotlinx.io.writeString
 interface History {
   val maxSize: Int
   val history: List<String>
+  /**
+   * Whether to move old entries to the front of the list.
+   */
+  val uniqueEntries: Boolean
+
   fun loadHistory()
   fun saveHistory()
 
@@ -20,6 +25,7 @@ interface History {
 open class DefaultHistory(
   val historyFile: Path? = null,
   override val maxSize: Int = 1000,
+  override val uniqueEntries: Boolean = true,
   override val history: MutableList<String> = mutableListOf()
 ) : History {
 
@@ -60,6 +66,7 @@ open class DefaultHistory(
   } else null
 
   override fun addToHistory(line: String) {
+    history.remove(line)
     history.add(line)
     if (history.size > maxSize)
       history.removeFirst()

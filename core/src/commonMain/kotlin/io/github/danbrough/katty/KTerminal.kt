@@ -95,9 +95,13 @@ open class KTerminal(val terminal: Terminal, val history: History) {
           currentLine.insert(cursorPos - promptLength, c)
           cursorPos++
           val restOfLine = currentLine.substring(cursorPos - promptLength - 1)
-          terminal.rawPrint(restOfLine)
+
           terminal.cursor.move {
+            terminal.cursor.hide(true)
+            clearLineAfterCursor()
+            terminal.rawPrint(restOfLine)
             left(restOfLine.length - 1)
+            terminal.cursor.show()
           }
         } else {
           handleUnknownKey(firstKey)
@@ -119,13 +123,18 @@ open class KTerminal(val terminal: Terminal, val history: History) {
 
   open fun showHistory(up: Boolean) {
     val line = (if (up) history.previous() else history.next()) ?: return
+
     terminal.cursor.move {
-      left(cursorPos - promptLength)
+      terminal.cursor.hide(true)
+      startOfLine()
+      right(promptLength)
       clearLineAfterCursor()
     }
+
     terminal.rawPrint(line)
+    terminal.cursor.show()
     cursorPos = line.length + promptLength
-    currentLine.clear().insert(0, line)
+    currentLine.clear().append(line)
   }
 
   fun run() {
