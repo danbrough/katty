@@ -6,6 +6,7 @@ import com.github.ajalt.mordant.input.isCtrlC
 import com.github.ajalt.mordant.rendering.TextStyles
 import com.github.ajalt.mordant.terminal.CursorMovements
 import kotlinx.io.SystemLineSeparator
+import kotlinx.io.files.FileNotFoundException
 
 enum class KeyboardActionResult {
   CONTINUE, EXIT, ADD_TO_LINE
@@ -13,97 +14,24 @@ enum class KeyboardActionResult {
 
 open class KeyboardAction(
   val matcher: KeyboardEvent.() -> Boolean,
-  private val action: KTerminal.(KeyboardEvent) -> KeyboardActionResult = { KeyboardActionResult.CONTINUE }
+  private val action: KTerminal.(KeyboardEvent) -> Unit = { }
 ) {
-  open operator fun invoke(kTerminal: KTerminal, event: KeyboardEvent): KeyboardActionResult =
+  open operator fun invoke(kTerminal: KTerminal, event: KeyboardEvent): Unit =
     action(kTerminal, event)
 }
 
 object KeyboardActions {
+
+  val ExitException = Exception("Ctrl-C or Ctrl-D pressed")
+
+
   val CtrlDCtrlCToExit = KeyboardAction({ isCtrlD || isCtrlC }) {
-    KeyboardActionResult.EXIT
+    throw ExitException
   }
 
-  object SearchAction : KeyboardAction({ isCtrlR }) {
-    override fun invoke(kTerminal: KTerminal, event: KeyboardEvent): KeyboardActionResult {
-      val terminal = kTerminal.terminal
-      val searchPrompt: (String) -> String = {
-        "search `$it`: "
-      }
-
-      var searchTerm = ""
-
-      while (true) {
-        val prompt = searchPrompt(searchTerm)
-        val searchPromptLength = prompt.length
-        var match: String? = null
-
-        terminal.cursor.move {
-          startOfLine()
-          clearLineAfterCursor()
-        }
-        terminal.rawPrint(prompt)
-
-        if (searchTerm.isNotBlank()) {
-          kTerminal.history.history.firstOrNull {
-            it.contains(searchTerm)
-          }?.also { result ->
-            match = result
-            terminal.rawPrint(
-              result.replace(
-                searchTerm,
-                TextStyles.inverse(searchTerm)
-              )
-            )
-          }
-        }
-        val firstKey = terminal.enterRawMode().use { raw ->
-          raw.readKeyOrNull()!!
-        }
-        //println(firstKey)
-
-        if (firstKey.key == "Backspace" && searchTerm.isNotEmpty()) {
-          searchTerm = searchTerm.substring(0, searchTerm.length - 1)
-          terminal.cursor.move {
-            startOfLine()
-            right(searchPromptLength)
-            clearLineAfterCursor()
-          }
-          continue
-        }
-
-        if (firstKey.key == "Escape") {
-          break
-        }
-
-        if (firstKey.key == "Enter" && match != null) {
-          kTerminal.cursorPos = 0
-          kTerminal.currentLine.clear()
-          terminal.cursor.move {
-            startOfLine()
-            clearLine()
-          }
-          kTerminal.runCommand(match)
-          return KeyboardActionResult.CONTINUE
-        }
-
-        if (firstKey.key.length == 1) {
-          searchTerm += firstKey.key
-        }
-      }
-
-
-      kTerminal.cursorPos = 0
-      kTerminal.currentLine.clear()
-      terminal.cursor.move {
-        startOfLine()
-        clearLine()
-      }
-      //terminal.println()
-      return KeyboardActionResult.CONTINUE
-    }
+  val SearchAction = KeyboardAction({ isCtrlR }) {
+    searchAction()
   }
-
 
   val Enter = KeyboardAction({ key == "Enter" }) {
     if (currentLine.isNotBlank()) {
@@ -115,7 +43,7 @@ object KeyboardActions {
       terminal.rawPrint("$SystemLineSeparator${prompt()}")
       cursorPos = promptLength
     }
-    KeyboardActionResult.CONTINUE
+
   }
 
   val LeftArrow = KeyboardAction({ key == "ArrowLeft" }) {
@@ -125,7 +53,7 @@ object KeyboardActions {
         left(1)
       }
     }
-    KeyboardActionResult.CONTINUE
+
   }
 
   val RightArrow = KeyboardAction({ key == "ArrowRight" }) {
@@ -135,7 +63,7 @@ object KeyboardActions {
         right(1)
       }
     }
-    KeyboardActionResult.CONTINUE
+
   }
 
   val Backspace = KeyboardAction({ key == "Backspace" }) {
@@ -153,7 +81,7 @@ object KeyboardActions {
         left(restOfLine.length)
       }
     }
-    KeyboardActionResult.CONTINUE
+
   }
 
   val Home = KeyboardAction({ key == "Home" || isCtrl("a") }) {
@@ -162,11 +90,11 @@ object KeyboardActions {
       startOfLine()
       right(cursorPos)
     }
-    KeyboardActionResult.CONTINUE
+
   }
 
   object End : KeyboardAction({ key == "End" || isCtrl("e") }) {
-    override fun invoke(kTerminal: KTerminal, event: KeyboardEvent): KeyboardActionResult {
+    override fun invoke(kTerminal: KTerminal, event: KeyboardEvent) {
       kTerminal.run {
         cursorPos = promptLength + currentLine.length
         terminal.cursor.move {
@@ -174,16 +102,15 @@ object KeyboardActions {
           right(cursorPos)
         }
       }
-      return KeyboardActionResult.CONTINUE
     }
   }
 
   object CtrlW : KeyboardAction({ isCtrlW }) {
-    override fun invoke(kTerminal: KTerminal, event: KeyboardEvent): KeyboardActionResult {
+    override fun invoke(kTerminal: KTerminal, event: KeyboardEvent) {
       kTerminal.run {
-        if (currentLine.isBlank()) return KeyboardActionResult.CONTINUE
+        if (currentLine.isBlank()) return
         var index = cursorPos - promptLength
-        if (index == 0) return KeyboardActionResult.CONTINUE
+        if (index == 0) return
 
         fun currentCharIsWhitespace(): Boolean =
           index < currentLine.length && currentLine[index].isWhitespace()
@@ -211,7 +138,7 @@ object KeyboardActions {
           terminal.cursor.move {
             left(restOfLine.length)
           }
-          return KeyboardActionResult.CONTINUE
+          return
         }
 
         //else previousCharIsWhitespace
@@ -237,27 +164,27 @@ object KeyboardActions {
         }
       }
 
-      return KeyboardActionResult.CONTINUE
+      return
     }
   }
 
   val ArrowUp = KeyboardAction({ key == "ArrowUp" }) {
     showHistory(true)
-    KeyboardActionResult.CONTINUE
+
   }
   val ArrowDown = KeyboardAction({ key == "ArrowDown" }) {
     showHistory(false)
-    KeyboardActionResult.CONTINUE
+
   }
 
   val CtrlArrowLeft = KeyboardAction({ isCtrl("ArrowLeft") }) {
     ctrlArrowLeft()
-    KeyboardActionResult.CONTINUE
+
   }
 
   val CtrlArrowRight = KeyboardAction({ isCtrl("ArrowRight") }) {
     ctrlArrowRight()
-    KeyboardActionResult.CONTINUE
+
   }
 
   val DefaultActions =
@@ -341,17 +268,94 @@ private fun KTerminal.ctrlArrowRight() {
   terminal.cursor.move {
     terminal.cursor.hide(true)
 
-    if (linePos < currentLine.length){
+    if (linePos < currentLine.length) {
       right(1)
       cursorPos++
     }
 
-    while(linePos > 0 && linePos < currentLine.length){
-      if (currentLine[linePos-1].isLetterOrDigit() && !currentLine[linePos].isLetterOrDigit()) break
+    while (linePos > 0 && linePos < currentLine.length) {
+      if (currentLine[linePos - 1].isLetterOrDigit() && !currentLine[linePos].isLetterOrDigit()) break
       right(1)
       cursorPos++
     }
 
     terminal.cursor.show()
+  }
+}
+
+
+private fun KTerminal.searchAction() {
+
+  val searchPrompt: (String) -> String = {
+    "search `$it`: "
+  }
+
+  var searchTerm = ""
+
+  while (true) {
+    val prompt = searchPrompt(searchTerm)
+    val searchPromptLength = prompt.length
+    var match: String? = null
+
+    terminal.cursor.move {
+      startOfLine()
+      clearLineAfterCursor()
+    }
+    terminal.rawPrint(prompt)
+
+    if (searchTerm.isNotBlank()) {
+      history.history.firstOrNull {
+        it.contains(searchTerm)
+      }?.also { result ->
+        match = result
+        terminal.rawPrint(
+          result.replace(
+            searchTerm,
+            TextStyles.inverse(searchTerm)
+          )
+        )
+      }
+    }
+    val firstKey = terminal.enterRawMode().use { raw ->
+      raw.readKeyOrNull()!!
+    }
+    //println(firstKey)
+
+    if (firstKey.key == "Backspace" && searchTerm.isNotEmpty()) {
+      searchTerm = searchTerm.substring(0, searchTerm.length - 1)
+      terminal.cursor.move {
+        startOfLine()
+        right(searchPromptLength)
+        clearLineAfterCursor()
+      }
+      continue
+    }
+
+    if (firstKey.key == "Escape") {
+      break
+    }
+
+    if (firstKey.key == "Enter" && match != null) {
+      cursorPos = 0
+      currentLine.clear()
+      terminal.cursor.move {
+        startOfLine()
+        clearLine()
+      }
+      runCommand(match)
+      return
+    }
+
+    if (firstKey.key.length == 1) {
+      searchTerm += firstKey.key
+    }
+  }
+
+
+  cursorPos = 0
+  currentLine.clear()
+  terminal.cursor.move {
+    startOfLine()
+    clearLine()
   }
 }

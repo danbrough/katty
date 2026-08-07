@@ -44,6 +44,7 @@ open class KTerminal(val terminal: Terminal, val history: History) {
 
 
   fun println(message: String = "") = print("$message$SystemLineSeparator")
+
   fun print(message: String) = terminal.print(message)
   open fun runCommand(cmdLine: String) {
     runCommand(parseCommandLineArgs(cmdLine))
@@ -82,24 +83,16 @@ open class KTerminal(val terminal: Terminal, val history: History) {
 
     terminal.enterRawMode().use { rawMode ->
 
-      while (true) {
+      loop@ while (true) {
         if (cursorPos == 0)
           printPrompt(newLine = false)
 
 
         val firstKey = rawMode.readKeyOrNull()!!
 
-        val actionResult =
-          keyboardActions.firstOrNull { it.matcher(firstKey) }?.invoke(this, firstKey)
-        when (actionResult) {
-          KeyboardActionResult.EXIT -> {
-            terminal.println()
-            return
-          }
+        keyboardActions.firstOrNull { it.matcher(firstKey) }?.invoke(this, firstKey)
+          ?.run { continue@loop }
 
-          KeyboardActionResult.CONTINUE -> continue
-          KeyboardActionResult.ADD_TO_LINE, null -> {}
-        }
 
         if (!firstKey.ctrl && !firstKey.alt && firstKey.key.length == 1) {
           val c = firstKey.key.first()
@@ -130,8 +123,6 @@ open class KTerminal(val terminal: Terminal, val history: History) {
     cursorPos = 0
     currentLine.clear()
   }
-
-
   open fun showHistory(up: Boolean) {
     val line = (if (up) history.previous() else history.next()) ?: return
 
@@ -148,6 +139,10 @@ open class KTerminal(val terminal: Terminal, val history: History) {
     currentLine.clear().append(line)
   }
 
+  open fun goodBye(){
+    println("${SystemLineSeparator}Bye!")
+  }
+
   fun run() {
     runCatching {
       cmdLoop()
@@ -157,7 +152,9 @@ open class KTerminal(val terminal: Terminal, val history: History) {
       }.exceptionOrNull()?.also {
         it.printStackTrace()
       }
-      if (err != null) throw err
+      if (err == KeyboardActions.ExitException) {
+        goodBye()
+      } else if (err != null) throw err
     }
   }
 }
