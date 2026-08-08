@@ -9,18 +9,6 @@ import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.files.SystemPathSeparator
 import kotlin.time.Clock
 
-open class BasicCommand(
-  val name: String,
-  val description: String,
-  val job: (KTerminal.(args: List<String>) -> Unit)? = null
-) : CommandHandler {
-  override fun matches(args: List<String>): Boolean = args.firstOrNull() == name
-  override fun exec(kTerminal: KTerminal, args: List<String>) =
-    job?.invoke(kTerminal, args) ?: error("Exec for $name not implemented")
-
-  override fun helpText(): String = "$name: $description"
-
-}
 
 
 /**
@@ -66,7 +54,9 @@ object Bash {
   var currentDir: Path = SystemFileSystem.resolve(Path("."))
 
   val DateCommandHandler = BasicCommand("date", "prints the date") {
-    println("The date is ${Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())}")
+    val date = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+    context["date"] = date
+    println("The date is $date")
   }
 
   val PwdCommand = BasicCommand("pwd", "prints the current working directory") {

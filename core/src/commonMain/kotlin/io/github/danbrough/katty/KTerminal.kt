@@ -9,7 +9,7 @@ import kotlinx.io.SystemLineSeparator
 import kotlinx.io.files.Path
 
 
-open class KTerminal(val terminal: Terminal, val history: History) {
+open class KTerminal(var terminal: Terminal, val history: History) {
   constructor(terminal: Terminal = Terminal(interactive = true), historyFile: Path? = null) : this(
     terminal,
     DefaultHistory(historyFile)
@@ -18,6 +18,11 @@ open class KTerminal(val terminal: Terminal, val history: History) {
   init {
     history.loadHistory()
   }
+
+  /**
+   * Shared context for all commands.
+   */
+  val context = mutableMapOf<String,Any>()
 
   var cursorPos: Int = 0
   var promptLength: Int = 0
@@ -36,7 +41,7 @@ open class KTerminal(val terminal: Terminal, val history: History) {
       TextStyles.bold(TextColors.brightGreen(it))
     }
   }
-  val commandHandlers: MutableList<CommandHandler> = mutableListOf(HelpCommand())
+  val commandHandlers: MutableList<CommandHandler> = mutableListOf(HelpCommand(),ContextCommand)
   val keyboardActions: MutableList<KeyboardAction> = mutableListOf()
 
   protected open fun registerDefaultKeyboardActions() =
@@ -47,13 +52,13 @@ open class KTerminal(val terminal: Terminal, val history: History) {
 
   fun print(message: String) = terminal.print(message)
   open fun runCommand(cmdLine: String) {
-    runCommand(parseCommandLineArgs(cmdLine))
-    history.addToHistory(cmdLine)
+    val args = cmdLine.trim()
+    runCommand(parseCommandLineArgs(args))
+    history.addToHistory(args)
     history.saveHistory()
   }
 
   open fun runCommand(args: List<String>, printNewLine: Boolean = true) {
-    //terminal.rawPrint("${SystemLineSeparator}running command: <$cmdLine>")
     if (printNewLine)
       terminal.println()
     cursorPos = 0
@@ -64,7 +69,6 @@ open class KTerminal(val terminal: Terminal, val history: History) {
         it.exec(this, args)
       }
     }.exceptionOrNull()?.also {
-      //terminal.rawPrint(terminal.theme.danger("Error: ${it.message}$SystemLineSeparator"))
       terminal.println(terminal.theme.danger(it.stackTraceToString()))
     }
   }
@@ -142,7 +146,6 @@ open class KTerminal(val terminal: Terminal, val history: History) {
   open fun goodBye(){
     println("${SystemLineSeparator}Bye!")
   }
-
   fun run() {
     runCatching {
       cmdLoop()
