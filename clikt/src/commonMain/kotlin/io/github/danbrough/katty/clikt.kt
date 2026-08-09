@@ -1,5 +1,6 @@
 package io.github.danbrough.katty
 
+/*
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.CliktError
 import com.github.ajalt.clikt.core.Context
@@ -7,7 +8,7 @@ import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.parse
 
 
-open class CliktDefaultCommandHandler(val kTerminal: KTerminal) : CommandHandler, CliktCommand("katty") {
+open class CliktDefaultCommandHandler(val kTerminal: KTerminal) :  CliktCommand("katty") {
 
   override val allowMultipleSubcommands: Boolean = true
 
@@ -50,4 +51,5 @@ val CliktCommand.kTerminal: KTerminal
 
 
 
+*/
 

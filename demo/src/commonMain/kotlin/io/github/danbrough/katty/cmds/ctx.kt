@@ -3,18 +3,17 @@ package io.github.danbrough.katty.cmds
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.CliktError
 import com.github.ajalt.clikt.core.Context
-import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.core.parse
 import com.github.ajalt.clikt.parameters.options.defaultLazy
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
-import io.github.danbrough.katty.CommandHandler
+import io.github.danbrough.katty.CommandHandlerOld
 import io.github.danbrough.katty.KTerminal
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 
-abstract class CliktCommandHandler(name: String) : CliktCommand(name), CommandHandler {
+abstract class CliktCommandHandler(name: String) : CliktCommand(name), CommandHandlerOld {
 
   override fun matches(args: List<String>): Boolean = args.firstOrNull() == commandName
 

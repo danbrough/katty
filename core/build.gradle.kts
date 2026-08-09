@@ -27,8 +27,7 @@ kotlin {
     commonMain {
       dependencies {
         api(libs.mordant)
-        api(libs.mordant.markdown)
-
+        //api(libs.mordant.markdown)
         api(libs.kotlinx.io.core)
         implementation(libs.ktoml.core)
       }

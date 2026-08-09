@@ -6,23 +6,17 @@ import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
 import com.github.ajalt.mordant.terminal.Terminal
 import kotlinx.io.SystemLineSeparator
-import kotlinx.io.files.Path
 
 
-open class KTerminal(var terminal: Terminal, val history: History) {
-  constructor(terminal: Terminal = Terminal(interactive = true), historyFile: Path? = null) : this(
-    terminal,
-    DefaultHistory(historyFile)
-  )
+open class KTerminal(
+  val commandHandler: CommandHandler,
+  val history: History = DefaultHistory(),
+  var terminal: Terminal = Terminal()
+) {
 
   init {
     history.loadHistory()
   }
-
-  /**
-   * Shared context for all commands.
-   */
-  val context = mutableMapOf<String,Any>()
 
   var cursorPos: Int = 0
   var promptLength: Int = 0
@@ -33,15 +27,14 @@ open class KTerminal(var terminal: Terminal, val history: History) {
     get() = cursorPos - promptLength
 
   /**
-   * Must update the [promptLength] property with the character length of the prompt returned
+   * Return the string length of the current prompt and the formatted prompt
    */
-  var prompt: KTerminal.() -> String = {
+  var prompt: KTerminal.() -> Pair<Int, String> = {
     $$"$ ".let {
-      promptLength = it.length
-      TextStyles.bold(TextColors.brightGreen(it))
+      it.length to TextStyles.bold(TextColors.brightGreen(it))
     }
   }
-  val commandHandlers: MutableList<CommandHandler> = mutableListOf(HelpCommand(),ContextCommand)
+
   val keyboardActions: MutableList<KeyboardAction> = mutableListOf()
 
   protected open fun registerDefaultKeyboardActions() =
@@ -65,18 +58,19 @@ open class KTerminal(var terminal: Terminal, val history: History) {
     currentLine.clear()
 
     runCatching {
-      commandHandlers.filter { it.matches(args) }.forEach {
-        it.exec(this, args)
-      }
+      commandHandler.runCommand(this, args)
     }.exceptionOrNull()?.also {
       terminal.println(terminal.theme.danger(it.stackTraceToString()))
     }
   }
 
   fun printPrompt(newLine: Boolean = true) {
-    terminal.rawPrint("${if (newLine) SystemLineSeparator else ""}${prompt()}")
-    cursorPos = promptLength
-    currentLine.clear()
+    prompt().also { p ->
+      terminal.rawPrint("${if (newLine) SystemLineSeparator else ""}${p.second}")
+      promptLength = p.first
+      cursorPos = promptLength
+      currentLine.clear()
+    }
   }
 
   fun cmdLoop() {
@@ -127,6 +121,7 @@ open class KTerminal(var terminal: Terminal, val history: History) {
     cursorPos = 0
     currentLine.clear()
   }
+
   open fun showHistory(up: Boolean) {
     val line = (if (up) history.previous() else history.next()) ?: return
 
@@ -143,9 +138,10 @@ open class KTerminal(var terminal: Terminal, val history: History) {
     currentLine.clear().append(line)
   }
 
-  open fun goodBye(){
+  open fun goodBye() {
     println("${SystemLineSeparator}Bye!")
   }
+
   fun run() {
     runCatching {
       cmdLoop()

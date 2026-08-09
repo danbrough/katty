@@ -15,12 +15,9 @@ import kotlin.time.Clock
  * Some shell commands for the demo
  */
 
-object LsCommandHandler : CommandHandler {
+object LsCommandHandler : CommandHandlerOld {
   override fun matches(args: List<String>): Boolean = args.firstOrNull() == "ls"
 
-  override fun addCompletion(completions: MutableList<String>) {
-
-  }
 
   override fun exec(kTerminal: KTerminal, args: List<String>) {
     val dir = if (args.size == 1) Bash.currentDir else {
@@ -55,7 +52,6 @@ object Bash {
 
   val DateCommandHandler = BasicCommand("date", "prints the date") {
     val date = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-    context["date"] = date
     println("The date is $date")
   }
 

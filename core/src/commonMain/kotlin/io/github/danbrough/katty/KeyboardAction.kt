@@ -40,8 +40,7 @@ object KeyboardActions {
       }
       runCommand(cmdLine)
     } else {
-      terminal.rawPrint("$SystemLineSeparator${prompt()}")
-      cursorPos = promptLength
+      printPrompt(true)
     }
 
   }
@@ -53,6 +52,7 @@ object KeyboardActions {
         left(1)
       }
     }
+
 
   }
 
@@ -90,7 +90,6 @@ object KeyboardActions {
       startOfLine()
       right(cursorPos)
     }
-
   }
 
   object End : KeyboardAction({ key == "End" || isCtrl("e") }) {

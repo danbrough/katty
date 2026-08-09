@@ -1,5 +1,8 @@
 package io.github.danbrough.katty
 
+/**
+ * Parse the [input] into a list of command-line arguments
+ */
 fun parseCommandLineArgs(input: String): List<String> {
   val args = mutableListOf<String>()
   val current = StringBuilder()
