@@ -42,7 +42,7 @@ kotlin {
         implementation(libs.kotlinx.io.core)
         implementation(libs.ktoml.core)
         implementation(libs.mordant.markdown)
-        implementation(libs.clikt)
+        implementation(kotlin("reflect"))
       }
     }
   }

@@ -1,0 +1,15 @@
+#!/bin/bash
+DIRNAME="$(pwd)"
+cd `dirname "$0"` && cd ..
+ROOTDIR="$(pwd)"
+./gradlew  :clikt:jsDevelopmentExecutableCompileSync :clikt:kotlinNodeJsSetup :kotlinYarnSetup :kotlinNpmInstall  || exit 1
+exec node "$ROOTDIR/build/js/node_modules/katty-demo/kotlin/katty-demo.js" "$@"
+
+#TMPFILE=`mktemp`
+#./gradlew --console=plain :demo:getShadowJar | tee $TMPFILE
+#JARFILE=`cat $TMPFILE | awk '/shadowJar:/  {print $2}'`
+#echo jarfile: $JARFILE
+#rm $TMPFILE
+#exec java -jar $JARFILE "$@"
+
+

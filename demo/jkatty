@@ -1,14 +1,14 @@
 #!/bin/bash
-DIR="$(pwd)"
-cd `dirname "$0"`
+ROOTDIR="$(pwd)"
+cd `dirname "$0"` && cd ..
 
 TMPFILE=`mktemp`
 ./gradlew --console=plain :demo:getShadowJar | tee $TMPFILE
 JARFILE=`cat $TMPFILE | awk '/shadowJar:/  {print $2}'`
 echo jarfile: $JARFILE
 rm $TMPFILE
-echo changing to dir $DIR
-cd "$DIR"
+echo changing to dir $ROOTDIR
+cd "$ROOTDIR"
 exec java -jar $JARFILE "$@"
 
 

@@ -1,0 +1,14 @@
+#!/bin/bash
+DIR="$(pwd)"
+cd `dirname "$0"` && cd ..
+ROOTDIR="$(pwd)"
+
+if [[ $OSTYPE == darwin* ]] && [[ $HOSTTYPE == "x86_64" ]]; then
+  ./gradlew :clikt:linkKattyDebugExecutableMacosX64 || exit $?
+  cd "$DIR"
+  exec "$ROOTDIR/clikt/build/bin/macosX64/kattyDebugExecutable/katty.kexe" "$@"
+else
+  ./gradlew :clikt:linkKattyDebugExecutableLinuxX64 || exit $?
+  cd "$DIR"
+  exec "$ROOTDIR/clikt/build/bin/linuxX64/kattyDebugExecutable/katty.kexe" "$@"
+fi
