@@ -8,8 +8,8 @@ import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.widgets.Caption
 import com.github.ajalt.mordant.widgets.HorizontalRule
 
-val DemoThemeCommand = BasicCommand("demoTheme", "demo for mordant theming") {
-  demoTheme()
+val DemoThemeCommand = CommandHandler { kTerminal, _ ->
+  kTerminal.demoTheme()
 }
 
 fun KTerminal.demoTheme() {
@@ -24,8 +24,7 @@ fun KTerminal.demoTheme() {
   }
 
 
-
-  fun printBasic(theme: Theme,caption:String) {
+  fun printBasic(theme: Theme, caption: String) {
     terminal.println(Caption(HorizontalRule(), bottom = caption, bottomAlign = TextAlign.LEFT))
 
 
@@ -38,9 +37,9 @@ fun KTerminal.demoTheme() {
 
   }
 
-  printBasic(original,"Original Theme")
+  printBasic(original, "Original Theme")
 
-  printBasic(newTheme,"New Theme")
+  printBasic(newTheme, "New Theme")
 
   terminal = Terminal(theme = newTheme)
 

@@ -1,4 +1,10 @@
 package io.github.danbrough.katty
 
-class DemoCommandHandler : BasicCommandHandler() {
+class DemoCommandHandler : CommandHandler {
+  override fun runCommand(
+    kTerminal: KTerminal,
+    args: List<String>
+  ) {
+
+  }
 }

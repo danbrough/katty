@@ -1,13 +1,11 @@
 package io.github.danbrough.katty
 
 import com.github.ajalt.mordant.markdown.Markdown
-import com.github.ajalt.mordant.rendering.BorderType
-import com.github.ajalt.mordant.table.table
-import com.github.ajalt.mordant.widgets.Text
 
-val DemoMarkdownCommand = BasicCommand("markdown", "a markdown demo") {
+val DemoMarkdownCommand = CommandHandler { kTerminal, _ ->
 
-  val content = Markdown("""
+  val content = Markdown(
+    """
     # A Title
     ## A subtitle
     ### A sub subtitle
@@ -41,6 +39,7 @@ val DemoMarkdownCommand = BasicCommand("markdown", "a markdown demo") {
       "age": 25
     }
     ```
-  """.trimIndent())
-  terminal.println(content)
+  """.trimIndent()
+  )
+  kTerminal.terminal.println(content)
 }

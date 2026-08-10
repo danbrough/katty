@@ -43,8 +43,8 @@ private val blue = rgb("#2f61b4")
 private val magenta = rgb("#b02fb4")
 private val orange = rgb("#b4832f")
 
-val DemoMordantCommand = BasicCommand("mordant", "demo for mordant") {
-  demoMordant(terminal)
+val DemoMordantCommand = CommandHandler { kTerminal, _ ->
+  demoMordant(kTerminal.terminal)
 }
 
 fun demoMordant(

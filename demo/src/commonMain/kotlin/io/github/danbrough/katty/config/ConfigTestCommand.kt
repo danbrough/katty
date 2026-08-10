@@ -1,15 +1,14 @@
 package io.github.danbrough.katty.config
 
 import com.github.ajalt.mordant.rendering.TextColors
-import io.github.danbrough.katty.BasicCommand
+import io.github.danbrough.katty.CommandHandler
 import io.github.danbrough.katty.KTerminal
 import io.github.danbrough.katty.KattyUtils
 
 
-val ConfigTestCommand =
-  BasicCommand("configTest", "reads out the arguments from the configuration") {
-    configTest(it)
-  }
+val ConfigTestCommand = CommandHandler { kTerminal, args ->
+  kTerminal.configTest(args)
+}
 
 
 class HashtableConfigSource(

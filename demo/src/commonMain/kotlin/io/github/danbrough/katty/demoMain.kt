@@ -7,6 +7,11 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 
 
+open class Runner(val job: KTerminal.(List<String>) -> Unit) {
+
+  operator fun invoke(kTerminal: KTerminal, args: List<String>) = job(kTerminal, args)
+}
+
 fun demoMain(args: Array<String>) {
 
 
@@ -22,6 +27,17 @@ fun demoMain(args: Array<String>) {
 
   val terminal =
     KTerminal(commandHandler, history = DefaultHistory(Path(configDir, "history.txt")))
+
+
+  val runnerCommand = Runner { args ->
+    args.forEach {
+      println("runnerCommand: arg: $it")
+    }
+  }
+
+  val testArgs = listOf("runnerCommandArg1", "arg2", "arg3")
+
+  runnerCommand(terminal, testArgs)
 
 
   val username = KattyUtils.getEnv("USER") ?: "user"
