@@ -17,41 +17,42 @@ object Bash {
     val normal = TextColors.green
   }
 
-  val PwdCommand = TerminalCommand {
+  val PwdCommand = TerminalCommand("prints the current directory") {
     println(normal(currentDir.toString()))
   }
 
-  val DateCommand = TerminalCommand {
+  val DateCommand = TerminalCommand("prints the date") {
     println(normal(Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).toString()))
   }
 
-  val LsCommand = TerminalCommand { args ->
-    println("ARGS: $args")
-    val dir = if (args.size == 1) currentDir else {
-      val arg = args[1]
-      if (arg == ".") Bash.currentDir
-      else if (arg == "..") Path(currentDir, "..")
-      else if (arg.startsWith(SystemPathSeparator)) Path(arg)
-      else Path(currentDir, arg)
+  val LsCommand =
+    TerminalCommand("usage: ls [dir]. prints the contents of the current or the specified directory") { args ->
+
+      val dir = if (args.size == 1) currentDir else {
+        val arg = args[1]
+        if (arg == ".") currentDir
+        else if (arg == "..") Path(currentDir, "..")
+        else if (arg.startsWith(SystemPathSeparator)) Path(arg)
+        else Path(currentDir, arg)
+      }
+
+      SystemFileSystem.list(SystemFileSystem.resolve(Path(dir)))
+        .map { it to SystemFileSystem.metadataOrNull(it) }
+        .joinToString("\n") {
+          val resolvedPath = SystemFileSystem.resolve(it.first)
+          //println("resolved path: $resolvedPath path: ${it.first} equal: ${resolvedPath == it.first}")
+          val style =
+            if (it.first.toString() != resolvedPath.toString()) TextColors.brightGreen else if (it.second?.isDirectory == true) TextColors.green else
+              TextColors.white
+          TextStyles.bold(style(it.first.name))
+        }.also {
+          println(it)
+          cursorPos = 0
+        }
     }
 
-    SystemFileSystem.list(SystemFileSystem.resolve(Path(dir)))
-      .map { it to SystemFileSystem.metadataOrNull(it) }
-      .joinToString("\n") {
-        val resolvedPath = SystemFileSystem.resolve(it.first)
-        //println("resolved path: $resolvedPath path: ${it.first} equal: ${resolvedPath == it.first}")
-        val style =
-          if (it.first.toString() != resolvedPath.toString()) TextColors.brightCyan else if (it.second?.isDirectory == true) TextColors.blue else
-            TextColors.white
-        TextStyles.bold(style(it.first.name))
-      }.also {
-        println(it)
-        cursorPos = 0
-      }
-  }
 
-
-  val CdCommand = TerminalCommand { args ->
+  val CdCommand = TerminalCommand("usage: cd [dir]. changes the current directory") { args ->
 
     val home = KattyUtils.getEnv("HOME")?.let { SystemFileSystem.resolve(Path(it)) } ?: currentDir
 
