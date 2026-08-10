@@ -7,9 +7,9 @@ fun interface CommandHandler {
 
 open class TerminalCommand(
   private val helpText: String? = null,
-  private val job: KTerminal.(List<String>) -> Unit
+  private val job: (KTerminal.(List<String>) -> Unit)? = null
 ) {
-  open operator fun invoke(kTerminal: KTerminal, args: List<String>) = job(kTerminal, args)
+  open operator fun invoke(kTerminal: KTerminal, args: List<String>) = job?.invoke(kTerminal, args)
 
   fun helpText(): String? = helpText
 }

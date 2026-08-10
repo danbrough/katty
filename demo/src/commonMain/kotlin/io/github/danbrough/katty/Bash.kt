@@ -3,7 +3,13 @@ package io.github.danbrough.katty
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
 import io.github.danbrough.katty.Bash.Theme.normal
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format
+import kotlinx.datetime.format.DayOfWeekNames
+import kotlinx.datetime.format.MonthNames
+import kotlinx.datetime.format.Padding
+import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
@@ -21,8 +27,34 @@ object Bash {
     println(normal(currentDir.toString()))
   }
 
-  val DateCommand = TerminalCommand("prints the date") {
-    println(normal(Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).toString()))
+  val DateCommand = object : TerminalCommand("prints the date") {
+    val format = LocalDateTime.Format {
+      year()
+      char('-')
+      monthNumber()
+      char('-')
+      day(padding = Padding.ZERO)
+
+      char(' ')
+      dayOfWeek(DayOfWeekNames.ENGLISH_ABBREVIATED)
+      char(' ')
+      monthName(MonthNames.ENGLISH_ABBREVIATED)
+      char(' ')
+      day(padding = Padding.SPACE)
+      char(' ')
+
+
+      hour()
+      char(':')
+      minute()
+      char(':')
+      second()
+    }
+
+    override fun invoke(kTerminal: KTerminal, args: List<String>) {
+      val dateTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+      println(normal(dateTime.format(format)))
+    }
   }
 
   val LsCommand =

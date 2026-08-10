@@ -5,8 +5,11 @@ import org.jetbrains.kotlin.konan.target.HostManager
 
 plugins {
   alias(libs.plugins.kotlin.multiplatform)
-  alias(libs.plugins.publish)
+  //alias(libs.plugins.publish)
+  id("io.github.danbrough.katty.dokka")
+  id("io.github.danbrough.katty.publishing")
 }
+
 
 kotlin {
   applyDefaultHierarchyTemplate()
