@@ -18,13 +18,13 @@ fun demoMain(args: Array<String>) {
   }
 
 
-  val commandHandler = DemoCommandHandler()
+  val commandHandler = BasicCommandHandler()
 
   commandHandler.registerCommands(
-    "pwd" to Bash.PwdCommand,
-    "date" to Bash.DateCommand,
-    "ls" to Bash.LsCommand,
-    "cd" to Bash.CdCommand,
+    "pwd" to Bashy.PwdCommand,
+    "date" to Bashy.DateCommand,
+    "ls" to Bashy.LsCommand,
+    "cd" to Bashy.CdCommand,
   )
 
   val terminal =
@@ -34,7 +34,7 @@ fun demoMain(args: Array<String>) {
   val username = KattyUtils.getEnv("USER") ?: "user"
 
   terminal.prompt = {
-    val part = listOf("$username@katty ", Bash.currentDir.toString(), " $ ")
+    val part = listOf("$username@katty ", Bashy.currentDir.toString(), " $ ")
     part.sumOf { it.length } to TextStyles.bold(
       TextColors.brightCyan(part[0]) + TextColors.blue(
         part[1] + part[2]

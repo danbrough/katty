@@ -2,9 +2,12 @@ package io.github.danbrough.katty
 
 import com.github.ajalt.mordant.input.KeyboardEvent
 import com.github.ajalt.mordant.input.enterRawMode
+import com.github.ajalt.mordant.rendering.TextAlign
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
 import com.github.ajalt.mordant.terminal.Terminal
+import com.github.ajalt.mordant.widgets.Caption
+import com.github.ajalt.mordant.widgets.HorizontalRule
 import kotlinx.io.SystemLineSeparator
 
 
@@ -27,7 +30,7 @@ open class KTerminal(
     get() = cursorPos - promptLength
 
   /**
-   * Return the string length of the current prompt and the formatted prompt
+   * Return the string length of the prompt and the formatted prompt itself
    */
   var prompt: KTerminal.() -> Pair<Int, String> = {
     $$"$ ".let {
@@ -59,13 +62,17 @@ open class KTerminal(
     currentLine.clear()
 
     runCatching {
-      commandHandler.runCommand(this, args)
       cmdLine?.also {
         history.addToHistory(it)
         history.saveHistory()
       }
+      commandHandler.runCommand(this, args)
     }.exceptionOrNull()?.also {
+      terminal.println(HorizontalRule())
       terminal.println(terminal.theme.danger(it.stackTraceToString()))
+      terminal.println(HorizontalRule())
+      commandHandler.showHelp(this)
+      terminal.println(HorizontalRule())
     }
   }
 
@@ -143,12 +150,20 @@ open class KTerminal(
     currentLine.clear().append(line)
   }
 
+  open fun hello(){
+    terminal.println(Caption(HorizontalRule(), bottom = TextColors.brightGreen("Welcome to Katty"), bottomAlign = TextAlign.LEFT))
+    terminal.println(HorizontalRule())
+    commandHandler.showHelp(this)
+    terminal.println(HorizontalRule())
+  }
+
   open fun goodBye() {
     println("${SystemLineSeparator}Bye!")
   }
 
   fun run() {
     runCatching {
+      hello()
       cmdLoop()
     }.exceptionOrNull().also { err ->
       runCatching {

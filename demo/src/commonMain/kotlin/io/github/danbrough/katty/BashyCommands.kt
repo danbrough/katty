@@ -2,7 +2,7 @@ package io.github.danbrough.katty
 
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
-import io.github.danbrough.katty.Bash.Theme.normal
+import io.github.danbrough.katty.Bashy.Theme.normal
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
@@ -16,16 +16,31 @@ import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.files.SystemPathSeparator
 import kotlin.time.Clock
 
-object Bash {
+/**
+ * Some example commands
+ */
+object Bashy {
+
+
+  /**
+   * THe "current directory" for the [LsCommand],[CdCommand] and [PwdCommand]
+   */
   var currentDir = SystemFileSystem.resolve(Path("."))
 
   object Theme {
     val normal = TextColors.green
   }
 
+  /**
+   * Prints the value of [currentDir]
+   */
   val PwdCommand = TerminalCommand("prints the current directory") {
     println(normal(currentDir.toString()))
   }
+
+  /**
+   * Prints the date
+   */
 
   val DateCommand = object : TerminalCommand("prints the date") {
     val format = LocalDateTime.Format {
@@ -77,7 +92,7 @@ object Bash {
           val style =
             if (it.first.toString() != resolvedPath.toString()) TextColors.brightGreen else if (it.second?.isDirectory == true) TextColors.green else
               TextColors.white
-          TextStyles.bold(style(it.first.name))
+          style(it.first.name)
         }.also {
           println(it)
           cursorPos = 0
