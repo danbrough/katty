@@ -63,16 +63,6 @@ kotlin {
   }
 }
 
-tasks.withType<NodeJsExec>().configureEach {
-  doFirst {
-    println("JS FILES: ${this@configureEach.outputs.files.files}")
-    println("JS CMD LINE: ${this@configureEach.commandLine}")
-    println("JS MAIN: ${this@configureEach.npmProject.main.get()}")
-    println("JS EXECUTABLE: ${this@configureEach.executable}")
-    println("JS MODULES DIR: ${this@configureEach.npmProject.nodeModulesDir.get()}")
-  }
-}
-
 tasks.register("getShadowJar") {
   description = "Creates and prints the name of the shadow jar"
   dependsOn("shadowJar")

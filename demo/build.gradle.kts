@@ -36,13 +36,11 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
-        //implementation(projects.clikt)
         implementation(projects.core)
         implementation(libs.kotlinx.datetime)
         implementation(libs.kotlinx.io.core)
         implementation(libs.ktoml.core)
         implementation(libs.mordant.markdown)
-        implementation(kotlin("reflect"))
       }
     }
   }
@@ -59,16 +57,6 @@ kotlin {
   tasks.withType<ShadowJar> {
     mainClass = "io.github.danbrough.katty.JvmMain"
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-  }
-}
-
-tasks.withType<NodeJsExec>().configureEach {
-  doFirst {
-    println("JS FILES: ${this@configureEach.outputs.files.files}")
-    println("JS CMD LINE: ${this@configureEach.commandLine}")
-    println("JS MAIN: ${this@configureEach.npmProject.main.get()}")
-    println("JS EXECUTABLE: ${this@configureEach.executable}")
-    println("JS MODULES DIR: ${this@configureEach.npmProject.nodeModulesDir.get()}")
   }
 }
 

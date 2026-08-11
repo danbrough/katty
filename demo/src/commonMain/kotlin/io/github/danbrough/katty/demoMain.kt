@@ -60,7 +60,7 @@ fun demoMain(args: Array<String>) {
   if (args.isNotEmpty()) {
     val interactive = args.firstOrNull() == "-i"
     val cmdArgs = if (interactive) args.drop(1) else args.toList()
-    terminal.runCommand(cmdArgs, printNewLine = false)
+    terminal.runCommand(args = cmdArgs, printNewLine = false)
     if (!interactive) return
   }
   terminal.run()

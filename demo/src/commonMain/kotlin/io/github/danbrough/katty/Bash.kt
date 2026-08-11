@@ -52,8 +52,9 @@ object Bash {
     }
 
     override fun invoke(kTerminal: KTerminal, args: List<String>) {
-      val dateTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-      println(normal(dateTime.format(format)))
+      val tz = TimeZone.currentSystemDefault()
+      val dateTime = Clock.System.now().toLocalDateTime(tz)
+      println(normal(dateTime.format(format) + " ${tz.id}"))
     }
   }
 

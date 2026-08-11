@@ -44,14 +44,15 @@ open class KTerminal(
   fun println(message: String = "") = print("$message$SystemLineSeparator")
 
   fun print(message: String) = terminal.print(message)
-  open fun runCommand(cmdLine: String) {
-    val args = cmdLine.trim()
-    runCommand(parseCommandLineArgs(args))
-    history.addToHistory(args)
-    history.saveHistory()
-  }
 
-  open fun runCommand(args: List<String>, printNewLine: Boolean = true) {
+
+  open fun runCommand(
+    cmdLine: String? = null,
+    args: List<String>? = cmdLine?.trim()?.let { parseCommandLineArgs(it) },
+    printNewLine: Boolean = true
+  ) {
+    args ?: error("No args or cmdLine provided to runCommand()")
+
     if (printNewLine)
       terminal.println()
     cursorPos = 0
@@ -59,6 +60,10 @@ open class KTerminal(
 
     runCatching {
       commandHandler.runCommand(this, args)
+      cmdLine?.also {
+        history.addToHistory(it)
+        history.saveHistory()
+      }
     }.exceptionOrNull()?.also {
       terminal.println(terminal.theme.danger(it.stackTraceToString()))
     }

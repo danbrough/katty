@@ -36,16 +36,12 @@ class DemoCommandHandler : CommandHandler {
 
     kTerminal.run {
       //println(TextColors.brightCyan("running command: $args"))
-      runCatching {
-        if (commands.contains(cmdName)) {
-          commands[cmdName]?.invoke(this, args)
-        } else {
-        println(terminal.theme.danger("Command not found: $cmdName"))
-        showHelp(kTerminal)
+      if (commands.contains(cmdName)) {
+        commands[cmdName]?.invoke(this, args)
+      } else {
+        error("Command not found: $cmdName")
       }
-      }.exceptionOrNull()?.also {
-        println(terminal.theme.danger(it.stackTraceToString()))
-      }
+
     }
   }
 }

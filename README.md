@@ -11,7 +11,9 @@ environmental variables.
 
 The shell delegates to the [CommandHandler](./core/src/commonMain/kotlin/io/github/danbrough/katty/CommandHandler.kt)
 for which there is no implementation in the core package at present, but there is a simple example in the demo
-at [DemoCommand.kt](./demo/src/commonMain/kotlin/io/github/danbrough/katty/DemoCommand.kt)
+at [DemoCommandHandler.kt](./demo/src/commonMain/kotlin/io/github/danbrough/katty/DemoCommandHandler.kt)
 
+A [CliKT](https://ajalt.github.io/clikt/) based implementation of a CommandHandler is in the works 
+in the [clikt](./clikt) package.
 
 
