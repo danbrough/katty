@@ -42,28 +42,10 @@ fun demoMain(args: Array<String>) {
   val username = KattyUtils.getEnv("USER") ?: "user"
 
   terminal.prompt = {
-    val part = listOf("$username@katty ", Bashy.currentDir.toString(), " $ ")
-    part.sumOf { it.length } to TextStyles.bold(
-      TextColors.brightCyan(part[0]) + TextColors.blue(
-        part[1] + part[2]
-      )
-    )
+    val parts = listOf("$username@katty ", Bashy.currentDir.toString(), " $ ")
+    parts.sumOf { it.length } to TextStyles.bold(TextColors.brightCyan(parts[0]) + TextColors.blue(parts[1] + parts[2]))
   }
 
-  /*  terminal.commandHandlerOlds.addAll(
-      listOf(
-        LsCommandHandler,
-        DateCommandHandler,
-        PwdCommand,
-        DemoMordantCommand,
-        DemoMarkdownCommand,
-        Bash.CdCommand,
-        ConfigTestCommand,
-        DemoTomlCommand,
-        DemoThemeCommand,
-        Ctx(),
-      )
-    )*/
 
   if (args.isNotEmpty()) {
     val interactive = args.firstOrNull() == "-i"

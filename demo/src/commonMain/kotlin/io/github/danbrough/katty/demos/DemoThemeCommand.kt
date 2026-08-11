@@ -17,8 +17,8 @@ val DemoThemeCommand = BasicCommand("theme demo") {
 fun KTerminal.demoTheme() {
 
   val original = terminal.theme
-  val newTheme = Theme(terminal.theme) {
 
+  val newTheme = Theme(terminal.theme) {
     styles["danger"] = original.style("danger").plus(TextStyles.bold).plus(TextColors.brightRed)
     styles["info"] = original.style("info") + TextStyles.bold
     styles["warning"] = original.style("warning") + TextStyles.bold
@@ -28,7 +28,6 @@ fun KTerminal.demoTheme() {
 
   fun printBasic(theme: Theme, caption: String) {
     terminal.println(Caption(HorizontalRule(), bottom = caption, bottomAlign = TextAlign.LEFT))
-
 
     val msg = "example message to display .. #*$&^@&$*#^(E#$&^#)*@$  public fun example(){}"
     println(theme.muted("muted $msg"))

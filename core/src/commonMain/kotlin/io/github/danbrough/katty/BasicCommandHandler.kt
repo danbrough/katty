@@ -3,14 +3,24 @@ package io.github.danbrough.katty
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
 
+
+typealias BasicCommandJob = KTerminal.(List<String>) -> Unit
+
 open class BasicCommand(
   private val helpText: String? = null,
-  private val job: (KTerminal.(List<String>) -> Unit)? = null
+  private val job: BasicCommandJob? = null
 ) {
-  open operator fun invoke(kTerminal: KTerminal, args: List<String>) = job?.invoke(kTerminal, args)
 
+
+  /**
+   * Provide a description about this command
+   */
   fun helpText(): String? = helpText
 
+  /**
+   * Invoke this command
+   */
+  open operator fun invoke(kTerminal: KTerminal, args: List<String>) = job?.invoke(kTerminal, args)
 }
 
 
