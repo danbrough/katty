@@ -73,7 +73,7 @@ configure<MavenPublishBaseExtension> {
   }
 
   // Configure publishing to Maven Central
-  //publishToMavenCentral()
+  publishToMavenCentral()
 
   if (signingKey != null || signingPassword != null) {
     // Enable GPG signing for all publications

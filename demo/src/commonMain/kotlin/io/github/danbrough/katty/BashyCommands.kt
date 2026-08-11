@@ -1,7 +1,6 @@
 package io.github.danbrough.katty
 
 import com.github.ajalt.mordant.rendering.TextColors
-import com.github.ajalt.mordant.rendering.TextStyles
 import io.github.danbrough.katty.Bashy.Theme.normal
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -34,7 +33,7 @@ object Bashy {
   /**
    * Prints the value of [currentDir]
    */
-  val PwdCommand = TerminalCommand("prints the current directory") {
+  val PwdCommand = BasicCommand("prints the current directory") {
     println(normal(currentDir.toString()))
   }
 
@@ -42,7 +41,7 @@ object Bashy {
    * Prints the date
    */
 
-  val DateCommand = object : TerminalCommand("prints the date") {
+  val DateCommand = object : BasicCommand("prints the date") {
     val format = LocalDateTime.Format {
       year()
       char('-')
@@ -74,7 +73,7 @@ object Bashy {
   }
 
   val LsCommand =
-    TerminalCommand("usage: ls [dir]. prints the contents of the current or the specified directory") { args ->
+    BasicCommand("usage: ls [dir]. prints the contents of the current or the specified directory") { args ->
 
       val dir = if (args.size == 1) currentDir else {
         val arg = args[1]
@@ -100,7 +99,7 @@ object Bashy {
     }
 
 
-  val CdCommand = TerminalCommand("usage: cd [dir]. changes the current directory") { args ->
+  val CdCommand = BasicCommand("usage: cd [dir]. changes the current directory") { args ->
 
     val home = KattyUtils.getEnv("HOME")?.let { SystemFileSystem.resolve(Path(it)) } ?: currentDir
 

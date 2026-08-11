@@ -1,2 +1,7 @@
 [thang]
 message = "123 and stuff"
+ddd = 2
+
+
+[stuff]
+counts = [1,2,3]

@@ -3,10 +3,21 @@ package io.github.danbrough.katty
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
 
-class BasicCommandHandler : CommandHandler {
-  private val commands = mutableMapOf<String, TerminalCommand>()
+open class BasicCommand(
+  private val helpText: String? = null,
+  private val job: (KTerminal.(List<String>) -> Unit)? = null
+) {
+  open operator fun invoke(kTerminal: KTerminal, args: List<String>) = job?.invoke(kTerminal, args)
 
-  fun registerCommands(vararg cmds: Pair<String, TerminalCommand>) {
+  fun helpText(): String? = helpText
+
+}
+
+
+class BasicCommandHandler : CommandHandler {
+  private val commands = mutableMapOf<String, BasicCommand>()
+
+  fun registerCommands(vararg cmds: Pair<String, BasicCommand>) {
     commands.putAll(cmds)
   }
 

@@ -1,0 +1,9 @@
+[thang]
+message = "a newer message"
+readings = { age = 2.5, temp = 0.123 }
+
+
+readings.age=33.4
+
+[thang.readings]
+age=55
