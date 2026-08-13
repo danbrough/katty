@@ -14,7 +14,8 @@ import kotlinx.io.SystemLineSeparator
 open class KTerminal(
   val commandHandler: CommandHandler,
   val history: History = DefaultHistory(),
-  var terminal: Terminal = Terminal()
+  var terminal: Terminal = Terminal(),
+  val context: Any? = null
 ) {
 
   init {
@@ -44,12 +45,13 @@ open class KTerminal(
     keyboardActions.addAll(KeyboardActions.DefaultActions)
 
 
-  fun println(message: String = "") = print("$message$SystemLineSeparator")
+  fun println(message: String = "") = print(terminal.theme.info("$message$SystemLineSeparator"))
 
   fun print(message: String) = terminal.print(message)
 
 
   open fun runCommand(
+
     cmdLine: String? = null,
     args: List<String>? = cmdLine?.trim()?.let { parseCommandLineArgs(it) },
     printNewLine: Boolean = true
@@ -150,8 +152,14 @@ open class KTerminal(
     currentLine.clear().append(line)
   }
 
-  open fun hello(){
-    terminal.println(Caption(HorizontalRule(), bottom = TextColors.brightGreen("Welcome to Katty"), bottomAlign = TextAlign.LEFT))
+  open fun hello() {
+    terminal.println(
+      Caption(
+        HorizontalRule(),
+        bottom = TextColors.brightGreen("Welcome to Katty"),
+        bottomAlign = TextAlign.LEFT
+      )
+    )
     terminal.println(HorizontalRule())
     commandHandler.showHelp(this)
     terminal.println(HorizontalRule())
