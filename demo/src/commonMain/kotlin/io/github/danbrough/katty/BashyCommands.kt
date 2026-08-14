@@ -65,7 +65,7 @@ object Bashy {
       second()
     }
 
-    override fun invoke(kTerminal: KTerminal, args: List<String>) {
+    override suspend fun invoke(kTerminal: KTerminal, args: List<String>) {
       val tz = TimeZone.currentSystemDefault()
       val dateTime = Clock.System.now().toLocalDateTime(tz)
       println(normal(dateTime.format(format) + " ${tz.id}"))

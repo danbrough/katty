@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalWasmDsl::class)
 
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.konan.target.HostManager
 
 plugins {
@@ -13,7 +14,12 @@ plugins {
 
 kotlin {
   applyDefaultHierarchyTemplate()
-  jvm()
+
+  jvm {
+    compilerOptions {
+      jvmTarget = JvmTarget.JVM_17
+    }
+  }
   linuxX64()
   linuxArm64()
 
@@ -32,6 +38,7 @@ kotlin {
         api(libs.mordant)
         //api(libs.mordant.markdown)
         api(libs.kotlinx.io.core)
+        api(libs.kotlinx.coroutines.core)
         implementation(libs.ktoml.core)
       }
     }

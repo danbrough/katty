@@ -4,7 +4,7 @@ import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
 
 
-typealias BasicCommandJob = KTerminal.(List<String>) -> Unit
+typealias BasicCommandJob = suspend KTerminal.(List<String>) -> Unit
 
 open class BasicCommand(
   private val helpText: String? = null,
@@ -20,7 +20,7 @@ open class BasicCommand(
   /**
    * Invoke this command
    */
-  open operator fun invoke(kTerminal: KTerminal, args: List<String>) = job?.invoke(kTerminal, args)
+  open suspend operator fun invoke(kTerminal: KTerminal, args: List<String>) = job?.invoke(kTerminal, args)
 }
 
 
@@ -37,7 +37,7 @@ class BasicCommandHandler : CommandHandler {
     }
   }
 
-  override fun runCommand(
+  override suspend fun runCommand(
     kTerminal: KTerminal,
     args: List<String>
   ) {

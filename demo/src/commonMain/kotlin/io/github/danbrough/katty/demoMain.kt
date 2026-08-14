@@ -11,7 +11,7 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 
 
-fun demoMain(args: Array<String>) {
+suspend fun demoMain(args: Array<String>) {
 
 
   val configDir = Path(KattyUtils.getEnv("HOME")!!, ".katty")

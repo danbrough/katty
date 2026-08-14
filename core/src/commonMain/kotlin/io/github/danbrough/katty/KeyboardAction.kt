@@ -14,9 +14,9 @@ enum class KeyboardActionResult {
 
 open class KeyboardAction(
   val matcher: KeyboardEvent.() -> Boolean,
-  private val action: KTerminal.(KeyboardEvent) -> Unit = { }
+  private val action: suspend KTerminal.(KeyboardEvent) -> Unit = { }
 ) {
-  open operator fun invoke(kTerminal: KTerminal, event: KeyboardEvent): Unit =
+  open suspend operator fun invoke(kTerminal: KTerminal, event: KeyboardEvent): Unit =
     action(kTerminal, event)
 }
 
@@ -93,7 +93,7 @@ object KeyboardActions {
   }
 
   object End : KeyboardAction({ key == "End" || isCtrl("e") }) {
-    override fun invoke(kTerminal: KTerminal, event: KeyboardEvent) {
+    override suspend fun invoke(kTerminal: KTerminal, event: KeyboardEvent) {
       kTerminal.run {
         cursorPos = promptLength + currentLine.length
         terminal.cursor.move {
@@ -105,7 +105,7 @@ object KeyboardActions {
   }
 
   object CtrlW : KeyboardAction({ isCtrlW }) {
-    override fun invoke(kTerminal: KTerminal, event: KeyboardEvent) {
+    override suspend fun invoke(kTerminal: KTerminal, event: KeyboardEvent) {
       kTerminal.run {
         if (currentLine.isBlank()) return
         var index = cursorPos - promptLength
@@ -283,7 +283,7 @@ private fun KTerminal.ctrlArrowRight() {
 }
 
 
-private fun KTerminal.searchAction() {
+private suspend fun KTerminal.searchAction() {
 
   val searchPrompt: (String) -> String = {
     "search `$it`: "

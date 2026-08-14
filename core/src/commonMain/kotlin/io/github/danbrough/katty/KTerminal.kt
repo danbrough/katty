@@ -45,12 +45,12 @@ open class KTerminal(
     keyboardActions.addAll(KeyboardActions.DefaultActions)
 
 
-  fun println(message: String = "") = print(terminal.theme.info("$message$SystemLineSeparator"))
+  fun println(message: String = "") = print("$message$SystemLineSeparator")
 
   fun print(message: String) = terminal.print(message)
 
 
-  open fun runCommand(
+  open suspend fun runCommand(
 
     cmdLine: String? = null,
     args: List<String>? = cmdLine?.trim()?.let { parseCommandLineArgs(it) },
@@ -87,7 +87,7 @@ open class KTerminal(
     }
   }
 
-  fun cmdLoop() {
+  suspend fun cmdLoop() {
 
     registerDefaultKeyboardActions()
 
@@ -169,7 +169,7 @@ open class KTerminal(
     println("${SystemLineSeparator}Bye!")
   }
 
-  fun run() {
+  suspend fun run() {
     runCatching {
       hello()
       cmdLoop()
@@ -183,6 +183,16 @@ open class KTerminal(
         goodBye()
       } else if (err != null) throw err
     }
+  }
+
+  suspend fun main(cmdArgs: Array<String>) {
+    val args = cmdArgs.toMutableList()
+    val interactive = args.firstOrNull() == "-i"
+    if (interactive) args.removeFirst()
+    if (args.isNotEmpty())
+      runCommand(args = args)
+    if (interactive || args.isEmpty())
+      run()
   }
 }
 
