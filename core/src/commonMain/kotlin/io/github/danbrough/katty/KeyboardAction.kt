@@ -169,7 +169,7 @@ object KeyboardActions {
   }
 
   val Tab = KeyboardAction({ key == "Tab" }) {
-    tabPressed()
+    commandHandler.tabPressed(this)
   }
 
   val ArrowUp = KeyboardAction({ key == "ArrowUp" }) {

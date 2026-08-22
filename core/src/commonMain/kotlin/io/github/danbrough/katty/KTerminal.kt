@@ -153,11 +153,10 @@ open class KTerminal(
     currentLine.clear().append(line)
   }
 
-  open fun tabPressed() {
-    commandHandler.tabPressed(this)
-  }
 
-  open fun hello() {
+
+
+  open suspend fun hello() {
     terminal.println(
       Caption(
         HorizontalRule(),
@@ -170,7 +169,7 @@ open class KTerminal(
     terminal.println(HorizontalRule())
   }
 
-  open fun goodBye() {
+  open suspend fun goodBye() {
     if (cursorPos != 0) print(SystemLineSeparator)
     println("Bye!")
   }

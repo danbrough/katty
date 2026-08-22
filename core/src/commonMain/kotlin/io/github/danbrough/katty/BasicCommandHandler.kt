@@ -32,7 +32,7 @@ class BasicCommandHandler : CommandHandler {
     commands.putAll(cmds)
   }
 
-  override fun showHelp(kTerminal: KTerminal) {
+  override suspend fun showHelp(kTerminal: KTerminal) {
     commands.mapValues { it.value.helpText() }.filter { it.value != null }.forEach {
       kTerminal.println(TextColors.green(TextStyles.bold(it.key) + ":\t${it.value}"))
     }
@@ -54,7 +54,7 @@ class BasicCommandHandler : CommandHandler {
     }
   }
 
-  override fun tabPressed(terminal: KTerminal) {
+  override suspend fun tabPressed(terminal: KTerminal) {
     if (terminal.currentLine.isBlank()) return
     val suggestions = commands.filterKeys { it.startsWith(terminal.currentLine) }.keys
     if (suggestions.isEmpty()) return

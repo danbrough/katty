@@ -42,7 +42,7 @@ suspend fun KTerminal.demoCoroutines() {
       coroutineScope {
         launch(Dispatchers.Default) {
           delay(5.seconds)
-          println("inner coroutine finishing")
+          println("inner coroutine finishing: session ${currentCoroutineContext()[SessionKey]?.t}")
         }
         println("outer coroutine finishing")
       }

@@ -1,7 +1,7 @@
 package io.github.danbrough.katty
 
 
-import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.requireObject
 import com.github.ajalt.clikt.parameters.options.defaultLazy
@@ -16,7 +16,7 @@ import kotlinx.io.files.SystemFileSystem
 import kotlin.time.Clock
 
 
-fun demoMain(args: Array<String>) {
+suspend fun demoMain(args: Array<String>) {
 
 
   val configDir = Path(KattyUtils.getEnv("HOME")!!, ".katty")
@@ -28,7 +28,7 @@ fun demoMain(args: Array<String>) {
     SystemFileSystem.createDirectories(configDir, true)
   }
 
-  class DateCommand : CliktCommand("date") {
+  class DateCommand : SuspendingCliktCommand("date") {
     val kTerminal: KTerminal by requireObject<KTerminal>(CTX_KEY_KTERMINAL)
 
     val message by option().defaultLazy {
@@ -37,7 +37,7 @@ fun demoMain(args: Array<String>) {
 
     override fun help(context: Context): String = "Prints the date"
 
-    override fun run() {
+    override suspend fun run() {
       val date = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
       kTerminal.println(TextColors.brightMagenta("$message $date"))
     }
@@ -47,13 +47,13 @@ fun demoMain(args: Array<String>) {
 
   commandHandler.commands["date"] = ::DateCommand
   commandHandler.commands["pwd"] = {
-    object : CliktCommand("pwd") {
+    object : SuspendingCliktCommand("pwd") {
       val message by requireObject<String>("message")
       val kTerminal: KTerminal by requireObject<KTerminal>(CTX_KEY_KTERMINAL)
 
 
       override fun help(context: Context): String = "Prints something"
-      override fun run() {
+      override suspend fun run() {
         kTerminal.println("running pwd .. rootCommand message is $message")
       }
     }
@@ -75,26 +75,5 @@ fun demoMain(args: Array<String>) {
     )
   }
 
-  /*  terminal.commandHandlerOlds.addAll(
-      listOf(
-        LsCommandHandler,
-        DateCommandHandler,
-        PwdCommand,
-        DemoMordantCommand,
-        DemoMarkdownCommand,
-        Bash.CdCommand,
-        ConfigTestCommand,
-        DemoTomlCommand,
-        DemoThemeCommand,
-        Ctx(),
-      )
-    )*/
-
-  if (args.isNotEmpty()) {
-    val interactive = args.firstOrNull() == "-i"
-    val cmdArgs = if (interactive) args.drop(1) else args.toList()
-    terminal.runCommand(cmdArgs, printNewLine = false)
-    if (!interactive) return
-  }
-  terminal.run()
+  terminal.main(args)
 }

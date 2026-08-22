@@ -1,6 +1,10 @@
 package io.github.danbrough.katty
 
+import kotlinx.coroutines.runBlocking
+
 
 fun main(args: Array<String>) {
-  demoMain(args)
+  runBlocking {
+    demoMain(args)
+  }
 }

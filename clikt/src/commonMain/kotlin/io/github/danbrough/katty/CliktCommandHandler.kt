@@ -1,7 +1,10 @@
 package io.github.danbrough.katty
 
+import com.github.ajalt.clikt.command.SuspendingCliktCommand
+import com.github.ajalt.clikt.command.parse
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.CliktError
+import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.obj
 import com.github.ajalt.clikt.core.parse
@@ -9,14 +12,14 @@ import com.github.ajalt.clikt.core.subcommands
 
 class CliktCommandHandler(val bashContext: BashContext = BashContext()) : CommandHandler {
 
-  val commands = mutableMapOf<String, () -> CliktCommand>()
+  val commands = mutableMapOf<String, () -> SuspendingCliktCommand>()
 
   companion object {
     const val CTX_KEY_KTERMINAL = "terminal"
   }
 
   class RootCommand(val handler: CliktCommandHandler, val kTerminal: KTerminal) :
-    CliktCommand("katty") {
+    SuspendingCliktCommand("katty") {
 
     override val allowMultipleSubcommands: Boolean = true
 
@@ -29,12 +32,16 @@ class CliktCommandHandler(val bashContext: BashContext = BashContext()) : Comman
       }
     }
 
-    override fun run() {
+    override suspend fun run() {
       currentContext.data["message"] = "This is the message from the root command"
     }
   }
 
-  override fun runCommand(
+  override suspend fun showHelp(kTerminal: KTerminal) {
+    runCommand(kTerminal, listOf("help"))
+  }
+
+  override suspend fun runCommand(
     kTerminal: KTerminal,
     args: List<String>
   ) {
@@ -42,8 +49,10 @@ class CliktCommandHandler(val bashContext: BashContext = BashContext()) : Comman
       /*val cmd = commands[args.first()]?.invoke()
       ?: return kTerminal.println(kTerminal.terminal.theme.danger("${args.first()}: command not found"))*/
 
-      val rootCommand = RootCommand(this@CliktCommandHandler, this)
-      rootCommand.subcommands(commands.values.map { it.invoke() })
+      val rootCommand = RootCommand(this@CliktCommandHandler, kTerminal).also { rootCommand ->
+        rootCommand.subcommands(commands.values.map { it.invoke() })
+      }
+
       val cmd = commands[args.first()]?.invoke()?.also { rootCommand.subcommands(it) }
 
       runCatching {
