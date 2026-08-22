@@ -32,6 +32,7 @@ suspend fun demoMain(args: Array<String>) {
     "date" to Bashy.DateCommand,
     "ls" to Bashy.LsCommand,
     "cd" to Bashy.CdCommand,
+    "exit" to Bashy.ExitCommand,
     "configDemo" to ConfigDemoCommand,
     "markdownDemo" to DemoMarkDownCommand,
     "mordantDemo" to DemoMordantCommand,
@@ -50,12 +51,5 @@ suspend fun demoMain(args: Array<String>) {
     parts.sumOf { it.length } to TextStyles.bold(TextColors.brightCyan(parts[0]) + TextColors.blue(parts[1] + parts[2]))
   }
 
-
-  if (args.isNotEmpty()) {
-    val interactive = args.firstOrNull() == "-i"
-    val cmdArgs = if (interactive) args.drop(1) else args.toList()
-    terminal.runCommand(args = cmdArgs, printNewLine = false)
-    if (!interactive) return
-  }
-  terminal.run()
+  terminal.main(args)
 }

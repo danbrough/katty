@@ -118,4 +118,8 @@ object Bashy {
     }
     println("changed to $currentDir")
   }
+
+  val ExitCommand = BasicCommand("exits the shell"){
+    throw KeyboardActions.ExitException()
+  }
 }

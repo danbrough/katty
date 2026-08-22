@@ -70,6 +70,7 @@ open class KTerminal(
       }
       commandHandler.runCommand(this, args)
     }.exceptionOrNull()?.also {
+      if (it is KeyboardActions.ExitException) throw it
       terminal.println(HorizontalRule())
       terminal.println(terminal.theme.danger(it.stackTraceToString()))
       terminal.println(HorizontalRule())
@@ -152,7 +153,7 @@ open class KTerminal(
     currentLine.clear().append(line)
   }
 
-  open fun tabPressed(){
+  open fun tabPressed() {
     commandHandler.tabPressed(this)
   }
 
@@ -170,24 +171,24 @@ open class KTerminal(
   }
 
   open fun goodBye() {
-    println("${SystemLineSeparator}Bye!")
+    if (cursorPos != 0) print(SystemLineSeparator)
+    println("Bye!")
   }
 
-  suspend fun run() {
+  suspend fun run() = runCatching {
+    hello()
+    cmdLoop()
+  }.exceptionOrNull().also { err ->
     runCatching {
-      hello()
-      cmdLoop()
-    }.exceptionOrNull().also { err ->
-      runCatching {
-        history.saveHistory()
-      }.exceptionOrNull()?.also {
-        it.printStackTrace()
-      }
-      if (err == KeyboardActions.ExitException) {
-        goodBye()
-      } else if (err != null) throw err
+      history.saveHistory()
+    }.exceptionOrNull()?.also {
+      it.printStackTrace()
     }
+    if (err is KeyboardActions.ExitException) {
+      goodBye()
+    } else if (err != null) throw err
   }
+
 
   suspend fun main(cmdArgs: Array<String>) {
     val args = cmdArgs.toMutableList()

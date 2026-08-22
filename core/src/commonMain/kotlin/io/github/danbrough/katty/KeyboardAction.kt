@@ -22,11 +22,12 @@ open class KeyboardAction(
 
 object KeyboardActions {
 
-  val ExitException = Exception("Ctrl-C or Ctrl-D pressed")
+  class ExitException : Exception("Exit requested")
+
 
 
   val CtrlDCtrlCToExit = KeyboardAction({ isCtrlD || isCtrlC }) {
-    throw ExitException
+    throw ExitException()
   }
 
   val SearchAction = KeyboardAction({ isCtrlR }) {
