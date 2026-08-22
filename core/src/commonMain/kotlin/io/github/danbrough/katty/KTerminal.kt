@@ -152,6 +152,10 @@ open class KTerminal(
     currentLine.clear().append(line)
   }
 
+  open fun tabPressed(){
+    commandHandler.tabPressed(this)
+  }
+
   open fun hello() {
     terminal.println(
       Caption(

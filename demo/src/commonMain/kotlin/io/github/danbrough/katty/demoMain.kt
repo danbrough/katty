@@ -4,12 +4,15 @@ package io.github.danbrough.katty
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
 import io.github.danbrough.katty.config.ConfigDemoCommand
+import io.github.danbrough.katty.demos.DemoCoroutinesCommand
 import io.github.danbrough.katty.demos.DemoMarkDownCommand
 import io.github.danbrough.katty.demos.DemoMordantCommand
 import io.github.danbrough.katty.demos.DemoThemeCommand
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
+import org.danbrough.klog.logger
 
+val log = logger("KATTY_DEMO")
 
 suspend fun demoMain(args: Array<String>) {
 
@@ -29,10 +32,11 @@ suspend fun demoMain(args: Array<String>) {
     "date" to Bashy.DateCommand,
     "ls" to Bashy.LsCommand,
     "cd" to Bashy.CdCommand,
-    "demoConfig" to ConfigDemoCommand,
-    "demoMarkdown" to DemoMarkDownCommand,
-    "demoMordant" to DemoMordantCommand,
-    "demoTheme" to DemoThemeCommand,
+    "configDemo" to ConfigDemoCommand,
+    "markdownDemo" to DemoMarkDownCommand,
+    "mordantDemo" to DemoMordantCommand,
+    "themeDemo" to DemoThemeCommand,
+    "coroutinesDemo" to DemoCoroutinesCommand,
   )
 
   val terminal =

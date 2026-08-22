@@ -40,6 +40,7 @@ kotlin {
         implementation(libs.kotlinx.datetime)
         implementation(libs.kotlinx.io.core)
         implementation(libs.ktoml.core)
+        implementation(libs.klog)
         implementation(libs.mordant.markdown)
       }
     }

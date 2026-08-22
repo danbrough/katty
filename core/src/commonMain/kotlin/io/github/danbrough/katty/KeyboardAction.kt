@@ -167,9 +167,12 @@ object KeyboardActions {
     }
   }
 
+  val Tab = KeyboardAction({ key == "Tab" }) {
+    tabPressed()
+  }
+
   val ArrowUp = KeyboardAction({ key == "ArrowUp" }) {
     showHistory(true)
-
   }
   val ArrowDown = KeyboardAction({ key == "ArrowDown" }) {
     showHistory(false)
@@ -200,6 +203,7 @@ object KeyboardActions {
       End,
       ArrowUp,
       ArrowDown,
+      Tab,
       CtrlW,
     )
 }

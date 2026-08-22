@@ -6,5 +6,6 @@ fun interface CommandHandler {
 
 
   fun showHelp(kTerminal: KTerminal) = Unit
+  fun tabPressed(terminal: KTerminal) = Unit
 }
 

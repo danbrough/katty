@@ -13,9 +13,6 @@ publish = { id = "com.vanniktech.maven.publish", version.ref = "publish" }
 
 # https://plugins.gradle.org/plugin/org.jetbrains.kotlin.jvm
 kotlin = "2.4.10"
-##  ⬆ = "2.4.20-Beta1"
-##  ⬆ = "2.4.20-Beta2"
-##  ⬆ = "2.4.20-RC"
 # https://github.com/Kotlin/kotlinx-io
 kotlinx-io = "0.9.1"
 # https://github.com/vanniktech/gradle-maven-publish-plugin
@@ -31,15 +28,16 @@ shadow = "9.6.1"
 # https://github.com/ajalt/mordant
 mordant = "3.0.2"
 datetime = "0.8.0"
-##    ⬆ = "0.8.0-0.6.x-compat"
 clikt = "5.1.0"
 # https://github.com/orchestr7/ktoml
 ktoml = "0.7.1"
 kotlinx-serialization = "1.11.0"
 kotlinx-coroutines = "1.11.0"
+klog = "0.1.4"
 
 [libraries]
 
+klog = { module = "org.danbrough.klog:core", version.ref = "klog" }
 ktoml-core = { module = "com.akuleshov7:ktoml-core", version.ref = "ktoml" }
 ktoml-file = { module = "com.akuleshov7:ktoml-file", version.ref = "ktoml" }
 

@@ -20,7 +20,8 @@ open class BasicCommand(
   /**
    * Invoke this command
    */
-  open suspend operator fun invoke(kTerminal: KTerminal, args: List<String>) = job?.invoke(kTerminal, args)
+  open suspend operator fun invoke(kTerminal: KTerminal, args: List<String>) =
+    job?.invoke(kTerminal, args)
 }
 
 
@@ -50,6 +51,28 @@ class BasicCommandHandler : CommandHandler {
       } else {
         error("Command not found: $cmdName")
       }
+    }
+  }
+
+  override fun tabPressed(terminal: KTerminal) {
+    if (terminal.currentLine.isBlank()) return
+    val suggestions = commands.filterKeys { it.startsWith(terminal.currentLine) }.keys
+    if (suggestions.isEmpty()) return
+    val line = terminal.currentLine.toString()
+    if (suggestions.size == 1) {
+      val restOfCommand = suggestions.first().substringAfter(line)
+      terminal.print(restOfCommand)
+      terminal.currentLine.append(restOfCommand)
+      terminal.cursorPos += restOfCommand.length
+    } else {
+      terminal.println()
+      suggestions.forEach {
+        terminal.print(it + '\t')
+      }
+      terminal.printPrompt(newLine = true)
+      terminal.print(line)
+      terminal.currentLine.append(line)
+      terminal.cursorPos += line.length
     }
   }
 }
