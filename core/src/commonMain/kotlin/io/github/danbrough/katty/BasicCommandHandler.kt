@@ -25,7 +25,12 @@ open class BasicCommand(
 }
 
 
-class BasicCommandHandler : CommandHandler {
+open class BasicCommandHandler : CommandHandler {
+
+  override suspend fun prompt(): Pair<Int, String> = "$ ".let {
+    it.length to TextStyles.bold(TextColors.brightGreen(it))
+  }
+
   private val commands = mutableMapOf<String, BasicCommand>()
 
   fun registerCommands(vararg cmds: Pair<String, BasicCommand>) {
@@ -42,7 +47,7 @@ class BasicCommandHandler : CommandHandler {
     kTerminal: KTerminal,
     args: List<String>
   ) {
-    val cmdName = args.firstOrNull() ?: "help"
+    val cmdName = args.firstOrNull()?.trim() ?: "help"
     if (cmdName == "help") return showHelp(kTerminal)
 
     kTerminal.run {
@@ -55,12 +60,16 @@ class BasicCommandHandler : CommandHandler {
   }
 
   override suspend fun tabPressed(terminal: KTerminal) {
-    if (terminal.currentLine.isBlank()) return
-    val suggestions = commands.filterKeys { it.startsWith(terminal.currentLine) }.keys
-    if (suggestions.isEmpty()) return
+
     val line = terminal.currentLine.toString()
+    val cmdLine = line.trimStart()
+    if (cmdLine.isBlank()) return
+
+    val suggestions = commands.filterKeys { it.startsWith(cmdLine) }.keys
+    if (suggestions.isEmpty()) return
+
     if (suggestions.size == 1) {
-      val restOfCommand = suggestions.first().substringAfter(line)
+      val restOfCommand = suggestions.first().substringAfter(cmdLine)
       terminal.print(restOfCommand)
       terminal.currentLine.append(restOfCommand)
       terminal.cursorPos += restOfCommand.length
@@ -69,6 +78,7 @@ class BasicCommandHandler : CommandHandler {
       suggestions.forEach {
         terminal.print(it + '\t')
       }
+
       terminal.printPrompt(newLine = true)
       terminal.print(line)
       terminal.currentLine.append(line)

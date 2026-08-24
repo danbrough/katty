@@ -30,14 +30,6 @@ open class KTerminal(
   val linePos: Int
     get() = cursorPos - promptLength
 
-  /**
-   * Return the string length of the prompt and the formatted prompt itself
-   */
-  var prompt: KTerminal.() -> Pair<Int, String> = {
-    $$"$ ".let {
-      it.length to TextStyles.bold(TextColors.brightGreen(it))
-    }
-  }
 
   val keyboardActions: MutableList<KeyboardAction> = mutableListOf()
 
@@ -72,6 +64,7 @@ open class KTerminal(
     }.exceptionOrNull()?.also {
       if (it is Errors.ExitException) throw it
 
+      terminal.println(HorizontalRule())
       if (it is Errors.CommandNotFound)
         terminal.println(terminal.theme.danger(it.message))
       else
@@ -84,8 +77,8 @@ open class KTerminal(
 
   }
 
-  fun printPrompt(newLine: Boolean = true) {
-    prompt().also { p ->
+  suspend fun printPrompt(newLine: Boolean = true) {
+    commandHandler.prompt().also { p ->
       terminal.rawPrint("${if (newLine) SystemLineSeparator else ""}${p.second}")
       promptLength = p.first
       cursorPos = promptLength
@@ -118,12 +111,16 @@ open class KTerminal(
           cursorPos++
           val restOfLine = currentLine.substring(cursorPos - promptLength - 1)
 
-          terminal.cursor.move {
-            terminal.cursor.hide(true)
-            clearLineAfterCursor()
-            terminal.rawPrint(restOfLine)
-            left(restOfLine.length - 1)
-            terminal.cursor.show()
+          if (restOfLine.length == 1){
+            terminal.print(restOfLine)
+          } else {
+            terminal.cursor.move {
+              terminal.cursor.hide(true)
+              clearLineAfterCursor()
+              terminal.rawPrint(restOfLine)
+              left(restOfLine.length - 1)
+              terminal.cursor.show()
+            }
           }
         } else {
           handleUnknownKey(firstKey)

@@ -16,7 +16,7 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readLine
 
-val ConfigDemoCommand = BasicCommand("config demo") {
+val DemoConfigCommand = BasicCommand("config demo") {
   println("config demo")
   val files =
     listOf(
@@ -40,7 +40,7 @@ val ConfigDemoCommand = BasicCommand("config demo") {
   printFile("f1", f1)
   printFile("f2", f2)
 
-  TomlNode
+
   f1.children.addAll(f2.children)
 
   printFile("merged", f1)

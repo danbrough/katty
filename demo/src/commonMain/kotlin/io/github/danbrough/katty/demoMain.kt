@@ -3,7 +3,7 @@ package io.github.danbrough.katty
 
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
-import io.github.danbrough.katty.config.ConfigDemoCommand
+import io.github.danbrough.katty.config.DemoConfigCommand
 import io.github.danbrough.katty.demos.DemoCoroutinesCommand
 import io.github.danbrough.katty.demos.DemoMarkDownCommand
 import io.github.danbrough.katty.demos.DemoMordantCommand
@@ -25,7 +25,19 @@ suspend fun demoMain(args: Array<String>) {
   }
 
 
-  val commandHandler = BasicCommandHandler()
+  val commandHandler = object : BasicCommandHandler() {
+    val username = KattyUtils.getEnv("USER") ?: "user"
+
+    override suspend fun prompt(): Pair<Int, String> {
+      val parts = listOf("$username@katty ", Bashy.currentDir.toString(), " $ ")
+      return parts.sumOf { it.length } to TextStyles.bold(
+        TextColors.brightCyan(parts[0]) + TextColors.blue(
+          parts[1] + parts[2]
+        )
+      )
+    }
+  }
+
 
   commandHandler.registerCommands(
     "pwd" to Bashy.PwdCommand,
@@ -33,7 +45,7 @@ suspend fun demoMain(args: Array<String>) {
     "ls" to Bashy.LsCommand,
     "cd" to Bashy.CdCommand,
     "exit" to Bashy.ExitCommand,
-    "configDemo" to ConfigDemoCommand,
+    "configDemo" to DemoConfigCommand,
     "markdownDemo" to DemoMarkDownCommand,
     "mordantDemo" to DemoMordantCommand,
     "themeDemo" to DemoThemeCommand,
@@ -44,12 +56,6 @@ suspend fun demoMain(args: Array<String>) {
     KTerminal(commandHandler, history = DefaultHistory(Path(configDir, "history.txt")))
 
 
-  val username = KattyUtils.getEnv("USER") ?: "user"
-
-  terminal.prompt = {
-    val parts = listOf("$username@katty ", Bashy.currentDir.toString(), " $ ")
-    parts.sumOf { it.length } to TextStyles.bold(TextColors.brightCyan(parts[0]) + TextColors.blue(parts[1] + parts[2]))
-  }
 
   terminal.main(args)
 }
