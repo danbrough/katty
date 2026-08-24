@@ -1,7 +1,11 @@
 package io.github.danbrough.katty
 
 import com.github.ajalt.mordant.rendering.TextColors
+import io.github.danbrough.katty.Bashy.CdCommand
+import io.github.danbrough.katty.Bashy.LsCommand
+import io.github.danbrough.katty.Bashy.PwdCommand
 import io.github.danbrough.katty.Bashy.Theme.normal
+import io.github.danbrough.katty.Bashy.currentDir
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
@@ -119,7 +123,7 @@ object Bashy {
     println("changed to $currentDir")
   }
 
-  val ExitCommand = BasicCommand("exits the shell"){
-    throw KeyboardActions.ExitException()
+  val ExitCommand = BasicCommand("exits the shell") {
+    throw Errors.ExitException()
   }
 }

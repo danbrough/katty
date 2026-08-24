@@ -20,6 +20,7 @@ kotlin {
       jvmTarget = JvmTarget.JVM_17
     }
   }
+
   linuxX64()
   linuxArm64()
 
@@ -36,7 +37,6 @@ kotlin {
     commonMain {
       dependencies {
         api(libs.mordant)
-        //api(libs.mordant.markdown)
         api(libs.kotlinx.io.core)
         api(libs.kotlinx.coroutines.core)
         implementation(libs.ktoml.core)

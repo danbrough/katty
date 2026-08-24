@@ -70,13 +70,18 @@ open class KTerminal(
       }
       commandHandler.runCommand(this, args)
     }.exceptionOrNull()?.also {
-      if (it is KeyboardActions.ExitException) throw it
-      terminal.println(HorizontalRule())
-      terminal.println(terminal.theme.danger(it.stackTraceToString()))
+      if (it is Errors.ExitException) throw it
+
+      if (it is Errors.CommandNotFound)
+        terminal.println(terminal.theme.danger(it.message))
+      else
+        terminal.println(terminal.theme.danger(it.stackTraceToString()))
+
       terminal.println(HorizontalRule())
       commandHandler.showHelp(this)
       terminal.println(HorizontalRule())
     }
+
   }
 
   fun printPrompt(newLine: Boolean = true) {
@@ -181,7 +186,7 @@ open class KTerminal(
     }.exceptionOrNull()?.also {
       it.printStackTrace()
     }
-    if (err is KeyboardActions.ExitException) {
+    if (err is Errors.ExitException) {
       goodBye()
     } else if (err != null) throw err
   }

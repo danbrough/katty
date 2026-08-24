@@ -49,7 +49,7 @@ class BasicCommandHandler : CommandHandler {
       if (commands.contains(cmdName)) {
         commands[cmdName]?.invoke(this, args)
       } else {
-        error("Command not found: $cmdName")
+        throw Errors.CommandNotFound(cmdName)
       }
     }
   }

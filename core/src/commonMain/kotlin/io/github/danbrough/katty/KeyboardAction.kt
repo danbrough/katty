@@ -5,8 +5,6 @@ import com.github.ajalt.mordant.input.enterRawMode
 import com.github.ajalt.mordant.input.isCtrlC
 import com.github.ajalt.mordant.rendering.TextStyles
 import com.github.ajalt.mordant.terminal.CursorMovements
-import kotlinx.io.SystemLineSeparator
-import kotlinx.io.files.FileNotFoundException
 
 enum class KeyboardActionResult {
   CONTINUE, EXIT, ADD_TO_LINE
@@ -22,12 +20,9 @@ open class KeyboardAction(
 
 object KeyboardActions {
 
-  class ExitException : Exception("Exit requested")
-
-
 
   val CtrlDCtrlCToExit = KeyboardAction({ isCtrlD || isCtrlC }) {
-    throw ExitException()
+    throw Errors.ExitException()
   }
 
   val SearchAction = KeyboardAction({ isCtrlR }) {
