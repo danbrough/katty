@@ -66,14 +66,6 @@ suspend fun demoMain(args: Array<String>) {
 
   val username = KattyUtils.getEnv("USER") ?: "user"
 
-  terminal.prompt = {
-    val part = listOf("$username@katty ", bashContext.currentDir.toString(), " $ ")
-    part.sumOf { it.length } to TextStyles.bold(
-      TextColors.brightCyan(part[0]) + TextColors.blue(
-        part[1] + part[2]
-      )
-    )
-  }
 
   terminal.main(args)
 }

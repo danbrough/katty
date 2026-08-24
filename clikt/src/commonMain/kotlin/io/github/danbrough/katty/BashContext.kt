@@ -5,4 +5,8 @@ import kotlinx.io.files.SystemFileSystem
 
 class BashContext {
   var currentDir: Path = SystemFileSystem.resolve(Path("."))
+
+  val userName:String by lazy {
+    KattyUtils.getEnv("USER") ?: "user"
+  }
 }

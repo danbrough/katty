@@ -2,13 +2,12 @@ package io.github.danbrough.katty
 
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.command.parse
-import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.CliktError
-import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.obj
-import com.github.ajalt.clikt.core.parse
 import com.github.ajalt.clikt.core.subcommands
+import com.github.ajalt.mordant.rendering.TextColors
+import com.github.ajalt.mordant.rendering.TextStyles
 
 class CliktCommandHandler(val bashContext: BashContext = BashContext()) : CommandHandler {
 
@@ -16,6 +15,26 @@ class CliktCommandHandler(val bashContext: BashContext = BashContext()) : Comman
 
   companion object {
     const val CTX_KEY_KTERMINAL = "terminal"
+  }
+
+
+  /*terminal.prompt = {
+    val part = listOf("$username@katty ", bashContext.currentDir.toString(), " $ ")
+    part.sumOf { it.length } to TextStyles.bold(
+      TextColors.brightCyan(part[0]) + TextColors.blue(
+        part[1] + part[2]
+      )
+    )
+  }*/
+
+
+  override suspend fun prompt(): Pair<Int, String> {
+    val part = listOf("${bashContext.userName}@katty ", bashContext.currentDir.toString(), " $ ")
+    return part.sumOf { it.length } to TextStyles.bold(
+      TextColors.brightCyan(part[0]) + TextColors.blue(
+        part[1] + part[2]
+      )
+    )
   }
 
   class RootCommand(val handler: CliktCommandHandler, val kTerminal: KTerminal) :
