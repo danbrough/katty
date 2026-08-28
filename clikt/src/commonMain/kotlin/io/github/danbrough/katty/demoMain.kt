@@ -18,10 +18,7 @@ import kotlin.time.Clock
 
 suspend fun demoMain(args: Array<String>) {
 
-
   val configDir = Path(KattyUtils.getEnv("HOME")!!, ".katty")
-
-  val bashContext = BashContext()
 
   if (!SystemFileSystem.exists(configDir)) {
     println((TextColors.brightMagenta + TextStyles.bold)("Creating configuration dir at $configDir..."))
@@ -62,9 +59,6 @@ suspend fun demoMain(args: Array<String>) {
 
   val terminal =
     KTerminal(commandHandler, history = DefaultHistory(Path(configDir, "history.txt")))
-
-
-  val username = KattyUtils.getEnv("USER") ?: "user"
 
 
   terminal.main(args)

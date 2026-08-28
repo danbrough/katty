@@ -17,17 +17,6 @@ class CliktCommandHandler(val bashContext: BashContext = BashContext()) : Comman
     const val CTX_KEY_KTERMINAL = "terminal"
   }
 
-
-  /*terminal.prompt = {
-    val part = listOf("$username@katty ", bashContext.currentDir.toString(), " $ ")
-    part.sumOf { it.length } to TextStyles.bold(
-      TextColors.brightCyan(part[0]) + TextColors.blue(
-        part[1] + part[2]
-      )
-    )
-  }*/
-
-
   override suspend fun prompt(): Pair<Int, String> {
     val part = listOf("${bashContext.userName}@katty ", bashContext.currentDir.toString(), " $ ")
     return part.sumOf { it.length } to TextStyles.bold(
@@ -41,7 +30,6 @@ class CliktCommandHandler(val bashContext: BashContext = BashContext()) : Comman
     SuspendingCliktCommand("katty") {
 
     override val allowMultipleSubcommands: Boolean = true
-
 
     init {
       context {
@@ -65,8 +53,6 @@ class CliktCommandHandler(val bashContext: BashContext = BashContext()) : Comman
     args: List<String>
   ) {
     kTerminal.run {
-      /*val cmd = commands[args.first()]?.invoke()
-      ?: return kTerminal.println(kTerminal.terminal.theme.danger("${args.first()}: command not found"))*/
 
       val rootCommand = RootCommand(this@CliktCommandHandler, kTerminal).also { rootCommand ->
         rootCommand.subcommands(commands.values.map { it.invoke() })

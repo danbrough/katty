@@ -19,6 +19,17 @@ import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.files.SystemPathSeparator
 import kotlin.time.Clock
 
+
+fun BasicCommandHandler.registerBashyCommands() =
+  registerCommands(
+    "pwd" to Bashy.PwdCommand,
+    "date" to Bashy.DateCommand,
+    "ls" to Bashy.LsCommand,
+    "cd" to Bashy.CdCommand,
+    "exit" to Bashy.ExitCommand,
+  )
+
+
 /**
  * Some example commands
  */

@@ -1,0 +1,13 @@
+# This is a TOML document
+title = "TOML Example Merged"
+
+[owner]
+name = "A new name for the owner"
+
+[database]
+temp_targets.cpu = 11
+
+
+[servers.zeta]
+ip = "10.0.0.3"
+role = "backend"

@@ -1,0 +1,29 @@
+# This is a TOML document
+title = "TOML Example Merged"
+
+[owner]
+    name = "A new name for the owner"
+    dob = 1979-05-27T15:32:00Z
+
+[database]
+    enabled = true
+    ports = [ 8000, 8001, 8002 ]
+    data = [ [ "delta", "phi" ], [ 3.14 ] ]
+
+    [database.temp_targets]
+        cpu = 11
+        case = 72.0
+
+[servers]
+
+    [servers.alpha]
+        ip = "10.0.0.1"
+        role = "frontend"
+
+    [servers.beta]
+        ip = "10.0.0.2"
+        role = "backend"
+
+    [servers.zeta]
+        ip = "10.0.0.3"
+        role = "backend"

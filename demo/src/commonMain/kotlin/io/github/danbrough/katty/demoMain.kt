@@ -4,6 +4,7 @@ package io.github.danbrough.katty
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
 import io.github.danbrough.katty.config.DemoConfigCommand
+import io.github.danbrough.katty.config.registerConfigCommands
 import io.github.danbrough.katty.demos.DemoCoroutinesCommand
 import io.github.danbrough.katty.demos.DemoMarkDownCommand
 import io.github.danbrough.katty.demos.DemoMordantCommand
@@ -25,7 +26,7 @@ suspend fun demoMain(args: Array<String>) {
   }
 
 
-  val commandHandler = object : BasicCommandHandler() {
+  val commandHandler: BasicCommandHandler = object : BasicCommandHandler() {
     val username = KattyUtils.getEnv("USER") ?: "user"
 
     override suspend fun prompt(): Pair<Int, String> {
@@ -40,17 +41,15 @@ suspend fun demoMain(args: Array<String>) {
 
 
   commandHandler.registerCommands(
-    "pwd" to Bashy.PwdCommand,
-    "date" to Bashy.DateCommand,
-    "ls" to Bashy.LsCommand,
-    "cd" to Bashy.CdCommand,
-    "exit" to Bashy.ExitCommand,
-    "configDemo" to DemoConfigCommand,
     "markdownDemo" to DemoMarkDownCommand,
     "mordantDemo" to DemoMordantCommand,
     "themeDemo" to DemoThemeCommand,
     "coroutinesDemo" to DemoCoroutinesCommand,
   )
+
+  commandHandler.registerBashyCommands()
+
+  commandHandler.registerConfigCommands()
 
   val terminal =
     KTerminal(commandHandler, history = DefaultHistory(Path(configDir, "history.txt")))
