@@ -3,12 +3,12 @@ package io.github.danbrough.katty
 
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
-import io.github.danbrough.katty.config.DemoConfigCommand
 import io.github.danbrough.katty.config.registerConfigCommands
 import io.github.danbrough.katty.demos.DemoCoroutinesCommand
 import io.github.danbrough.katty.demos.DemoMarkDownCommand
 import io.github.danbrough.katty.demos.DemoMordantCommand
 import io.github.danbrough.katty.demos.DemoThemeCommand
+import kotlinx.coroutines.withContext
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import org.danbrough.klog.logger
@@ -55,6 +55,9 @@ suspend fun demoMain(args: Array<String>) {
     KTerminal(commandHandler, history = DefaultHistory(Path(configDir, "history.txt")))
 
 
-
-  terminal.main(args)
+  val app = KattyApplication<GlobalConfig>()
+  app.loadConfig(Path("demo/src/commonMain/resources/config.toml"))
+  withContext(KattyApplicationElement(app)) {
+    terminal.main(args)
+  }
 }

@@ -15,7 +15,11 @@ import com.github.ajalt.mordant.widgets.HorizontalRule
 import io.github.danbrough.katty.Bashy
 import io.github.danbrough.katty.BasicCommand
 import io.github.danbrough.katty.BasicCommandHandler
+import io.github.danbrough.katty.GlobalConfig
 import io.github.danbrough.katty.KTerminal
+import io.github.danbrough.katty.kattyApplication
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
@@ -33,74 +37,17 @@ fun BasicCommandHandler.registerConfigCommands() {
 val DemoConfigCommand = BasicCommand("config demo") {
   println("config demo")
   mergeDemo()
-  /*
+  configDemo()
 
-    val parser = TomlParser(TomlInputConfig())
-
-    val toml: String.() -> TomlFile = parser::parseString
-
-
-    val content1 = """
-      # This is a TOML document
-      title = "TOML Example"
-
-      [owner]
-      name = "Tom Preston-Werner"
-      dob = 1979-05-27T07:32:00-08:00
-
-      [database]
-      enabled = true
-      ports = [ 8000, 8001, 8002 ]
-      data = [ ["delta", "phi"], [3.14] ]
-      temp_targets = { cpu = 79.5, case = 72.0 }
-
-      [servers]
-
-      [servers.alpha]
-      ip = "10.0.0.1"
-      role = "frontend"
-
-      [servers.beta]
-      ip = "10.0.0.2"
-      role = "backend"
-    """.trimIndent().toml()
-
-    val content2 = """
-      [content2]
-      name = "Freddy Gruēgũr"
-
-    """.trimIndent().toml()
-
-
-    terminal.printTomlFile("Content1", content1)
-    terminal.printTomlFile("Content2", content2)
-
-
-    tomlMerge(content1, content2)
-    terminal.printTomlFile("Merged", content1)
-  */
-
-
-  /*  val files =
-      listOf(
-        "demo/src/commonMain/resources/stuff1.toml",
-        "demo/src/commonMain/resources/stuff2.toml"
-      ).map { Path(it) }
-
-
-    val f1 = parser.parseLines(files[0].toLines())
-    val f2 = parser.parseLines(files[1].toLines())
-
-    terminal.printFile("f1", f1)
-    terminal.printFile("f2", f2)
-
-    f1.children.addAll(f2.children)
-
-    terminal.printFile("merged", f1)*/
 }
 
+private suspend fun KTerminal.configDemo() {
 
-fun KTerminal.mergeDemo() {
+  val app = coroutineScope {   kattyApplication<GlobalConfig>() }
+  terminal.printSectionTitle("Global Config", app.config)
+}
+
+suspend fun KTerminal.mergeDemo() {
   val parser = TomlParser(TomlInputConfig())
 
   val files =
@@ -121,6 +68,7 @@ fun KTerminal.mergeDemo() {
   SystemFileSystem.sink(files[2]).buffered().use {
     it.writeString(mergedContent)
   }
+
 }
 
 fun tomlMerge(first: TomlNode, second: TomlNode) {
@@ -172,7 +120,7 @@ fun TomlNode.tomlString(config: TomlOutputConfig = TomlOutputConfig()): String {
   return writer.writeToString(file)
 }
 
-fun Terminal.printSectionTitle(title: String,content:Any? = null) {
+fun Terminal.printSectionTitle(title: String, content: Any? = null) {
   print(Caption(HorizontalRule(), bottom = (TextStyles.bold + TextColors.brightCyan)(title)))
   if (content != null)
     println(TextColors.green(content.toString()))
