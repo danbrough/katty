@@ -17,14 +17,12 @@ val log = logger("KATTY_DEMO")
 
 suspend fun demoMain(args: Array<String>) {
 
-
   val configDir = Path(KattyUtils.getEnv("HOME")!!, ".katty")
 
   if (!SystemFileSystem.exists(configDir)) {
     println((TextColors.brightMagenta + TextStyles.bold)("Creating configuration dir at $configDir..."))
     SystemFileSystem.createDirectories(configDir, true)
   }
-
 
   val commandHandler: BasicCommandHandler = object : BasicCommandHandler() {
     val username = KattyUtils.getEnv("USER") ?: "user"
@@ -39,7 +37,6 @@ suspend fun demoMain(args: Array<String>) {
     }
   }
 
-
   commandHandler.registerCommands(
     "markdownDemo" to DemoMarkDownCommand,
     "mordantDemo" to DemoMordantCommand,
@@ -48,14 +45,13 @@ suspend fun demoMain(args: Array<String>) {
   )
 
   commandHandler.registerBashyCommands()
-
   commandHandler.registerConfigCommands()
 
   val terminal =
     KTerminal(commandHandler, history = DefaultHistory(Path(configDir, "history.txt")))
 
 
-  val app = KattyApplication<GlobalConfig>()
+  val app = KattyApplication<DemoAppConfig>()
   app.loadConfig(Path("demo/src/commonMain/resources/config.toml"))
   withContext(KattyApplicationElement(app)) {
     terminal.main(args)

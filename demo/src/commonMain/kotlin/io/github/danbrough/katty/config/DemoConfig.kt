@@ -15,16 +15,13 @@ import com.github.ajalt.mordant.widgets.HorizontalRule
 import io.github.danbrough.katty.Bashy
 import io.github.danbrough.katty.BasicCommand
 import io.github.danbrough.katty.BasicCommandHandler
-import io.github.danbrough.katty.GlobalConfig
+import io.github.danbrough.katty.DemoAppConfig
 import io.github.danbrough.katty.KTerminal
 import io.github.danbrough.katty.kattyApplication
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.coroutineScope
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readLine
-import kotlinx.io.readString
 import kotlinx.io.writeString
 
 fun BasicCommandHandler.registerConfigCommands() {
@@ -43,7 +40,7 @@ val DemoConfigCommand = BasicCommand("config demo") {
 
 private suspend fun KTerminal.configDemo() {
 
-  val app = coroutineScope {   kattyApplication<GlobalConfig>() }
+  val app = kattyApplication<DemoAppConfig>()
   terminal.printSectionTitle("Global Config", app.config)
 }
 
@@ -97,13 +94,7 @@ fun Path.toLines(): Sequence<String> = sequence {
 }
 
 
-fun Path.readText(): String =
-  SystemFileSystem.source(SystemFileSystem.resolve(this)).buffered().use {
-    it.readString()
-  }
 
-fun Path.parseToml(config: TomlInputConfig = TomlInputConfig()): TomlFile =
-  TomlParser(config).parseString(readText())
 
 
 val printTomlFile: Terminal.(String, TomlFile) -> Unit = { caption, file ->

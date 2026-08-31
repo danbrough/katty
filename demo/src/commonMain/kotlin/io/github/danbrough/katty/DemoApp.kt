@@ -3,6 +3,8 @@ package io.github.danbrough.katty
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+class DemoApp : KattyApplication<DemoAppConfig>() {
+}
 
 
 /**
@@ -19,4 +21,4 @@ data class ServerConfig(
 )
 
 @Serializable
-data class GlobalConfig(val appName: String = "My App", val server: ServerConfig)
+data class DemoAppConfig(val appName: String = "My App", val server: ServerConfig)
