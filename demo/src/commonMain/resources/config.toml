@@ -1,9 +1,13 @@
 # Demo configuration
 
+appName = "Default Katty AppName"
+
 #Comment for the server
 [server]
     # Comment after the [server] line
     port = 8080 #inline comment for the port
     bindAddress = "127.0.0.1"
     welcomeMessage = "Welcome to the Server"
+    qos = false
+
 

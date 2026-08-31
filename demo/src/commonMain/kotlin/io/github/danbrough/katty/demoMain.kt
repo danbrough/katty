@@ -42,6 +42,7 @@ suspend fun demoMain(args: Array<String>) {
     "mordantDemo" to DemoMordantCommand,
     "themeDemo" to DemoThemeCommand,
     "coroutinesDemo" to DemoCoroutinesCommand,
+    "test" to TestCommand,
   )
 
   commandHandler.registerBashyCommands()

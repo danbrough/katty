@@ -4,7 +4,6 @@ import com.github.ajalt.mordant.input.KeyboardEvent
 import com.github.ajalt.mordant.input.enterRawMode
 import com.github.ajalt.mordant.rendering.TextAlign
 import com.github.ajalt.mordant.rendering.TextColors
-import com.github.ajalt.mordant.rendering.TextStyles
 import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.widgets.Caption
 import com.github.ajalt.mordant.widgets.HorizontalRule
@@ -12,7 +11,7 @@ import kotlinx.io.SystemLineSeparator
 
 
 open class KTerminal(
-  val commandHandler: CommandHandler,
+  var commandHandler: CommandHandler,
   val history: History = DefaultHistory(),
   var terminal: Terminal = Terminal(),
   val context: Any? = null
@@ -43,12 +42,11 @@ open class KTerminal(
 
 
   open suspend fun runCommand(
-
     cmdLine: String? = null,
-    args: List<String>? = cmdLine?.trim()?.let { parseCommandLineArgs(it) },
+    args: List<String>? = null,
     printNewLine: Boolean = true
   ) {
-    args ?: error("No args or cmdLine provided to runCommand()")
+    cmdLine ?: error("No args or cmdLine provided to runCommand()")
 
     if (printNewLine)
       terminal.println()
@@ -56,11 +54,11 @@ open class KTerminal(
     currentLine.clear()
 
     runCatching {
-      cmdLine?.also {
+      cmdLine.also {
         history.addToHistory(it)
         history.saveHistory()
       }
-      commandHandler.runCommand(this, args)
+      commandHandler.runCommand(this, cmdLine, args)
     }.exceptionOrNull()?.also {
       if (it is Errors.ExitException) throw it
 
@@ -111,7 +109,7 @@ open class KTerminal(
           cursorPos++
           val restOfLine = currentLine.substring(cursorPos - promptLength - 1)
 
-          if (restOfLine.length == 1){
+          if (restOfLine.length == 1) {
             terminal.print(restOfLine)
           } else {
             terminal.cursor.move {
@@ -174,17 +172,32 @@ open class KTerminal(
     println("Bye!")
   }
 
+  suspend fun runInternal() {
+    try {
+      cmdLoop()
+    } catch (e: Errors.ExitException) {
+      commandHandler.parent?.also {
+        this.commandHandler = it
+        cursorPos = 0
+        currentLine.clear()
+        runInternal()
+      } ?: throw e
+    }
+  }
+
+
   suspend fun run() = runCatching {
     hello()
-    cmdLoop()
+    runInternal()
   }.exceptionOrNull().also { err ->
-    runCatching {
-      history.saveHistory()
-    }.exceptionOrNull()?.also {
-      it.printStackTrace()
-    }
     if (err is Errors.ExitException) {
       goodBye()
+
+      runCatching {
+        history.saveHistory()
+      }.exceptionOrNull()?.also {
+        it.printStackTrace()
+      }
     } else if (err != null) throw err
   }
 
@@ -197,6 +210,10 @@ open class KTerminal(
       runCommand(args = args)
     if (interactive || args.isEmpty())
       run()
+  }
+
+  suspend fun push(commandHandler: CommandHandler) {
+    this.commandHandler = commandHandler
   }
 }
 

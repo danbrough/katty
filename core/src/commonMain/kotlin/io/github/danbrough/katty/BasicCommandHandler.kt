@@ -25,7 +25,7 @@ open class BasicCommand(
 }
 
 
-open class BasicCommandHandler : CommandHandler {
+open class BasicCommandHandler(override val parent: CommandHandler? = null) : CommandHandler {
 
   override suspend fun prompt(): Pair<Int, String> = "$ ".let {
     it.length to TextStyles.bold(TextColors.brightGreen(it))
@@ -45,8 +45,11 @@ open class BasicCommandHandler : CommandHandler {
 
   override suspend fun runCommand(
     kTerminal: KTerminal,
-    args: List<String>
+    cmdLine: String,
+    args: List<String>?
   ) {
+    val args = args ?: parseCommandLineArgs(cmdLine)
+
     val cmdName = args.firstOrNull()?.trim() ?: "help"
     if (cmdName == "help") return showHelp(kTerminal)
 

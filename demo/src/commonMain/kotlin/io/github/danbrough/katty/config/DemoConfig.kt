@@ -14,7 +14,6 @@ import com.github.ajalt.mordant.widgets.Caption
 import com.github.ajalt.mordant.widgets.HorizontalRule
 import io.github.danbrough.katty.Bashy
 import io.github.danbrough.katty.BasicCommand
-import io.github.danbrough.katty.BasicCommandHandler
 import io.github.danbrough.katty.DemoAppConfig
 import io.github.danbrough.katty.KTerminal
 import io.github.danbrough.katty.kattyApplication
@@ -24,18 +23,11 @@ import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readLine
 import kotlinx.io.writeString
 
-fun BasicCommandHandler.registerConfigCommands() {
-  registerCommands(
-    "configDemo" to DemoConfigCommand,
-    "configArgsDemo" to DemoConfigArgs,
-  )
-}
 
 val DemoConfigCommand = BasicCommand("config demo") {
   println("config demo")
   mergeDemo()
   configDemo()
-
 }
 
 private suspend fun KTerminal.configDemo() {
