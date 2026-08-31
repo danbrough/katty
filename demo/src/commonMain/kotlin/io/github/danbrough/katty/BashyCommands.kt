@@ -1,11 +1,7 @@
 package io.github.danbrough.katty
 
 import com.github.ajalt.mordant.rendering.TextColors
-import io.github.danbrough.katty.Bashy.CdCommand
-import io.github.danbrough.katty.Bashy.LsCommand
-import io.github.danbrough.katty.Bashy.PwdCommand
 import io.github.danbrough.katty.Bashy.Theme.normal
-import io.github.danbrough.katty.Bashy.currentDir
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
@@ -27,6 +23,7 @@ fun BasicCommandHandler.registerBashyCommands() =
     "ls" to Bashy.LsCommand,
     "cd" to Bashy.CdCommand,
     "exit" to Bashy.ExitCommand,
+    "regex" to Bashy.RegexCommand,
   )
 
 
@@ -133,6 +130,16 @@ object Bashy {
     }
     println("changed to $currentDir")
   }
+
+  val RegexCommand =
+    BasicCommand("Runs a regex against the input args. usage: regex regex [input args..] ") { args->
+      if (args.size < 3) return@BasicCommand
+      val regex = args[1].toRegex()
+      for (i in 2 until args.size) {
+        val input = args[i]
+        println("$input: containsMatchIn: ${regex.containsMatchIn(input)} split: [${input.split(regex).joinToString(",")}]")
+      }
+    }
 
   val ExitCommand = BasicCommand("exits the shell") {
     throw Errors.ExitException()

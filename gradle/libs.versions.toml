@@ -30,8 +30,7 @@ jline = "4.3.1"
 # https://gradleup.com/shadow/
 shadow = "9.6.1"
 # https://github.com/ajalt/mordant
-mordant = "3.0.2"
-##   ⬆ = "3.1.0"
+mordant = "3.1.0"
 datetime = "0.8.0"
 ##    ⬆ = "0.8.0-0.6.x-compat"
 clikt = "5.1.0"

@@ -33,6 +33,11 @@ kotlin {
     nodejs()
   }
 
+  wasmJs {
+    nodejs()
+  }
+
+
   sourceSets {
     commonMain {
       dependencies {

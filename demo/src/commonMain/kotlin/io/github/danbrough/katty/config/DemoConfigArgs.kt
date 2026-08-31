@@ -53,13 +53,15 @@ suspend fun KTerminal.demoConfigArgs(args: List<String>) {
   terminal.printSectionTitle("Server Config Toml", Toml.encodeToString(config))
 
 
-  args.forEach { arg ->
-    println(
-      "arg: $arg split: ${
-        arg.split("-+".toRegex()).filter { it.isNotBlank() }.joinToString(".")
-      }"
-    )
+  val configArgs = args.map { arg ->
+    arg.split("-+".toRegex()).filter { it.isNotBlank() }.joinToString(".")
   }
+
+  configArgs.forEach {
+    println("ARG: $it")
+  }
+
+
 
   val serializer = DemoAppConfig.serializer()
   val d = serializer.descriptor

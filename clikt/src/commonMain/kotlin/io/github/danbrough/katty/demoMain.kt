@@ -5,6 +5,7 @@ import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.requireObject
 import com.github.ajalt.clikt.parameters.options.defaultLazy
+import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
@@ -32,11 +33,13 @@ suspend fun demoMain(args: Array<String>) {
       "The date generated at ${Clock.System.now()} is:"
     }
 
+    val flag by option(help = "Test boolean flag option").flag(default = false)
+
     override fun help(context: Context): String = "Prints the date"
 
     override suspend fun run() {
       val date = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-      kTerminal.println(TextColors.brightMagenta("$message $date"))
+      kTerminal.println(TextColors.brightMagenta("$message $date flag: $flag"))
     }
   }
 
