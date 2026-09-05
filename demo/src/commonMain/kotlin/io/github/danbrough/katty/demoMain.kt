@@ -51,7 +51,6 @@ suspend fun demoMain(args: Array<String>) {
   val terminal =
     KTerminal(commandHandler, history = DefaultHistory(Path(configDir, "history.txt")))
 
-
   val app = KattyApplication<DemoAppConfig>()
   app.loadConfig(Path("demo/src/commonMain/resources/config.toml"))
   withContext(KattyApplicationElement(app)) {

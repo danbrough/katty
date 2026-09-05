@@ -1,12 +1,12 @@
 package io.github.danbrough.katty
 
-interface Utils {
-  fun getEnv(name: String): String?
-}
+import kotlinx.io.Source
+
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
-expect object KattyUtils : Utils {
-  override fun getEnv(name: String): String?
+expect object KattyUtils {
+  fun getEnv(name: String): String?
+  fun exec(command: String): Source
 
 }
 

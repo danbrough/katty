@@ -46,7 +46,7 @@ open class KTerminal(
     args: List<String>? = null,
     printNewLine: Boolean = true
   ) {
-    cmdLine ?: error("No args or cmdLine provided to runCommand()")
+    cmdLine ?: args ?: error("No args or cmdLine provided to runCommand()")
 
     if (printNewLine)
       terminal.println()
@@ -54,7 +54,7 @@ open class KTerminal(
     currentLine.clear()
 
     runCatching {
-      cmdLine.also {
+      cmdLine?.also {
         history.addToHistory(it)
         history.saveHistory()
       }

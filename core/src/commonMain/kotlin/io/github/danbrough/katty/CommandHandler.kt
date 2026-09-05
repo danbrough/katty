@@ -6,7 +6,7 @@ interface CommandHandler {
 
   val parent: CommandHandler?
 
-  suspend fun runCommand(kTerminal: KTerminal, cmdLine: String, args: List<String>?)
+  suspend fun runCommand(kTerminal: KTerminal, cmdLine: String?, args: List<String>?)
 
   suspend fun showHelp(kTerminal: KTerminal) = Unit
   suspend fun tabPressed(terminal: KTerminal) = Unit

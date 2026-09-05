@@ -6,6 +6,13 @@ import com.github.ajalt.mordant.rendering.TextStyles
 
 typealias BasicCommandJob = suspend KTerminal.(List<String>) -> Unit
 
+fun basicCommand(
+  cmdName: String,
+  helpText: String,
+  job: BasicCommandJob
+) = cmdName to BasicCommand(helpText, job)
+
+
 open class BasicCommand(
   private val helpText: String? = null,
   private val job: BasicCommandJob? = null
@@ -45,10 +52,10 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
 
   override suspend fun runCommand(
     kTerminal: KTerminal,
-    cmdLine: String,
+    cmdLine: String?,
     args: List<String>?
   ) {
-    val args = args ?: parseCommandLineArgs(cmdLine)
+    val args = args ?: parseCommandLineArgs(cmdLine!!)
 
     val cmdName = args.firstOrNull()?.trim() ?: "help"
     if (cmdName == "help") return showHelp(kTerminal)

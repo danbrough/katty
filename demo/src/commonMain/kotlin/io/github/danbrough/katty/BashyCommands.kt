@@ -132,16 +132,26 @@ object Bashy {
   }
 
   val RegexCommand =
-    BasicCommand("Runs a regex against the input args. usage: regex regex [input args..] ") { args->
+    BasicCommand("Runs a regex against the input args. usage: regex regex [input args..] ") { args ->
       if (args.size < 3) return@BasicCommand
       val regex = args[1].toRegex()
       for (i in 2 until args.size) {
         val input = args[i]
-        println("$input: containsMatchIn: ${regex.containsMatchIn(input)} split: [${input.split(regex).joinToString(",")}]")
+        println(
+          "$input: containsMatchIn: ${regex.containsMatchIn(input)} split: [${
+            input.split(
+              regex
+            ).joinToString(",")
+          }]"
+        )
       }
     }
 
   val ExitCommand = BasicCommand("exits the shell") {
-    throw Errors.ExitException()
+    commandHandler.parent?.also {
+      this.commandHandler = it
+      cursorPos = 0
+      currentLine.clear()
+    } ?: throw Errors.ExitException()
   }
 }
