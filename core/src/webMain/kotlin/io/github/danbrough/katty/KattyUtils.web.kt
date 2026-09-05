@@ -16,7 +16,7 @@ private fun getEnvJS(name: String): String? =
 actual object KattyUtils {
   actual fun getEnv(name: String): String? = getEnvJS(name)
 
-  actual fun exec(command: String): Source {
+  actual fun exec(command: List<String>): Source {
     TODO("exec not implemented for web/JS")
   }
 }

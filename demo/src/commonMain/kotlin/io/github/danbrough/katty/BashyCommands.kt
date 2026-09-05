@@ -10,9 +10,11 @@ import kotlinx.datetime.format.MonthNames
 import kotlinx.datetime.format.Padding
 import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.files.SystemPathSeparator
+import kotlinx.io.readLine
 import kotlin.time.Clock
 
 
@@ -24,6 +26,7 @@ fun BasicCommandHandler.registerBashyCommands() =
     "cd" to Bashy.CdCommand,
     "exit" to Bashy.ExitCommand,
     "regex" to Bashy.RegexCommand,
+    Bashy.ExecCommand
   )
 
 
@@ -153,5 +156,12 @@ object Bashy {
       cursorPos = 0
       currentLine.clear()
     } ?: throw Errors.ExitException()
+  }
+
+  val ExecCommand = basicCommand("exec", "executes a command in the shell") { args ->
+    KattyUtils.exec(args).use { source ->
+      while (true)
+        source.readLine()?.also { println(it) } ?: break
+    }
   }
 }

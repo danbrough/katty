@@ -41,8 +41,9 @@ actual object KattyUtils  {
   actual  fun getEnv(name: String): String? = getenv(name)?.toKString()
 
   @OptIn(ExperimentalForeignApi::class)
-  actual fun exec(command: String): Source {
-    val fp = popen(command, "r") ?: throw IOException("Failed to execute command: $command")
+  actual fun exec(command: List<String>): Source {
+    val cmdString = command.joinToString(" ")
+    val fp = popen(cmdString, "r") ?: throw IOException("Failed to execute command: $cmdString")
     return PopenSource(fp).buffered()
   }
 }

@@ -8,8 +8,8 @@ import kotlinx.io.buffered
 actual object KattyUtils  {
   actual  fun getEnv(name: String): String? = System.getenv(name)
 
-  actual fun exec(command: String): Source {
-    val process = ProcessBuilder("sh", "-c", command).start()
+  actual fun exec(command: List<String>): Source {
+    val process = ProcessBuilder(command.drop(1)).start()
     return process.inputStream.asSource().buffered()
   }
 }
