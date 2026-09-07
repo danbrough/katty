@@ -7,6 +7,10 @@ import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.widgets.Caption
 import com.github.ajalt.mordant.widgets.HorizontalRule
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.job
 import kotlinx.io.SystemLineSeparator
 
 
@@ -61,6 +65,7 @@ open class KTerminal(
       commandHandler.runCommand(this, cmdLine, args)
     }.exceptionOrNull()?.also {
       if (it is Errors.ExitException) throw it
+      if (it is CancellationException) throw it
 
       terminal.println(HorizontalRule())
       if (it is Errors.CommandNotFound)
@@ -170,12 +175,14 @@ open class KTerminal(
   open suspend fun goodBye() {
     if (cursorPos != 0) print(SystemLineSeparator)
     println("Bye!")
+    cursorPos = 0
   }
 
   suspend fun runInternal() {
     try {
       cmdLoop()
     } catch (e: Errors.ExitException) {
+      println("Exit requested")
       commandHandler.parent?.also {
         this.commandHandler = it
         cursorPos = 0
@@ -191,25 +198,31 @@ open class KTerminal(
     runInternal()
   }.exceptionOrNull().also { err ->
     if (err is Errors.ExitException) {
-      goodBye()
+
 
       runCatching {
         history.saveHistory()
+        println("history saved.")
+        cursorPos = 0
       }.exceptionOrNull()?.also {
         it.printStackTrace()
       }
+
+      goodBye()
+
+      //currentCoroutineContext().job.cancel("Exit requested")
     } else if (err != null) throw err
   }
 
 
   suspend fun main(cmdArgs: Array<String>) {
-    val args = cmdArgs.toMutableList()
-    val interactive = args.firstOrNull() == "-i"
-    if (interactive) args.removeFirst()
-    if (args.isNotEmpty())
-      runCommand(args = args)
-    if (interactive || args.isEmpty())
-      run()
+      val args = cmdArgs.toMutableList()
+      val interactive = args.firstOrNull() == "-i"
+      if (interactive) args.removeFirst()
+      if (args.isNotEmpty())
+        runCommand(args = args)
+      if (interactive || args.isEmpty())
+        run()
   }
 
   suspend fun push(commandHandler: CommandHandler) {

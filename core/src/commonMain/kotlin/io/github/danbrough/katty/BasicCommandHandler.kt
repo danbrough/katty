@@ -13,6 +13,11 @@ fun basicCommand(
 ) = cmdName to BasicCommand(helpText, job)
 
 
+fun basicCommand(
+  helpText: String,
+  job: BasicCommandJob
+) = BasicCommand(helpText, job)
+
 open class BasicCommand(
   private val helpText: String? = null,
   private val job: BasicCommandJob? = null
@@ -42,6 +47,10 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
 
   fun registerCommands(vararg cmds: Pair<String, BasicCommand>) {
     commands.putAll(cmds)
+  }
+
+  operator fun set(name: String, description: String, job: BasicCommandJob) {
+    registerCommands(name to BasicCommand(description, job))
   }
 
   override suspend fun showHelp(kTerminal: KTerminal) {

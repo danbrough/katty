@@ -10,7 +10,6 @@ import kotlinx.datetime.format.MonthNames
 import kotlinx.datetime.format.Padding
 import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
-import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.files.SystemPathSeparator
@@ -24,8 +23,8 @@ fun BasicCommandHandler.registerBashyCommands() =
     "date" to Bashy.DateCommand,
     "ls" to Bashy.LsCommand,
     "cd" to Bashy.CdCommand,
-    "exit" to Bashy.ExitCommand,
-    "regex" to Bashy.RegexCommand,
+    Bashy.ExitCommand,
+    Bashy.RegexCommand,
     Bashy.ExecCommand
   )
 
@@ -134,23 +133,25 @@ object Bashy {
     println("changed to $currentDir")
   }
 
-  val RegexCommand =
-    BasicCommand("Runs a regex against the input args. usage: regex regex [input args..] ") { args ->
-      if (args.size < 3) return@BasicCommand
-      val regex = args[1].toRegex()
-      for (i in 2 until args.size) {
-        val input = args[i]
-        println(
-          "$input: containsMatchIn: ${regex.containsMatchIn(input)} split: [${
-            input.split(
-              regex
-            ).joinToString(",")
-          }]"
-        )
-      }
+  val RegexCommand = basicCommand(
+    "regex",
+    "Runs a regex against the input args. usage: regex regex [input args..] "
+  ) { args ->
+    if (args.size < 3) return@basicCommand
+    val regex = args[1].toRegex()
+    for (i in 2 until args.size) {
+      val input = args[i]
+      println(
+        "$input: containsMatchIn: ${regex.containsMatchIn(input)} split: [${
+          input.split(
+            regex
+          ).joinToString(",")
+        }]"
+      )
     }
+  }
 
-  val ExitCommand = BasicCommand("exits the shell") {
+  val ExitCommand = basicCommand("exit", "exits the shell") {
     commandHandler.parent?.also {
       this.commandHandler = it
       cursorPos = 0

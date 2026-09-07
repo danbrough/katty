@@ -7,6 +7,8 @@ import kotlinx.io.Source
 expect object KattyUtils {
   fun getEnv(name: String): String?
   fun exec(command: List<String>): Source
+
+  fun threadName():String
 }
 
 

@@ -4,19 +4,19 @@ package io.github.danbrough.katty
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
 import io.github.danbrough.katty.config.registerConfigCommands
-import io.github.danbrough.katty.demos.DemoCoroutinesCommand
 import io.github.danbrough.katty.demos.DemoMarkDownCommand
 import io.github.danbrough.katty.demos.DemoMordantCommand
 import io.github.danbrough.katty.demos.DemoThemeCommand
+import io.github.danbrough.katty.demos.demoCoroutines
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import org.danbrough.klog.logger
 
-val log = logger("KATTY_DEMO")
+val demoLog = logger("KATTY_DEMO")
 
 suspend fun demoMain(args: Array<String>) {
-
   val configDir = Path(KattyUtils.getEnv("HOME")!!, ".katty")
 
   if (!SystemFileSystem.exists(configDir)) {
@@ -37,11 +37,13 @@ suspend fun demoMain(args: Array<String>) {
     }
   }
 
+
+  commandHandler["coroutinesDemo", "Testing coroutines stuff"] = KTerminal::demoCoroutines
+
   commandHandler.registerCommands(
     "markdownDemo" to DemoMarkDownCommand,
     "mordantDemo" to DemoMordantCommand,
     "themeDemo" to DemoThemeCommand,
-    "coroutinesDemo" to DemoCoroutinesCommand,
     "test" to TestCommand,
   )
 
@@ -53,7 +55,13 @@ suspend fun demoMain(args: Array<String>) {
 
   val app = KattyApplication<DemoAppConfig>()
   app.loadConfig(Path("demo/src/commonMain/resources/config.toml"))
-  withContext(KattyApplicationElement(app)) {
-    terminal.main(args)
+  runCatching {
+    withContext(KattyApplicationElement(app)) {
+      terminal.main(args)
+    }
+  }.exceptionOrNull()?.also {
+    if (it !is CancellationException)
+      println(it.stackTraceToString())
   }
+
 }

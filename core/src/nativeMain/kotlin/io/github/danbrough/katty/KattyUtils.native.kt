@@ -18,6 +18,7 @@ import platform.posix.fread
 import platform.posix.getenv
 import platform.posix.pclose
 import platform.posix.popen
+import platform.posix.pthread_self
 
 @OptIn(ExperimentalForeignApi::class)
 private class PopenSource(private val fp: CPointer<FILE>) : RawSource {
@@ -46,4 +47,6 @@ actual object KattyUtils  {
     val fp = popen(cmdString, "r") ?: throw IOException("Failed to execute command: $cmdString")
     return PopenSource(fp).buffered()
   }
+
+  actual fun threadName(): String = "PThread[${pthread_self()}]"
 }

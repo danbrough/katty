@@ -1,5 +1,6 @@
 package io.github.danbrough.katty
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
 
 class JvmMain {
@@ -7,7 +8,8 @@ class JvmMain {
     @JvmStatic
     fun main(args: Array<String>) {
       runBlocking {
-        demoMain(args)
+          demoMain(args)
+
       }
     }
   }

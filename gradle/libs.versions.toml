@@ -12,12 +12,7 @@ publish = { id = "com.vanniktech.maven.publish", version.ref = "publish" }
 [versions]
 
 # https://plugins.gradle.org/plugin/org.jetbrains.kotlin.jvm
-kotlin = "2.4.10"
-##  ⬆ = "2.4.20-Beta1"
-##  ⬆ = "2.4.20-Beta2"
-##  ⬆ = "2.4.20-RC"
-##  ⬆ = "2.4.20-RC2"
-##  ⬆ = "2.4.20-RC3"
+kotlin = "2.4.20"
 # https://github.com/Kotlin/kotlinx-io
 kotlinx-io = "0.9.1"
 # https://github.com/vanniktech/gradle-maven-publish-plugin
@@ -27,7 +22,7 @@ dokka = "2.2.0"
 # https://github.com/willowtreeapps/assertk
 assertk = "0.28.1"
 # https://github.com/jline/jline3
-jline = "4.3.1"
+jline = "4.4.2"
 # https://gradleup.com/shadow/
 shadow = "9.6.1"
 # https://github.com/ajalt/mordant

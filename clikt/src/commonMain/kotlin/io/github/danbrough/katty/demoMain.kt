@@ -63,6 +63,12 @@ suspend fun demoMain(args: Array<String>) {
   val terminal =
     KTerminal(commandHandler, history = DefaultHistory(Path(configDir, "history.txt")))
 
+  runCatching {
 
-  terminal.main(args)
+    terminal.main(args)
+  }.exceptionOrNull()?.also {
+
+    println(TextColors.brightRed(it.stackTraceToString()))
+  }
+
 }

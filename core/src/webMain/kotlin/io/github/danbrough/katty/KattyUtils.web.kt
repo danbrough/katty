@@ -19,6 +19,8 @@ actual object KattyUtils {
   actual fun exec(command: List<String>): Source {
     TODO("exec not implemented for web/JS")
   }
+
+  actual fun threadName(): String = "Web"
 }
 
 
