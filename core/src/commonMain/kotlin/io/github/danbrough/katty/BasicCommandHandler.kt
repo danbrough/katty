@@ -80,14 +80,43 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
 
   override suspend fun tabPressed(terminal: KTerminal) {
 
+    fun lastCommonPrefixPosition(strings: Set<String>): Int {
+      if (strings.isEmpty()) return -1
+      if (strings.size == 1) return strings.first().length
+
+      val shortest = strings.minByOrNull { it.length } ?: return 0
+
+      return shortest.foldIndexed(0) { index, acc, char ->
+        if (strings.all { it[index] == char }) index + 1 else acc
+      }
+    }
+
     val line = terminal.currentLine.toString()
     val cmdLine = line.trimStart()
     if (cmdLine.isBlank()) return
 
     val suggestions = commands.filterKeys { it.startsWith(cmdLine) }.keys
     if (suggestions.isEmpty()) return
+    val commonPrefixPosition = lastCommonPrefixPosition(suggestions)
+    //println("COMMON PREFIX: $commonPrefixPosition linePos:${cmdLine.length}")
+    if (cmdLine.length < commonPrefixPosition) {
+      val rest = suggestions.first().substring(cmdLine.length).take(commonPrefixPosition - cmdLine.length)
+      terminal.print(rest)
+      terminal.currentLine.append(rest)
+      terminal.cursorPos += rest.length
+    } else {
+      terminal.println()
+      suggestions.forEach {
+        terminal.print(it + '\t')
+      }
 
-    if (suggestions.size == 1) {
+      terminal.printPrompt(newLine = true)
+      terminal.print(line)
+      terminal.currentLine.append(line)
+      terminal.cursorPos += line.length
+    }
+
+    /*if (suggestions.size == 1) {
       val restOfCommand = suggestions.first().substringAfter(cmdLine)
       terminal.print(restOfCommand)
       terminal.currentLine.append(restOfCommand)
@@ -103,5 +132,6 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
       terminal.currentLine.append(line)
       terminal.cursorPos += line.length
     }
+  }*/
   }
 }

@@ -2,6 +2,8 @@
 
 package io.github.danbrough.katty
 
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.io.Source
 
 private fun jsPrintln(s: String?) {
@@ -21,6 +23,8 @@ actual object KattyUtils {
   }
 
   actual fun threadName(): String = "Web"
+  actual val ioDispatcher: CoroutineDispatcher
+    get() = Dispatchers.Default
 }
 
 

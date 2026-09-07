@@ -15,7 +15,11 @@ interface History {
   val uniqueEntries: Boolean
 
   fun loadHistory()
-  fun saveHistory()
+
+  /**
+   * return true if any history was saved
+   */
+  fun saveHistory(): Boolean
 
   fun previous(): String?
   fun next(): String?
@@ -45,12 +49,13 @@ open class DefaultHistory(
     index = history.size
   }
 
-  override fun saveHistory() {
-    historyFile ?: return
+  override fun saveHistory(): Boolean {
+    historyFile ?: return false
     SystemFileSystem.sink(historyFile).buffered().use { sink ->
       history.forEach {
         sink.writeString("$it$SystemLineSeparator")
       }
+      return history.isNotEmpty()
     }
   }
 

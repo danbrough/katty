@@ -1,5 +1,7 @@
 package io.github.danbrough.katty
 
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.io.Source
 import kotlinx.io.asSource
 import kotlinx.io.buffered
@@ -14,4 +16,6 @@ actual object KattyUtils {
   }
 
   actual fun threadName(): String = Thread.currentThread().name
+  actual val ioDispatcher: CoroutineDispatcher
+    get() = Dispatchers.IO
 }

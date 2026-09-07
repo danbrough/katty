@@ -8,9 +8,6 @@ import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.widgets.Caption
 import com.github.ajalt.mordant.widgets.HorizontalRule
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.job
 import kotlinx.io.SystemLineSeparator
 
 
@@ -179,16 +176,18 @@ open class KTerminal(
   }
 
   suspend fun runInternal() {
-    try {
+    runCatching {
       cmdLoop()
-    } catch (e: Errors.ExitException) {
-      println("Exit requested")
+    }.exceptionOrNull().also { err ->
+      if (err != null && err !is Errors.ExitException)
+        println(this.terminal.theme.danger(err.stackTraceToString()))
+
       commandHandler.parent?.also {
         this.commandHandler = it
         cursorPos = 0
         currentLine.clear()
         runInternal()
-      } ?: throw e
+      } ?: if (err != null) throw err else return
     }
   }
 
@@ -199,10 +198,9 @@ open class KTerminal(
   }.exceptionOrNull().also { err ->
     if (err is Errors.ExitException) {
 
-
       runCatching {
-        history.saveHistory()
-        println("history saved.")
+        if (history.saveHistory())
+          println("History saved.")
         cursorPos = 0
       }.exceptionOrNull()?.also {
         it.printStackTrace()
@@ -210,19 +208,18 @@ open class KTerminal(
 
       goodBye()
 
-      //currentCoroutineContext().job.cancel("Exit requested")
     } else if (err != null) throw err
   }
 
 
   suspend fun main(cmdArgs: Array<String>) {
-      val args = cmdArgs.toMutableList()
-      val interactive = args.firstOrNull() == "-i"
-      if (interactive) args.removeFirst()
-      if (args.isNotEmpty())
-        runCommand(args = args)
-      if (interactive || args.isEmpty())
-        run()
+    val args = cmdArgs.toMutableList()
+    val interactive = args.firstOrNull() == "-i"
+    if (interactive) args.removeFirst()
+    if (args.isNotEmpty())
+      runCommand(args = args)
+    if (interactive || args.isEmpty())
+      run()
   }
 
   suspend fun push(commandHandler: CommandHandler) {

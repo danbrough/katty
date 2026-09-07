@@ -14,7 +14,7 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import org.danbrough.klog.logger
 
-val demoLog = logger("KATTY_DEMO")
+internal val  demoLog = logger("KATTY_DEMO")
 
 suspend fun demoMain(args: Array<String>) {
   val configDir = Path(KattyUtils.getEnv("HOME")!!, ".katty")

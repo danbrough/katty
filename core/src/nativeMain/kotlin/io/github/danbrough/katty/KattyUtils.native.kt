@@ -8,6 +8,9 @@ import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.toKString
 import kotlinx.cinterop.usePinned
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.io.Buffer
 import kotlinx.io.IOException
 import kotlinx.io.RawSource
@@ -49,4 +52,7 @@ actual object KattyUtils  {
   }
 
   actual fun threadName(): String = "PThread[${pthread_self()}]"
+
+  actual val ioDispatcher: CoroutineDispatcher
+    get() = Dispatchers.IO
 }
