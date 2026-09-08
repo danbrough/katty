@@ -100,7 +100,8 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
     val commonPrefixPosition = lastCommonPrefixPosition(suggestions)
     //println("COMMON PREFIX: $commonPrefixPosition linePos:${cmdLine.length}")
     if (cmdLine.length < commonPrefixPosition) {
-      val rest = suggestions.first().substring(cmdLine.length).take(commonPrefixPosition - cmdLine.length)
+      val rest =
+        suggestions.first().substring(cmdLine.length).take(commonPrefixPosition - cmdLine.length)
       terminal.print(rest)
       terminal.currentLine.append(rest)
       terminal.cursorPos += rest.length

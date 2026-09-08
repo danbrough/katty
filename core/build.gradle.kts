@@ -17,7 +17,7 @@ kotlin {
 
   jvm {
     compilerOptions {
-      jvmTarget = JvmTarget.JVM_17
+      jvmTarget = JvmTarget.JVM_25
     }
   }
 
@@ -46,6 +46,7 @@ kotlin {
         api(libs.kotlinx.io.core)
         api(libs.kotlinx.coroutines.core)
         implementation(libs.ktoml.core)
+        implementation(libs.klog)
       }
     }
   }

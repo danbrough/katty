@@ -7,6 +7,7 @@ import com.github.ajalt.mordant.input.enterRawMode
 import com.github.ajalt.mordant.input.isCtrlC
 import com.github.ajalt.mordant.rendering.TextStyles
 import com.github.ajalt.mordant.terminal.CursorMovements
+import kotlin.coroutines.cancellation.CancellationException
 
 enum class KeyboardActionResult {
   CONTINUE, EXIT, ADD_TO_LINE
@@ -24,7 +25,7 @@ object KeyboardActions {
 
 
   val CtrlDCtrlCToExit = KeyboardAction({ isCtrlD || isCtrlC }) {
-    throw Errors.ExitException()
+    throw CancellationException("User cancelled")
   }
 
   val SearchAction = KeyboardAction({ isCtrlR }) {

@@ -68,7 +68,6 @@ open class KTerminal(
         }
         commandHandler.runCommand(this@KTerminal, cmdLine, args)
       }.exceptionOrNull()?.also {
-        if (it is Errors.ExitException) throw it
         if (it is CancellationException) throw it
 
         terminal.println(HorizontalRule())
@@ -230,7 +229,7 @@ open class KTerminal(
     runCatching {
       cmdLoop2()
     }.exceptionOrNull().also { err ->
-      if (err != null && err !is Errors.ExitException)
+      if (err != null && err !is CancellationException)
         println(this.terminal.theme.danger(err.stackTraceToString()))
 
       commandHandler.parent?.also {
@@ -247,7 +246,7 @@ open class KTerminal(
     hello()
     runInternal()
   }.exceptionOrNull().also { err ->
-    if (err is Errors.ExitException) {
+    if (err is CancellationException) {
       runCatching {
         if (history.saveHistory())
           println("History saved.")

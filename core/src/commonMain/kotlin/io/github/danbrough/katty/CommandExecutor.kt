@@ -19,6 +19,7 @@ class CommandExecutor(private val context: CoroutineContext = Dispatchers.Defaul
    * Starts a new command. If one is already running, it will be cancelled first.
    */
   suspend fun execute(command: suspend () -> Unit) {
+    kattyLog.trace { "CommandExecutor::execute .." }
     // Cancel any existing job before starting a new one
     interrupt()
 
@@ -35,6 +36,9 @@ class CommandExecutor(private val context: CoroutineContext = Dispatchers.Defaul
         currentJob = null
       }
     }
+
+    kattyLog.trace { "CommandExecutor::execute launched job" }
+
     // Wait for the command to finish. This suspends the caller.
     currentJob?.join()
     isRunning = false

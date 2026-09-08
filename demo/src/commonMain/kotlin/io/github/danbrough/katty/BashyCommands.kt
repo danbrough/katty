@@ -14,6 +14,7 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.files.SystemPathSeparator
 import kotlinx.io.readLine
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Clock
 
 
@@ -156,7 +157,7 @@ object Bashy {
       this.commandHandler = it
       cursorPos = 0
       currentLine.clear()
-    } ?: throw Errors.ExitException()
+    } ?: throw CancellationException("Exit requested")
   }
 
   val ExecCommand = basicCommand("exec", "executes a command in the shell") { args ->

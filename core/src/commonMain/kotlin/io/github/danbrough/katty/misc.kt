@@ -1,5 +1,9 @@
 package io.github.danbrough.katty
 
+import org.danbrough.klog.logger
+
+internal val kattyLog = logger("KATTY")
+
 /**
  * Parse the [input] into a list of command-line arguments
  */
