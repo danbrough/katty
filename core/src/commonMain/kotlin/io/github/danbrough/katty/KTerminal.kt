@@ -1,13 +1,17 @@
 package io.github.danbrough.katty
 
+import com.github.ajalt.mordant.input.InputReceiver
 import com.github.ajalt.mordant.input.KeyboardEvent
+import com.github.ajalt.mordant.input.coroutines.receiveKeyEventsFlow
 import com.github.ajalt.mordant.input.enterRawMode
+import com.github.ajalt.mordant.input.isCtrlC
 import com.github.ajalt.mordant.rendering.TextAlign
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.widgets.Caption
 import com.github.ajalt.mordant.widgets.HorizontalRule
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.io.SystemLineSeparator
 
 
@@ -15,6 +19,7 @@ open class KTerminal(
   var commandHandler: CommandHandler,
   val history: History = DefaultHistory(),
   var terminal: Terminal = Terminal(),
+  val executor: CommandExecutor = CommandExecutor(KattyUtils.ioDispatcher),
   val context: Any? = null
 ) {
 
@@ -49,33 +54,36 @@ open class KTerminal(
   ) {
     cmdLine ?: args ?: error("No args or cmdLine provided to runCommand()")
 
-    if (printNewLine)
-      terminal.println()
-    cursorPos = 0
-    currentLine.clear()
+    println(TextColors.blue("KTermianl.runCommand: $cmdLine"))
+    executor.execute {
+      if (printNewLine)
+        terminal.println()
+      cursorPos = 0
+      currentLine.clear()
 
-    runCatching {
-      cmdLine?.also {
-        history.addToHistory(it)
-        history.saveHistory()
+      runCatching {
+        cmdLine?.also {
+          history.addToHistory(it)
+          history.saveHistory()
+        }
+        commandHandler.runCommand(this@KTerminal, cmdLine, args)
+      }.exceptionOrNull()?.also {
+        if (it is Errors.ExitException) throw it
+        if (it is CancellationException) throw it
+
+        terminal.println(HorizontalRule())
+        if (it is Errors.CommandNotFound)
+          terminal.println(terminal.theme.danger(it.message))
+        else
+          terminal.println(terminal.theme.danger(it.stackTraceToString()))
+
+        terminal.println(HorizontalRule())
+        commandHandler.showHelp(this@KTerminal)
+        terminal.println(HorizontalRule())
       }
-      commandHandler.runCommand(this, cmdLine, args)
-    }.exceptionOrNull()?.also {
-      if (it is Errors.ExitException) throw it
-      if (it is CancellationException) throw it
-
-      terminal.println(HorizontalRule())
-      if (it is Errors.CommandNotFound)
-        terminal.println(terminal.theme.danger(it.message))
-      else
-        terminal.println(terminal.theme.danger(it.stackTraceToString()))
-
-      terminal.println(HorizontalRule())
-      commandHandler.showHelp(this)
-      terminal.println(HorizontalRule())
     }
-
   }
+
 
   suspend fun printPrompt(newLine: Boolean = true) {
     commandHandler.prompt().also { p ->
@@ -86,18 +94,61 @@ open class KTerminal(
     }
   }
 
+  protected suspend fun processKeyEvent(event: KeyboardEvent): InputReceiver.Status<Any> {
+    if (cursorPos == 0)
+      printPrompt(newLine = false)
+
+    keyboardActions.firstOrNull { it.matcher(event) }?.also {
+      it.invoke(this@KTerminal, event)
+      return@processKeyEvent InputReceiver.Status.Continue
+    }
+
+    if (!event.ctrl && !event.alt && event.key.length == 1) {
+      val c = event.key.first()
+      currentLine.insert(cursorPos - promptLength, c)
+      cursorPos++
+      val restOfLine = currentLine.substring(cursorPos - promptLength - 1)
+
+      if (restOfLine.length == 1) {
+        terminal.print(restOfLine)
+      } else {
+        terminal.cursor.move {
+          terminal.cursor.hide(true)
+          clearLineAfterCursor()
+          terminal.rawPrint(restOfLine)
+          left(restOfLine.length - 1)
+          terminal.cursor.show()
+        }
+      }
+    } else {
+      handleUnknownKey(event)
+    }
+
+    return InputReceiver.Status.Continue
+  }
+
+  suspend fun cmdLoop2() {
+    registerDefaultKeyboardActions()
+    printPrompt()
+
+    terminal.receiveKeyEventsFlow().takeWhile { !it.isCtrlC && !it.isCtrlD }.collect {
+      processKeyEvent(it)
+    }
+
+  }
+
   suspend fun cmdLoop() {
 
     registerDefaultKeyboardActions()
 
     terminal.println()
 
+
     terminal.enterRawMode().use { rawMode ->
 
       loop@ while (true) {
         if (cursorPos == 0)
           printPrompt(newLine = false)
-
 
         val firstKey = rawMode.readKeyOrNull()!!
 
@@ -177,7 +228,7 @@ open class KTerminal(
 
   suspend fun runInternal() {
     runCatching {
-      cmdLoop()
+      cmdLoop2()
     }.exceptionOrNull().also { err ->
       if (err != null && err !is Errors.ExitException)
         println(this.terminal.theme.danger(err.stackTraceToString()))
@@ -197,7 +248,6 @@ open class KTerminal(
     runInternal()
   }.exceptionOrNull().also { err ->
     if (err is Errors.ExitException) {
-
       runCatching {
         if (history.saveHistory())
           println("History saved.")
@@ -205,9 +255,7 @@ open class KTerminal(
       }.exceptionOrNull()?.also {
         it.printStackTrace()
       }
-
       goodBye()
-
     } else if (err != null) throw err
   }
 

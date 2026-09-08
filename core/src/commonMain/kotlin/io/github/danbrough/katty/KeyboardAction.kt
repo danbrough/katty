@@ -1,5 +1,7 @@
 package io.github.danbrough.katty
 
+import com.github.ajalt.mordant.input.InputEvent
+import com.github.ajalt.mordant.input.InputReceiver
 import com.github.ajalt.mordant.input.KeyboardEvent
 import com.github.ajalt.mordant.input.enterRawMode
 import com.github.ajalt.mordant.input.isCtrlC
@@ -12,9 +14,9 @@ enum class KeyboardActionResult {
 
 open class KeyboardAction(
   val matcher: KeyboardEvent.() -> Boolean,
-  private val action: suspend KTerminal.(KeyboardEvent) -> Unit = { }
+  private val action: suspend KTerminal.(KeyboardEvent) ->Unit = { }
 ) {
-  open suspend operator fun invoke(kTerminal: KTerminal, event: KeyboardEvent): Unit =
+  open suspend operator fun invoke(kTerminal: KTerminal, event: KeyboardEvent): Unit  =
     action(kTerminal, event)
 }
 

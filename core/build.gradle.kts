@@ -42,6 +42,7 @@ kotlin {
     commonMain {
       dependencies {
         api(libs.mordant)
+        api(libs.mordant.coroutines)
         api(libs.kotlinx.io.core)
         api(libs.kotlinx.coroutines.core)
         implementation(libs.ktoml.core)
