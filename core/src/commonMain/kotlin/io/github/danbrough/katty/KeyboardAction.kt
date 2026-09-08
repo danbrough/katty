@@ -1,13 +1,10 @@
 package io.github.danbrough.katty
 
-import com.github.ajalt.mordant.input.InputEvent
-import com.github.ajalt.mordant.input.InputReceiver
 import com.github.ajalt.mordant.input.KeyboardEvent
 import com.github.ajalt.mordant.input.enterRawMode
 import com.github.ajalt.mordant.input.isCtrlC
 import com.github.ajalt.mordant.rendering.TextStyles
 import com.github.ajalt.mordant.terminal.CursorMovements
-import kotlin.coroutines.cancellation.CancellationException
 
 enum class KeyboardActionResult {
   CONTINUE, EXIT, ADD_TO_LINE
@@ -15,9 +12,9 @@ enum class KeyboardActionResult {
 
 open class KeyboardAction(
   val matcher: KeyboardEvent.() -> Boolean,
-  private val action: suspend KTerminal.(KeyboardEvent) ->Unit = { }
+  private val action: suspend KTerminal.(KeyboardEvent) -> Unit = { }
 ) {
-  open suspend operator fun invoke(kTerminal: KTerminal, event: KeyboardEvent): Unit  =
+  open suspend operator fun invoke(kTerminal: KTerminal, event: KeyboardEvent): Unit =
     action(kTerminal, event)
 }
 
@@ -25,7 +22,7 @@ object KeyboardActions {
 
 
   val CtrlDCtrlCToExit = KeyboardAction({ isCtrlD || isCtrlC }) {
-    throw CancellationException("User cancelled")
+    throw KattyException.ExitException()
   }
 
   val SearchAction = KeyboardAction({ isCtrlR }) {

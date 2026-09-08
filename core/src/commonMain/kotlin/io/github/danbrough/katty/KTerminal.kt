@@ -4,14 +4,12 @@ import com.github.ajalt.mordant.input.InputReceiver
 import com.github.ajalt.mordant.input.KeyboardEvent
 import com.github.ajalt.mordant.input.coroutines.receiveKeyEventsFlow
 import com.github.ajalt.mordant.input.enterRawMode
-import com.github.ajalt.mordant.input.isCtrlC
 import com.github.ajalt.mordant.rendering.TextAlign
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.widgets.Caption
 import com.github.ajalt.mordant.widgets.HorizontalRule
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.takeWhile
 import kotlinx.io.SystemLineSeparator
 
 
@@ -71,7 +69,7 @@ open class KTerminal(
         if (it is CancellationException) throw it
 
         terminal.println(HorizontalRule())
-        if (it is Errors.CommandNotFound)
+        if (it is KattyException.CommandNotFound)
           terminal.println(terminal.theme.danger(it.message))
         else
           terminal.println(terminal.theme.danger(it.stackTraceToString()))
@@ -130,10 +128,7 @@ open class KTerminal(
     registerDefaultKeyboardActions()
     printPrompt()
 
-    terminal.receiveKeyEventsFlow().takeWhile { !it.isCtrlC && !it.isCtrlD }.collect {
-      processKeyEvent(it)
-    }
-
+    terminal.receiveKeyEventsFlow().collect(::processKeyEvent)
   }
 
   suspend fun cmdLoop() {
@@ -229,7 +224,7 @@ open class KTerminal(
     runCatching {
       cmdLoop2()
     }.exceptionOrNull().also { err ->
-      if (err != null && err !is CancellationException)
+      if (err != null && err !is CancellationException && err !is KattyException.ExitException)
         println(this.terminal.theme.danger(err.stackTraceToString()))
 
       commandHandler.parent?.also {
@@ -237,7 +232,7 @@ open class KTerminal(
         cursorPos = 0
         currentLine.clear()
         runInternal()
-      } ?: if (err != null) throw err else return
+      } ?: err?.also { throw it }
     }
   }
 
@@ -246,17 +241,17 @@ open class KTerminal(
     hello()
     runInternal()
   }.exceptionOrNull().also { err ->
-    if (err is CancellationException) {
-      runCatching {
-        if (history.saveHistory())
-          println("History saved.")
-        cursorPos = 0
-      }.exceptionOrNull()?.also {
-        it.printStackTrace()
-      }
-      goodBye()
-    } else if (err != null) throw err
-  }
+    //if (err is CancellationException || err is KattyException.ExitException) {
+    runCatching {
+      if (history.saveHistory())
+        println("History saved.")
+      cursorPos = 0
+    }.exceptionOrNull()?.also {
+      it.printStackTrace()
+    }
+    goodBye()
+  } //else if (err != null) throw err
+
 
 
   suspend fun main(cmdArgs: Array<String>) {

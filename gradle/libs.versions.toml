@@ -28,13 +28,12 @@ shadow = "9.6.1"
 # https://github.com/ajalt/mordant
 mordant = "3.1.0"
 datetime = "0.8.0"
-##    ⬆ = "0.8.0-0.6.x-compat"
 clikt = "5.1.0"
 # https://github.com/orchestr7/ktoml
 ktoml = "0.7.1"
 kotlinx-serialization = "1.11.0"
 kotlinx-coroutines = "1.11.0"
-klog = "0.1.4"
+klog = "0.1.5"
 
 [libraries]
 
