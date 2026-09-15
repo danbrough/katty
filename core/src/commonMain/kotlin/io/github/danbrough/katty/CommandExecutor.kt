@@ -6,14 +6,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
 class CommandExecutor(private val context: CoroutineContext = Dispatchers.Default) {
   // Use a SupervisorJob so that cancelling the executor's scope doesn't cancel unrelated tasks
-  private val scope = CoroutineScope(context + SupervisorJob())
+
+  private val job =  SupervisorJob()
+  private val scope = CoroutineScope(context + job)
   private var currentJob: Job? = null
-  private var isRunning = false
+  //private var isRunning = false
 
   /**
    * Starts a new command. If one is already running, it will be cancelled first.
@@ -23,7 +26,7 @@ class CommandExecutor(private val context: CoroutineContext = Dispatchers.Defaul
     // Cancel any existing job before starting a new one
     //interrupt()
 
-    isRunning = true
+    //isRunning = true
     currentJob = scope.launch(context) {
       try {
         command()
@@ -32,7 +35,7 @@ class CommandExecutor(private val context: CoroutineContext = Dispatchers.Defaul
         // The exception is expected behavior.
         println("\nCommand interrupted.")
       } finally {
-        isRunning = false
+        //isRunning = false
         currentJob = null
       }
     }
@@ -44,13 +47,6 @@ class CommandExecutor(private val context: CoroutineContext = Dispatchers.Defaul
     isRunning = false*/
   }
 
-  /**
-   * Interrupts the currently running command.
-   */
-  fun interrupt() {
-    currentJob?.cancel()
-    // Don't set isRunning = false immediately; the coroutine's finally block will handle it.
-  }
 
   /**
    * Cleans up the executor. Should be called when the application shuts down.
@@ -58,4 +54,10 @@ class CommandExecutor(private val context: CoroutineContext = Dispatchers.Defaul
   fun close() {
     scope.cancel()
   }
+
+  suspend fun wait() {
+    currentJob?.join()
+  }
+
 }
+

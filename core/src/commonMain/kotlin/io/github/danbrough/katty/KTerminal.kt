@@ -258,8 +258,10 @@ open class KTerminal(
     val args = cmdArgs.toMutableList()
     val interactive = args.firstOrNull() == "-i"
     if (interactive) args.removeFirst()
-    if (args.isNotEmpty())
+    if (args.isNotEmpty()) {
       runCommand(args = args)
+      executor.wait()
+    }
     if (interactive || args.isEmpty())
       run()
   }
