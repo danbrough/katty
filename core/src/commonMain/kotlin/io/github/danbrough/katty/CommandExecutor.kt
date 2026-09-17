@@ -6,15 +6,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
-class CommandExecutor(private val context: CoroutineContext = Dispatchers.Default) {
+class CommandExecutor(private val context: CoroutineContext = Dispatchers.Default) :
+  CoroutineContext.Element {
   // Use a SupervisorJob so that cancelling the executor's scope doesn't cancel unrelated tasks
 
-  private val job =  SupervisorJob()
-  private val scope = CoroutineScope(context + job)
+  private val job = SupervisorJob()
+  private val scope = CoroutineScope(this + context + job)
   private var currentJob: Job? = null
   //private var isRunning = false
 
@@ -27,7 +27,7 @@ class CommandExecutor(private val context: CoroutineContext = Dispatchers.Defaul
     //interrupt()
 
     //isRunning = true
-    currentJob = scope.launch(context) {
+    currentJob = scope.launch(this + context) {
       try {
         command()
       } catch (e: CancellationException) {
@@ -56,8 +56,14 @@ class CommandExecutor(private val context: CoroutineContext = Dispatchers.Defaul
   }
 
   suspend fun wait() {
-    currentJob?.join()
+    job.join()
   }
+
+  companion object : CoroutineContext.Key<CommandExecutor> {
+
+  }
+
+  override val key: CoroutineContext.Key<*> = CommandExecutor
 
 }
 
