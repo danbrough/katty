@@ -2,13 +2,13 @@
 
 cd "$(dirname "$0")" && source ./common.sh
 
-TMPFILE=`mktemp`
-./gradlew --console=plain :$MODULE:getShadowJar | tee $TMPFILE
-JARFILE=`cat $TMPFILE | awk '/shadowJar:/  {print $2}'`
+TMP_FILE=`mktemp`
+./gradlew --console=plain :$MODULE:getShadowJar | tee $TMP_FILE
+JARFILE=`cat TMP_FILE | awk '/shadowJar:/  {print $2}'`
 echo jarfile: $JARFILE
-rm $TMPFILE
+rm $TMP_FILE
 echo changing to dir $ROOTDIR
-cd "$ROOTDIR"
+cd "$ROOT_DIR"
 exec java -jar $JARFILE "$@"
 
 

@@ -1,12 +1,9 @@
 #!/bin/bash
 
-
 cd "$(dirname "$0")" && source ./common.sh
 
 ./gradlew  :demo:jsDevelopmentExecutableCompileSync :demo:kotlinNodeJsSetup :kotlinYarnSetup :kotlinNpmInstall  || exit 1
 
-
-GRADLE_USER_HOME="${GRADLE_USER_HOME="$HOME/.gradle"}"
 
 NODE="$(find $GRADLE_USER_HOME/nodejs/  -type f -name node  -printf "%T@ %p\n" | sort -rn | head -n 1 | cut -d' ' -f2-)"
 
@@ -15,11 +12,5 @@ $NODE --require "$ROOT_DIR/build/js/node_modules/source-map-support/register.js"
 
 
 
-#TMPFILE=`mktemp`
-#./gradlew --console=plain :demo:getShadowJar | tee $TMPFILE
-#JARFILE=`cat $TMPFILE | awk '/shadowJar:/  {print $2}'`
-#echo jarfile: $JARFILE
-#rm $TMPFILE
-#exec java -jar $JARFILE "$@"
 
 
