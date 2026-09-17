@@ -54,6 +54,7 @@ suspend fun demoMain(args: Array<String>) {
     demoJobControl1,
     basicCommand("testApp", "Check we can access the DemoApp") {
       println("the app is ${kattyApp<DemoApp>()}")
+      println("terminal is ${currentCoroutineContext()[KTerminal]}")
     },
   )
 
