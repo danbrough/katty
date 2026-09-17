@@ -7,20 +7,13 @@ import kotlinx.io.files.SystemFileSystem
 import kotlinx.serialization.decodeFromString
 import kotlin.coroutines.CoroutineContext
 
-object KattyApplicationKey : CoroutineContext.Key<KattyApplicationElement>
 
-class KattyApplicationElement(val app: KattyApplication<*>) : CoroutineContext.Element {
-  override val key: CoroutineContext.Key<*> = KattyApplicationKey
-}
-
-
-@Suppress("UNCHECKED_CAST")
-suspend fun <T : Any> kattyApplication(): KattyApplication<T> =
-  currentCoroutineContext()[KattyApplicationKey]!!.app as KattyApplication<T>
-
-
-open class KattyApplication<T : Any>() {
+abstract class KattyApplication<T : Any>() : CoroutineContext.Element {
   lateinit var config: T
+
+  companion object : CoroutineContext.Key<KattyApplication<*>>
+
+  override val key: CoroutineContext.Key<*> = Companion
 }
 
 suspend inline fun <reified T : Any> KattyApplication<T>.loadConfig(tomlPath: Path) {
@@ -29,3 +22,7 @@ suspend inline fun <reified T : Any> KattyApplication<T>.loadConfig(tomlPath: Pa
     Toml.decodeFromString<T>(it)
   }
 }
+
+@Suppress("UNCHECKED_CAST")
+suspend inline fun <reified T : KattyApplication<*>?> kattyApp(): T =
+  (currentCoroutineContext()[KattyApplication] as? T) ?: error("Katty application of type: ${T::class.simpleName} not found")

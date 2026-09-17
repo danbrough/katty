@@ -6,28 +6,33 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
-class CommandExecutor(private val context: CoroutineContext = Dispatchers.Default) {
+class CommandExecutor(context: CoroutineContext = Dispatchers.Default) :
+  CoroutineContext.Element {
   // Use a SupervisorJob so that cancelling the executor's scope doesn't cancel unrelated tasks
 
-  private val job =  SupervisorJob()
-  private val scope = CoroutineScope(context + job)
+  companion object : CoroutineContext.Key<CommandExecutor>
+  override val key: CoroutineContext.Key<*> = CommandExecutor
+
+  val supervisorJob = SupervisorJob()
+  private val scope=
+    CoroutineScope(context + supervisorJob + this)
+
   private var currentJob: Job? = null
   //private var isRunning = false
 
   /**
    * Starts a new command. If one is already running, it will be cancelled first.
    */
-  suspend fun execute(command: suspend () -> Unit) {
+  fun execute(command: suspend () -> Unit) {
     kattyLog.trace { "CommandExecutor::execute .." }
     // Cancel any existing job before starting a new one
     //interrupt()
 
     //isRunning = true
-    currentJob = scope.launch(context) {
+    currentJob = scope.launch {
       try {
         command()
       } catch (e: CancellationException) {
@@ -40,7 +45,7 @@ class CommandExecutor(private val context: CoroutineContext = Dispatchers.Defaul
       }
     }
 
-    kattyLog.trace { "CommandExecutor::execute launched job" }
+    //kattyLog.trace { "CommandExecutor::execute launched job" }
 
     /*// Wait for the command to finish. This suspends the caller.
     currentJob?.join()
@@ -49,15 +54,25 @@ class CommandExecutor(private val context: CoroutineContext = Dispatchers.Defaul
 
 
   /**
-   * Cleans up the executor. Should be called when the application shuts down.
+   * Cancels the executor for immediate shutdown
    */
-  fun close() {
+  fun cancel() {
     scope.cancel()
   }
 
-  suspend fun wait() {
-    currentJob?.join()
+  /**
+   * Wait for jobs to finish
+   */
+
+  suspend fun shutdown() {
+    kattyLog.trace { "CommandExecutor::${KattyUtils.threadName()} shutdown .." }
+    supervisorJob.complete()
+    supervisorJob.join()
   }
 
+
+
 }
+
+
 

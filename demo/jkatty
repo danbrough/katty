@@ -1,9 +1,9 @@
 #!/bin/bash
-ROOTDIR="$(pwd)"
-cd `dirname "$0"` && cd ..
+
+cd "$(dirname "$0")" && source ./common.sh
 
 TMPFILE=`mktemp`
-./gradlew --console=plain :demo:getShadowJar | tee $TMPFILE
+./gradlew --console=plain :$MODULE:getShadowJar | tee $TMPFILE
 JARFILE=`cat $TMPFILE | awk '/shadowJar:/  {print $2}'`
 echo jarfile: $JARFILE
 rm $TMPFILE

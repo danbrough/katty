@@ -14,9 +14,10 @@ import com.github.ajalt.mordant.widgets.Caption
 import com.github.ajalt.mordant.widgets.HorizontalRule
 import io.github.danbrough.katty.Bashy
 import io.github.danbrough.katty.BasicCommand
-import io.github.danbrough.katty.DemoAppConfig
+import io.github.danbrough.katty.DemoApp
 import io.github.danbrough.katty.KTerminal
-import io.github.danbrough.katty.kattyApplication
+import io.github.danbrough.katty.KattyApplication
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
@@ -31,8 +32,7 @@ val DemoConfigCommand = BasicCommand("config demo") {
 }
 
 private suspend fun KTerminal.configDemo() {
-
-  val app = kattyApplication<DemoAppConfig>()
+  val app = currentCoroutineContext()[KattyApplication] ?: error("Expecting a DemoApp in context")
   terminal.printSectionTitle("Global Config", app.config)
 }
 
@@ -84,9 +84,6 @@ fun Path.toLines(): Sequence<String> = sequence {
     }
   }
 }
-
-
-
 
 
 val printTomlFile: Terminal.(String, TomlFile) -> Unit = { caption, file ->

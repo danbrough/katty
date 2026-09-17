@@ -3,8 +3,7 @@ package io.github.danbrough.katty
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-class DemoApp : KattyApplication<DemoAppConfig>() {
-}
+class DemoApp : KattyApplication<DemoAppConfig>()
 
 
 /**

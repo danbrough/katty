@@ -8,13 +8,15 @@ import io.github.danbrough.katty.demos.DemoMarkDownCommand
 import io.github.danbrough.katty.demos.DemoMordantCommand
 import io.github.danbrough.katty.demos.DemoThemeCommand
 import io.github.danbrough.katty.demos.demoCoroutines
+import io.github.danbrough.katty.demos.demoJobControl1
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import org.danbrough.klog.logger
 
-internal val  demoLog = logger("KATTY_DEMO")
+internal val demoLog = logger("KATTY_DEMO")
 
 suspend fun demoMain(args: Array<String>) {
   val configDir = Path(KattyUtils.getEnv("HOME")!!, ".katty")
@@ -23,6 +25,10 @@ suspend fun demoMain(args: Array<String>) {
     println((TextColors.brightMagenta + TextStyles.bold)("Creating configuration dir at $configDir..."))
     SystemFileSystem.createDirectories(configDir, true)
   }
+
+  val app = DemoApp()
+  app.loadConfig(Path("./demo/src/commonMain/resources/config.toml"))
+
 
   val commandHandler: BasicCommandHandler = object : BasicCommandHandler() {
     val username = KattyUtils.getEnv("USER") ?: "user"
@@ -45,20 +51,25 @@ suspend fun demoMain(args: Array<String>) {
     "mordantDemo" to DemoMordantCommand,
     "themeDemo" to DemoThemeCommand,
     "test" to TestCommand,
+    demoJobControl1,
+    basicCommand("testApp", "Check we can access the DemoApp") {
+      println("the app is ${kattyApp<DemoApp>()}")
+    },
   )
 
   commandHandler.registerBashyCommands()
   commandHandler.registerConfigCommands()
 
-  val terminal =
-    KTerminal(commandHandler, history = DefaultHistory(Path(configDir, "history.txt")))
 
-  val app = KattyApplication<DemoAppConfig>()
-  app.loadConfig(Path("demo/src/commonMain/resources/config.toml"))
+  val terminal =
+    KTerminal(
+      commandHandler,
+      context = KattyUtils.ioDispatcher + app,
+      history = DefaultHistory(Path(configDir, "history.txt"))
+    )
+
   runCatching {
-    withContext(KattyApplicationElement(app)) {
-      terminal.main(args)
-    }
+    terminal.main(args)
   }.exceptionOrNull()?.also {
     if (it !is CancellationException)
       println(it.stackTraceToString())

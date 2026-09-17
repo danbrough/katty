@@ -3,7 +3,6 @@ package io.github.danbrough.katty
 import com.github.ajalt.mordant.input.InputReceiver
 import com.github.ajalt.mordant.input.KeyboardEvent
 import com.github.ajalt.mordant.input.coroutines.receiveKeyEventsFlow
-import com.github.ajalt.mordant.input.enterRawMode
 import com.github.ajalt.mordant.rendering.TextAlign
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.terminal.Terminal
@@ -11,19 +10,24 @@ import com.github.ajalt.mordant.widgets.Caption
 import com.github.ajalt.mordant.widgets.HorizontalRule
 import kotlinx.coroutines.CancellationException
 import kotlinx.io.SystemLineSeparator
+import kotlin.coroutines.CoroutineContext
 
 
 open class KTerminal(
   var commandHandler: CommandHandler,
   val history: History = DefaultHistory(),
   var terminal: Terminal = Terminal(),
-  val executor: CommandExecutor = CommandExecutor(KattyUtils.ioDispatcher),
-  val context: Any? = null
-) {
+  context: CoroutineContext,
+  val executor: CommandExecutor = CommandExecutor(context),
+) : CoroutineContext.Element {
 
   init {
     history.loadHistory()
   }
+
+  companion object : CoroutineContext.Key<KTerminal>
+
+  override val key: CoroutineContext.Key<*> = KTerminal
 
   var cursorPos: Int = 0
   var promptLength: Int = 0
@@ -52,7 +56,7 @@ open class KTerminal(
   ) {
     cmdLine ?: args ?: error("No args or cmdLine provided to runCommand()")
 
-    println(TextColors.blue("KTermianl.runCommand: $cmdLine"))
+    //println(TextColors.blue("KTermianl.runCommand: $cmdLine"))
     executor.execute {
       if (printNewLine)
         terminal.println()
@@ -129,49 +133,6 @@ open class KTerminal(
     printPrompt()
 
     terminal.receiveKeyEventsFlow().collect(::processKeyEvent)
-  }
-
-  suspend fun cmdLoop() {
-
-    registerDefaultKeyboardActions()
-
-    terminal.println()
-
-
-    terminal.enterRawMode().use { rawMode ->
-
-      loop@ while (true) {
-        if (cursorPos == 0)
-          printPrompt(newLine = false)
-
-        val firstKey = rawMode.readKeyOrNull()!!
-
-        keyboardActions.firstOrNull { it.matcher(firstKey) }?.invoke(this, firstKey)
-          ?.run { continue@loop }
-
-
-        if (!firstKey.ctrl && !firstKey.alt && firstKey.key.length == 1) {
-          val c = firstKey.key.first()
-          currentLine.insert(cursorPos - promptLength, c)
-          cursorPos++
-          val restOfLine = currentLine.substring(cursorPos - promptLength - 1)
-
-          if (restOfLine.length == 1) {
-            terminal.print(restOfLine)
-          } else {
-            terminal.cursor.move {
-              terminal.cursor.hide(true)
-              clearLineAfterCursor()
-              terminal.rawPrint(restOfLine)
-              left(restOfLine.length - 1)
-              terminal.cursor.show()
-            }
-          }
-        } else {
-          handleUnknownKey(firstKey)
-        }
-      }
-    }
   }
 
   protected open fun handleUnknownKey(key: KeyboardEvent) {
@@ -253,17 +214,18 @@ open class KTerminal(
   } //else if (err != null) throw err
 
 
-
   suspend fun main(cmdArgs: Array<String>) {
     val args = cmdArgs.toMutableList()
     val interactive = args.firstOrNull() == "-i"
     if (interactive) args.removeFirst()
     if (args.isNotEmpty()) {
       runCommand(args = args)
-      executor.wait()
+      executor.shutdown()
     }
-    if (interactive || args.isEmpty())
+    if (interactive || args.isEmpty()) {
       run()
+      executor.shutdown()
+    }
   }
 
   suspend fun push(commandHandler: CommandHandler) {

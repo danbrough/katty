@@ -1,9 +1,19 @@
 #!/bin/bash
-DIRNAME="$(pwd)"
-cd `dirname "$0"` && cd ..
-ROOTDIR="$(pwd)"
+
+
+cd "$(dirname "$0")" && source ./common.sh
+
 ./gradlew  :demo:jsDevelopmentExecutableCompileSync :demo:kotlinNodeJsSetup :kotlinYarnSetup :kotlinNpmInstall  || exit 1
-exec node "$ROOTDIR/build/js/node_modules/katty-demo/kotlin/katty-demo.js" "$@"
+
+
+GRADLE_USER_HOME="${GRADLE_USER_HOME="$HOME/.gradle"}"
+
+NODE="$(find $GRADLE_USER_HOME/nodejs/  -type f -name node  -printf "%T@ %p\n" | sort -rn | head -n 1 | cut -d' ' -f2-)"
+
+$NODE --require "$ROOT_DIR/build/js/node_modules/source-map-support/register.js" \
+"$ROOT_DIR/build/js/node_modules/katty-demo/kotlin/katty-demo.js" "$@"
+
+
 
 #TMPFILE=`mktemp`
 #./gradlew --console=plain :demo:getShadowJar | tee $TMPFILE

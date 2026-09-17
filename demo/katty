@@ -1,14 +1,12 @@
 #!/bin/bash
-DIR="$(pwd)"
-cd `dirname "$0"` && cd ..
-ROOTDIR="$(pwd)"
+cd "$(dirname "$0")" && source ./common.sh
+
+
 
 if [[ $OSTYPE == darwin* ]] && [[ $HOSTTYPE == "x86_64" ]]; then
   ./gradlew :demo:linkKattyDebugExecutableMacosX64 || exit $?
-  cd "$DIR"
-  exec "$ROOTDIR/demo/build/bin/macosX64/kattyDebugExecutable/katty.kexe" "$@"
+  exec "$ROOT_DIR/demo/build/bin/macosX64/kattyDebugExecutable/katty.kexe" "$@"
 else
   ./gradlew :demo:linkKattyDebugExecutableLinuxX64 || exit $?
-  cd "$DIR"
-  exec "$ROOTDIR/demo/build/bin/linuxX64/kattyDebugExecutable/katty.kexe" "$@"
+  exec "$ROOT_DIR/demo/build/bin/linuxX64/kattyDebugExecutable/katty.kexe" "$@"
 fi
