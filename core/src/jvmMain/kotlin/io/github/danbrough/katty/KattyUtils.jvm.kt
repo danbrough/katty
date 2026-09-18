@@ -18,4 +18,8 @@ actual object KattyUtils {
   actual fun threadName(): String = Thread.currentThread().name
   actual val ioDispatcher: CoroutineDispatcher
     get() = Dispatchers.IO
+
+  actual fun atExit(block: () -> Unit) {
+    Runtime.getRuntime().addShutdownHook(Thread(block))
+  }
 }

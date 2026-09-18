@@ -9,6 +9,7 @@ import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.widgets.Caption
 import com.github.ajalt.mordant.widgets.HorizontalRule
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.io.SystemLineSeparator
 import kotlin.coroutines.CoroutineContext
 
@@ -17,8 +18,8 @@ open class KTerminal(
   var commandHandler: CommandHandler,
   val history: History = DefaultHistory(),
   var terminal: Terminal = Terminal(),
-  val cmdContext: CoroutineContext = KattyUtils.ioDispatcher,
   val executor: CommandExecutor = CommandExecutor(),
+  val cmdContext: CoroutineContext = KattyUtils.ioDispatcher,
 ) : CoroutineContext.Element {
 
   init {
@@ -46,7 +47,7 @@ open class KTerminal(
 
   fun println(message: String = "") = print("$message$SystemLineSeparator")
 
-  fun print(message: String){
+  fun print(message: String) {
     cursorPos += message.length
     terminal.print(message)
   }
@@ -71,9 +72,9 @@ open class KTerminal(
         commandHandler.runCommand(this@KTerminal, cmdLine, args)
 
       }.exceptionOrNull().also {
-        if (it == null){
+        if (it == null) {
           printPrompt(false)
-        }else {
+        } else {
           if (it is CancellationException) throw it
 
           terminal.println(HorizontalRule())
@@ -192,9 +193,9 @@ open class KTerminal(
       if (err != null && err !is CancellationException && err !is KattyException.ExitException)
         println(this.terminal.theme.danger(err.stackTraceToString()))
 
-      if (err is KattyException.ExitException){
+      if (err is KattyException.ExitException) {
         kattyLog.info { "got an exit exception" }
-        if (executor.cancelCurrentJob()){
+        if (executor.cancelCurrentJob()) {
           kattyLog.trace { "job cancelled" }
           return runInternal()
         }

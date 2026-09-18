@@ -25,6 +25,41 @@ actual object KattyUtils {
   actual fun threadName(): String = "Web"
   actual val ioDispatcher: CoroutineDispatcher
     get() = Dispatchers.Default
+
+  actual fun atExit(block: () -> Unit) {
+    error("atExit not implemented")
+    /*
+    //on nodejs ..
+    process.on("exit") { code ->
+          println("Process exiting with code $code. Cleaning up...")
+        }
+
+        //for web browsers ...
+        import kotlinx.browser.window
+
+    fun main() {
+        // 1. For saving state right before the user leaves or closes the tab
+        window.addEventListener("beforeunload", { event ->
+            // Perform fast, synchronous cleanup here
+            saveTemporaryData()
+
+            // Optional: Modern browsers require this to show a confirmation dialog
+            // event.preventDefault()
+        })
+
+        // 2. Alternatively, use 'unload' for guaranteed final cleanup
+        window.addEventListener("unload", {
+            flushRemainingLogs()
+        })
+    }
+
+    fun saveTemporaryData() {
+        window.localStorage.setItem("session_backup", "your_data")
+    }
+
+
+        */
+  }
 }
 
 

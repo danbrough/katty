@@ -6,6 +6,7 @@ import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.convert
+import kotlinx.cinterop.staticCFunction
 import kotlinx.cinterop.toKString
 import kotlinx.cinterop.usePinned
 import kotlinx.coroutines.CoroutineDispatcher
@@ -17,11 +18,34 @@ import kotlinx.io.RawSource
 import kotlinx.io.Source
 import kotlinx.io.buffered
 import platform.posix.FILE
+import platform.posix.atexit
 import platform.posix.fread
 import platform.posix.getenv
 import platform.posix.pclose
 import platform.posix.popen
 import platform.posix.pthread_self
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.AtomicReference
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+
+@OptIn(ExperimentalAtomicApi::class)
+private val exitBlocks = AtomicReference<List<() -> Unit>>(emptyList())
+
+// Fix: Use AtomicBoolean to avoid boxing identity issues entirely
+@OptIn(ExperimentalAtomicApi::class)
+private val isRegistered = AtomicBoolean(false)
+
+@OptIn(ExperimentalAtomicApi::class, ExperimentalForeignApi::class)
+private val staticExitHandler = staticCFunction<Unit> {
+  val blocks = exitBlocks.load()
+  for (block in blocks) {
+    try {
+      block()
+    } catch (e: Throwable) {
+      e.printStackTrace()
+    }
+  }
+}
 
 @OptIn(ExperimentalForeignApi::class)
 private class PopenSource(private val fp: CPointer<FILE>) : RawSource {
@@ -40,9 +64,9 @@ private class PopenSource(private val fp: CPointer<FILE>) : RawSource {
   }
 }
 
-actual object KattyUtils  {
+actual object KattyUtils {
   @OptIn(ExperimentalForeignApi::class)
-  actual  fun getEnv(name: String): String? = getenv(name)?.toKString()
+  actual fun getEnv(name: String): String? = getenv(name)?.toKString()
 
   @OptIn(ExperimentalForeignApi::class)
   actual fun exec(command: List<String>): Source {
@@ -55,4 +79,17 @@ actual object KattyUtils  {
 
   actual val ioDispatcher: CoroutineDispatcher
     get() = Dispatchers.IO
+
+  @OptIn(ExperimentalAtomicApi::class, ExperimentalForeignApi::class)
+  actual fun atExit(block: () -> Unit) {
+    do {
+      val current = exitBlocks.load()
+      val next = current + block
+    } while (!exitBlocks.compareAndSet(current, next))
+
+    // Safe, clean, and no warning suppression needed
+    if (isRegistered.compareAndSet(expectedValue = false, newValue = true)) {
+      atexit(staticExitHandler)
+    }
+  }
 }

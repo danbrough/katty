@@ -116,23 +116,5 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
       terminal.currentLine.append(line)
       terminal.cursorPos += line.length
     }
-
-    /*if (suggestions.size == 1) {
-      val restOfCommand = suggestions.first().substringAfter(cmdLine)
-      terminal.print(restOfCommand)
-      terminal.currentLine.append(restOfCommand)
-      terminal.cursorPos += restOfCommand.length
-    } else {
-      terminal.println()
-      suggestions.forEach {
-        terminal.print(it + '\t')
-      }
-
-      terminal.printPrompt(newLine = true)
-      terminal.print(line)
-      terminal.currentLine.append(line)
-      terminal.cursorPos += line.length
-    }
-  }*/
   }
 }

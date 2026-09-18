@@ -2,12 +2,14 @@ package io.github.danbrough.katty
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
-class CommandExecutor() :
+open class CommandExecutor() :
   CoroutineContext.Element {
   // Use a SupervisorJob so that cancelling the executor's scope doesn't cancel unrelated tasks
 
@@ -15,12 +17,12 @@ class CommandExecutor() :
 
   override val key: CoroutineContext.Key<*> = CommandExecutor
 
+
   val supervisorJob = SupervisorJob()
   private val scope =
     CoroutineScope(supervisorJob + this)
 
   private var currentJob: Job? = null
-  //private var isRunning = false
 
   /**
    * Starts a new command. If one is already running, it will be cancelled first.
@@ -28,13 +30,8 @@ class CommandExecutor() :
   fun execute(context: CoroutineContext, command: suspend () -> Unit) {
 
     kattyLog.trace { "CommandExecutor::execute .." }
-    // Cancel any existing job before starting a new one
-    //interrupt()
 
-    //isRunning = true
-    val terminal = context[KTerminal] as KTerminal
-
-    currentJob = scope.launch(context) {
+    currentJob = scope.launch(context + Dispatchers.Default) {
       try {
         command()
       } catch (e: CancellationException) {
@@ -42,16 +39,9 @@ class CommandExecutor() :
         // The exception is expected behavior.
         kattyLog.trace { "Command cancelled." }
       } finally {
-        //isRunning = false
         currentJob = null
       }
     }
-
-    //kattyLog.trace { "CommandExecutor::execute launched job" }
-
-    /*// Wait for the command to finish. This suspends the caller.
-    currentJob?.join()
-    isRunning = false*/
   }
 
 
@@ -71,6 +61,9 @@ class CommandExecutor() :
     supervisorJob.join()
   }
 }
+
+
+
 
 
 
