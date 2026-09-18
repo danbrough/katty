@@ -17,8 +17,8 @@ open class KTerminal(
   var commandHandler: CommandHandler,
   val history: History = DefaultHistory(),
   var terminal: Terminal = Terminal(),
-  context: CoroutineContext,
-  val executor: CommandExecutor = CommandExecutor(context),
+  val cmdContext: CoroutineContext = KattyUtils.ioDispatcher,
+  val executor: CommandExecutor = CommandExecutor(),
 ) : CoroutineContext.Element {
 
   init {
@@ -46,20 +46,20 @@ open class KTerminal(
 
   fun println(message: String = "") = print("$message$SystemLineSeparator")
 
-  fun print(message: String) = terminal.print(message)
+  fun print(message: String){
+    cursorPos += message.length
+    terminal.print(message)
+  }
 
 
-  open suspend fun runCommand(
+  open fun runCommand(
     cmdLine: String? = null,
-    args: List<String>? = null,
-    printNewLine: Boolean = true
+    args: List<String>? = null
   ) {
     cmdLine ?: args ?: error("No args or cmdLine provided to runCommand()")
 
     //println(TextColors.blue("KTermianl.runCommand: $cmdLine"))
-    executor.execute {
-      if (printNewLine)
-        terminal.println()
+    executor.execute(cmdContext + this) {
       cursorPos = 0
       currentLine.clear()
 
@@ -69,18 +69,23 @@ open class KTerminal(
           history.saveHistory()
         }
         commandHandler.runCommand(this@KTerminal, cmdLine, args)
-      }.exceptionOrNull()?.also {
-        if (it is CancellationException) throw it
 
-        terminal.println(HorizontalRule())
-        if (it is KattyException.CommandNotFound)
-          terminal.println(terminal.theme.danger(it.message))
-        else
-          terminal.println(terminal.theme.danger(it.stackTraceToString()))
+      }.exceptionOrNull().also {
+        if (it == null){
+          printPrompt(false)
+        }else {
+          if (it is CancellationException) throw it
 
-        terminal.println(HorizontalRule())
-        commandHandler.showHelp(this@KTerminal)
-        terminal.println(HorizontalRule())
+          terminal.println(HorizontalRule())
+          if (it is KattyException.CommandNotFound)
+            terminal.println(terminal.theme.danger(it.message))
+          else
+            terminal.println(terminal.theme.danger(it.stackTraceToString()))
+
+          terminal.println(HorizontalRule())
+          commandHandler.showHelp(this@KTerminal)
+          terminal.println(HorizontalRule())
+        }
       }
     }
   }
@@ -128,10 +133,9 @@ open class KTerminal(
     return InputReceiver.Status.Continue
   }
 
-  suspend fun cmdLoop2() {
+  suspend fun cmdLoop() {
     registerDefaultKeyboardActions()
     printPrompt()
-
     terminal.receiveKeyEventsFlow().collect(::processKeyEvent)
   }
 
@@ -183,10 +187,18 @@ open class KTerminal(
 
   suspend fun runInternal() {
     runCatching {
-      cmdLoop2()
+      cmdLoop()
     }.exceptionOrNull().also { err ->
       if (err != null && err !is CancellationException && err !is KattyException.ExitException)
         println(this.terminal.theme.danger(err.stackTraceToString()))
+
+      if (err is KattyException.ExitException){
+        kattyLog.info { "got an exit exception" }
+        if (executor.cancelCurrentJob()){
+          kattyLog.trace { "job cancelled" }
+          return runInternal()
+        }
+      }
 
       commandHandler.parent?.also {
         this.commandHandler = it
@@ -220,12 +232,13 @@ open class KTerminal(
     if (interactive) args.removeFirst()
     if (args.isNotEmpty()) {
       runCommand(args = args)
-      executor.shutdown()
     }
     if (interactive || args.isEmpty()) {
       run()
-      executor.shutdown()
     }
+    executor.shutdown()
+
+
   }
 
   suspend fun push(commandHandler: CommandHandler) {

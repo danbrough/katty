@@ -23,6 +23,7 @@ suspend inline fun <reified T : Any> KattyApplication<T>.loadConfig(tomlPath: Pa
   }
 }
 
-@Suppress("UNCHECKED_CAST")
+
 suspend inline fun <reified T : KattyApplication<*>?> kattyApp(): T =
-  (currentCoroutineContext()[KattyApplication] as? T) ?: error("Katty application of type: ${T::class.simpleName} not found")
+  (currentCoroutineContext()[KattyApplication] as? T)
+    ?: error("Katty application of type: ${T::class.simpleName} not found")

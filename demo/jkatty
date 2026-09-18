@@ -2,9 +2,11 @@
 
 cd "$(dirname "$0")" && source ./common.sh
 
+
 TMP_FILE=`mktemp`
-./gradlew --console=plain :$MODULE:getShadowJar | tee $TMP_FILE
-JARFILE=`cat TMP_FILE | awk '/shadowJar:/  {print $2}'`
+set -o pipefail
+( ./gradlew --console=plain :$MODULE:getShadowJar | tee $TMP_FILE ) || exit 1
+JARFILE=`cat $TMP_FILE | awk '/shadowJar:/  {print $2}'`
 echo jarfile: $JARFILE
 rm $TMP_FILE
 echo changing to dir $ROOTDIR

@@ -12,9 +12,11 @@ import io.github.danbrough.katty.demos.demoJobControl1
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import org.danbrough.klog.logger
+import kotlin.time.Duration.Companion.seconds
 
 internal val demoLog = logger("KATTY_DEMO")
 
@@ -43,7 +45,6 @@ suspend fun demoMain(args: Array<String>) {
     }
   }
 
-
   commandHandler["coroutinesDemo", "Testing coroutines stuff"] = KTerminal::demoCoroutines
 
   commandHandler.registerCommands(
@@ -51,8 +52,13 @@ suspend fun demoMain(args: Array<String>) {
     "mordantDemo" to DemoMordantCommand,
     "themeDemo" to DemoThemeCommand,
     "test" to TestCommand,
+    basicCommand("snooze","Command the sleeps for a while"){
+      println("Having a snooze .. on thread ${KattyUtils.threadName()}")
+      delay(5.seconds)
+      println("Waking up")
+    },
     demoJobControl1,
-    basicCommand("testApp", "Check we can access the DemoApp") {
+    basicCommand("testApp", "Check we can access the DemoApp and the KTerminal from the context") {
       println("the app is ${kattyApp<DemoApp>()}")
       println("terminal is ${currentCoroutineContext()[KTerminal]}")
     },
@@ -65,12 +71,13 @@ suspend fun demoMain(args: Array<String>) {
   val terminal =
     KTerminal(
       commandHandler,
-      context = KattyUtils.ioDispatcher + app,
+      cmdContext = app + KattyUtils.ioDispatcher,
       history = DefaultHistory(Path(configDir, "history.txt"))
     )
 
   runCatching {
     terminal.main(args)
+
   }.exceptionOrNull()?.also {
     if (it !is CancellationException)
       println(it.stackTraceToString())

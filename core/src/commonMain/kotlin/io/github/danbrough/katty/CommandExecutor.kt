@@ -2,23 +2,22 @@ package io.github.danbrough.katty
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
-class CommandExecutor(context: CoroutineContext = Dispatchers.Default) :
+class CommandExecutor() :
   CoroutineContext.Element {
   // Use a SupervisorJob so that cancelling the executor's scope doesn't cancel unrelated tasks
 
   companion object : CoroutineContext.Key<CommandExecutor>
+
   override val key: CoroutineContext.Key<*> = CommandExecutor
 
   val supervisorJob = SupervisorJob()
-  private val scope=
-    CoroutineScope(context + supervisorJob + this)
+  private val scope =
+    CoroutineScope(supervisorJob + this)
 
   private var currentJob: Job? = null
   //private var isRunning = false
@@ -26,19 +25,22 @@ class CommandExecutor(context: CoroutineContext = Dispatchers.Default) :
   /**
    * Starts a new command. If one is already running, it will be cancelled first.
    */
-  fun execute(command: suspend () -> Unit) {
+  fun execute(context: CoroutineContext, command: suspend () -> Unit) {
+
     kattyLog.trace { "CommandExecutor::execute .." }
     // Cancel any existing job before starting a new one
     //interrupt()
 
     //isRunning = true
-    currentJob = scope.launch {
+    val terminal = context[KTerminal] as KTerminal
+
+    currentJob = scope.launch(context) {
       try {
         command()
       } catch (e: CancellationException) {
         // Command was cancelled, we can handle cleanup here if needed.
         // The exception is expected behavior.
-        println("\nCommand interrupted.")
+        kattyLog.trace { "Command cancelled." }
       } finally {
         //isRunning = false
         currentJob = null
@@ -56,9 +58,8 @@ class CommandExecutor(context: CoroutineContext = Dispatchers.Default) :
   /**
    * Cancels the executor for immediate shutdown
    */
-  fun cancel() {
-    scope.cancel()
-  }
+  fun cancelCurrentJob(): Boolean = currentJob?.cancel()?.let { true } ?: false
+
 
   /**
    * Wait for jobs to finish
@@ -69,9 +70,6 @@ class CommandExecutor(context: CoroutineContext = Dispatchers.Default) :
     supervisorJob.complete()
     supervisorJob.join()
   }
-
-
-
 }
 
 
