@@ -17,7 +17,6 @@ configure<PublishingExtension> {
 }
 
 
-private val descriptions = mapOf("core" to "Basic core functionality for the shell")
 private val githubURL = "https://github.com/danbrough/katty"
 
 private val signingKey = project.findProperty("signing.key")?.toString()?.replace("\\n", "\n")
@@ -46,7 +45,7 @@ configure<MavenPublishBaseExtension> {
 
   pom {
     name.set(project.name)
-    description.set(descriptions[project.name] ?: error("Missing description for ${project.name}"))
+    description.set(project.property("${project.name}.description")?.toString() ?: error("Property ${project.name}.description not set."))
     url.set(githubURL)
 
     licenses {

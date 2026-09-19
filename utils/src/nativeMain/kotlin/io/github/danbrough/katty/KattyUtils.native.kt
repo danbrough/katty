@@ -1,4 +1,5 @@
 @file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
+@file:OptIn(ExperimentalForeignApi::class, ExperimentalAtomicApi::class)
 
 package io.github.danbrough.katty
 
@@ -28,14 +29,11 @@ import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.AtomicReference
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
-@OptIn(ExperimentalAtomicApi::class)
 private val exitBlocks = AtomicReference<List<() -> Unit>>(emptyList())
 
 // Fix: Use AtomicBoolean to avoid boxing identity issues entirely
-@OptIn(ExperimentalAtomicApi::class)
 private val isRegistered = AtomicBoolean(false)
 
-@OptIn(ExperimentalAtomicApi::class, ExperimentalForeignApi::class)
 private val staticExitHandler = staticCFunction<Unit> {
   val blocks = exitBlocks.load()
   for (block in blocks) {
@@ -47,7 +45,6 @@ private val staticExitHandler = staticCFunction<Unit> {
   }
 }
 
-@OptIn(ExperimentalForeignApi::class)
 private class PopenSource(private val fp: CPointer<FILE>) : RawSource {
   override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
     val buffer = ByteArray(byteCount.toInt().coerceAtMost(8192))
@@ -65,10 +62,8 @@ private class PopenSource(private val fp: CPointer<FILE>) : RawSource {
 }
 
 actual object KattyUtils {
-  @OptIn(ExperimentalForeignApi::class)
   actual fun getEnv(name: String): String? = getenv(name)?.toKString()
 
-  @OptIn(ExperimentalForeignApi::class)
   actual fun exec(command: List<String>): Source {
     val cmdString = command.joinToString(" ")
     val fp = popen(cmdString, "r") ?: throw IOException("Failed to execute command: $cmdString")
@@ -80,7 +75,6 @@ actual object KattyUtils {
   actual val ioDispatcher: CoroutineDispatcher
     get() = Dispatchers.IO
 
-  @OptIn(ExperimentalAtomicApi::class, ExperimentalForeignApi::class)
   actual fun atExit(block: () -> Unit) {
     do {
       val current = exitBlocks.load()

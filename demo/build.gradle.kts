@@ -43,7 +43,7 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
-        implementation(projects.core)
+        implementation(projects.shell)
         implementation(libs.kotlinx.datetime)
         implementation(libs.kotlinx.io.core)
         implementation(libs.ktoml.core)
