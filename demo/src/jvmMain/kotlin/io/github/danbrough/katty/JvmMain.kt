@@ -9,7 +9,14 @@ class JvmMain {
       demoLog.info { "${KattyUtils.threadName()}: in JvmMain.main()" }
       runBlocking {
         demoLog.info { "${KattyUtils.threadName()}: JvmMain.main() coroutine" }
-        demoMain(args)
+        demoMain(
+          args,
+          basicCommand("testShutdown", "Tests the shutdown hook") {
+            KattyUtils.atExit {
+              demoLog.warn { "SHUTTING DOWN!" }
+            }
+          }
+        )
       }
     }
   }

@@ -10,7 +10,6 @@ import io.github.danbrough.katty.demos.DemoThemeCommand
 import io.github.danbrough.katty.demos.demoCoroutines
 import io.github.danbrough.katty.demos.demoJobControl1
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.io.files.Path
@@ -20,7 +19,7 @@ import kotlin.time.Duration.Companion.seconds
 
 internal val demoLog = logger("KATTY_DEMO")
 
-suspend fun demoMain(args: Array<String>) {
+suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, BasicCommand>) {
   val configDir = Path(KattyUtils.getEnv("HOME")!!, ".katty")
 
   if (!SystemFileSystem.exists(configDir)) {
@@ -45,6 +44,10 @@ suspend fun demoMain(args: Array<String>) {
     }
   }
 
+
+
+  commandHandler.registerCommands(*extraCommands)
+
   commandHandler["coroutinesDemo", "Testing coroutines stuff"] = KTerminal::demoCoroutines
 
   commandHandler.registerCommands(
@@ -52,7 +55,7 @@ suspend fun demoMain(args: Array<String>) {
     "mordantDemo" to DemoMordantCommand,
     "themeDemo" to DemoThemeCommand,
     "test" to TestCommand,
-    basicCommand("snooze","Command the sleeps for a while"){
+    basicCommand("snooze", "Command the sleeps for a while") {
       println("Having a snooze .. on thread ${KattyUtils.threadName()}")
       delay(5.seconds)
       println("Waking up")
@@ -61,6 +64,9 @@ suspend fun demoMain(args: Array<String>) {
     basicCommand("testApp", "Check we can access the DemoApp and the KTerminal from the context") {
       println("the app is ${kattyApp<DemoApp>()}")
       println("terminal is ${currentCoroutineContext()[KTerminal]}")
+      KattyUtils.atExit {
+        println("DOING THIS AT EXIT")
+      }
     },
   )
 

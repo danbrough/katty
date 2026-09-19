@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.io.Source
 import kotlinx.io.asSource
 import kotlinx.io.buffered
+import kotlin.concurrent.thread
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object KattyUtils {
@@ -20,6 +21,7 @@ actual object KattyUtils {
     get() = Dispatchers.IO
 
   actual fun atExit(block: () -> Unit) {
-    Runtime.getRuntime().addShutdownHook(Thread(block))
+    println("atExit: Adding shutdown hook.... ")
+    Runtime.getRuntime().addShutdownHook(thread(start = false, block = block))
   }
 }

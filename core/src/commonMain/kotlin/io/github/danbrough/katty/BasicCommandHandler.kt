@@ -49,6 +49,7 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
     commands.putAll(cmds)
   }
 
+
   operator fun set(name: String, description: String, job: BasicCommandJob) {
     registerCommands(name to BasicCommand(description, job))
   }
