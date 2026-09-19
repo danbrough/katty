@@ -14,7 +14,7 @@ private fun jsPrintln(s: String?) {
 private fun getEnvJS(name: String): String? =
   js("typeof process === 'object' ? process.env[name] : null")
 
-@Suppress(names = ["EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING"])
+@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object KattyUtils {
   actual fun getEnv(name: String): String? = getEnvJS(name)
 
@@ -59,6 +59,10 @@ actual object KattyUtils {
 
 
         */
+  }
+
+  actual fun resolveHostName(hostName: String): List<String> {
+    TODO("resolveHostName not yet implemented")
   }
 }
 
