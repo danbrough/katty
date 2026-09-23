@@ -9,6 +9,7 @@ import io.github.danbrough.katty.demos.DemoMordantCommand
 import io.github.danbrough.katty.demos.DemoThemeCommand
 import io.github.danbrough.katty.demos.demoCoroutines
 import io.github.danbrough.katty.demos.demoJobControl1
+import io.github.danbrough.katty.demos.scopeDemo
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -44,10 +45,7 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
     }
   }
 
-
-
   commandHandler.registerCommands(*extraCommands)
-
   commandHandler["coroutinesDemo", "Testing coroutines stuff"] = KTerminal::demoCoroutines
 
   commandHandler.registerCommands(
@@ -55,6 +53,7 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
     "mordantDemo" to DemoMordantCommand,
     "themeDemo" to DemoThemeCommand,
     "test" to TestCommand,
+    scopeDemo,
     basicCommand("snooze", "Command the sleeps for a while") {
       println("Having a snooze .. on thread ${KattyUtils.threadName()}")
       delay(5.seconds)
@@ -73,7 +72,6 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
   commandHandler.registerBashyCommands()
   commandHandler.registerConfigCommands()
 
-
   val terminal =
     KTerminal(
       commandHandler,
@@ -83,7 +81,6 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
 
   runCatching {
     terminal.main(args)
-
   }.exceptionOrNull()?.also {
     if (it !is CancellationException)
       println(it.stackTraceToString())

@@ -115,7 +115,7 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
       terminal.printPrompt(newLine = true)
       terminal.print(line)
       terminal.currentLine.append(line)
-      terminal.cursorPos += line.length
+      terminal.cursorPos = line.length + terminal.promptLength
     }
   }
 }

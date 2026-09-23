@@ -20,7 +20,12 @@ kotlinx-io = "0.9.1"
 publish = "0.37.0"
 
 agp = "9.4.1"
-
+##⬆= "9.5.0-alpha01"
+##⬆= "9.5.0-alpha02"
+##⬆= "9.5.0-alpha03"
+##⬆= "9.5.0-alpha04"
+##⬆= "9.5.0-alpha05"
+##⬆= "9.5.0-alpha06"
 
 # https://github.com/Kotlin/dokka
 dokka = "2.2.0"
@@ -28,7 +33,7 @@ dokka = "2.2.0"
 # https://github.com/willowtreeapps/assertk
 assertk = "0.28.1"
 # https://github.com/jline/jline3
-jline = "4.4.2"
+jline = "4.4.5"
 # https://gradleup.com/shadow/
 shadow = "9.6.1"
 # https://github.com/ajalt/mordant

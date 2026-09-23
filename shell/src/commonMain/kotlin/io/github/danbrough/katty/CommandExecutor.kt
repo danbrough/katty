@@ -31,7 +31,7 @@ open class CommandExecutor() :
 
     kattyLog.trace { "CommandExecutor::execute .." }
 
-    currentJob = scope.launch(context + Dispatchers.Default) {
+    currentJob = scope.launch(context) {
       try {
         command()
       } catch (e: CancellationException) {
