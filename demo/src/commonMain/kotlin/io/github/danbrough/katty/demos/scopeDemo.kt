@@ -50,7 +50,7 @@ val scopeDemo = basicCommand("scopeDemo", "Demos how to manage scopes. args = [s
     "session" -> {
       log.info { "scopeDemo::session" }
       topScope {
-        this@basicCommand.cmdLoop()
+        this@basicCommand.runInternal()
       }
     }
 
