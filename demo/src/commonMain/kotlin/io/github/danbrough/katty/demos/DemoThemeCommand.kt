@@ -27,21 +27,18 @@ fun KTerminal.demoTheme() {
 
 
   fun printBasic(theme: Theme, caption: String) {
+
     terminal.println(Caption(HorizontalRule(), bottom = caption, bottomAlign = TextAlign.LEFT))
 
     val msg = "example message to display .. #*$&^@&$*#^(E#$&^#)*@$  public fun example(){}"
-    println(theme.muted("muted $msg"))
-    println(theme.warning("warning $msg"))
-    println(theme.danger("danger $msg"))
-    println(theme.info("info $msg"))
-    println(theme.success("success $msg"))
-
+    println("muted $msg",theme.muted)
+    println("warning $msg",theme.warning)
+    println("danger $msg",theme.danger)
+    println("info $msg",theme.info)
+    println("success $msg",theme.success)
   }
 
   printBasic(original, "Original Theme")
 
   printBasic(newTheme, "New Theme")
-
-  terminal = Terminal(theme = newTheme)
-
 }

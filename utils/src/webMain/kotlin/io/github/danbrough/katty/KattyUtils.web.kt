@@ -27,7 +27,7 @@ actual object KattyUtils {
     get() = Dispatchers.Default
 
   actual fun atExit(block: () -> Unit) {
-    error("atExit not implemented")
+    println("KattyUtils.atExit not implemented")
     /*
     //on nodejs ..
     process.on("exit") { code ->

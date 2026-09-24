@@ -2,33 +2,40 @@ package io.github.danbrough.katty
 
 import com.github.ajalt.mordant.input.InputReceiver
 import com.github.ajalt.mordant.input.KeyboardEvent
-import com.github.ajalt.mordant.input.coroutines.receiveKeyEventsFlow
+import com.github.ajalt.mordant.input.RawModeScope
+import com.github.ajalt.mordant.input.enterRawMode
 import com.github.ajalt.mordant.rendering.TextAlign
 import com.github.ajalt.mordant.rendering.TextColors
+import com.github.ajalt.mordant.rendering.TextStyle
+import com.github.ajalt.mordant.rendering.TextStyles
 import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.widgets.Caption
 import com.github.ajalt.mordant.widgets.HorizontalRule
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.withContext
 import kotlinx.io.SystemLineSeparator
 import kotlin.coroutines.CoroutineContext
 
+private val log = kattyLog
 
 open class KTerminal(
   var commandHandler: CommandHandler,
   val history: History = DefaultHistory(),
-  var terminal: Terminal = Terminal(),
+  val terminal: Terminal = Terminal(),
   val executor: CommandExecutor = CommandExecutor(),
-  val cmdContext: CoroutineContext = KattyUtils.ioDispatcher,
+  cmdContext: CoroutineContext = KattyUtils.ioDispatcher,
 ) : CoroutineContext.Element {
 
   init {
     history.loadHistory()
   }
 
+
   companion object : CoroutineContext.Key<KTerminal>
 
   override val key: CoroutineContext.Key<*> = KTerminal
+
 
   var cursorPos: Int = 0
   var promptLength: Int = 0
@@ -45,22 +52,25 @@ open class KTerminal(
     keyboardActions.addAll(KeyboardActions.DefaultActions)
 
 
-  fun println(message: String = "") = print("$message$SystemLineSeparator")
+  fun println(message: String = "",style: TextStyle = terminal.theme.info) = print("$message$SystemLineSeparator",style)
+  fun warn(message: String) = println(message,terminal.theme.warning)
+  fun muted(message: String) = println(message,terminal.theme.muted)
+  fun danger(message: String) = println(message,terminal.theme.danger)
+  fun success(message: String) = println(message,terminal.theme.success)
 
-  fun print(message: String) {
+  fun print(message: String,style: TextStyle = terminal.theme.info) {
     cursorPos += message.length
-    terminal.print(message)
+    terminal.print(style(message))
   }
 
 
-  open fun runCommand(
+  open suspend fun runCommand(
     cmdLine: String? = null,
     args: List<String>? = null
   ) {
     cmdLine ?: args ?: error("No args or cmdLine provided to runCommand()")
 
-    //println(TextColors.blue("KTermianl.runCommand: $cmdLine"))
-    executor.execute(cmdContext + this) {
+    executor.execute {
       cursorPos = 0
       currentLine.clear()
 
@@ -75,7 +85,11 @@ open class KTerminal(
         if (it == null) {
           printPrompt(false)
         } else {
-          if (it is CancellationException) throw it
+          if (it is CancellationException) {
+            log.trace { "runCommand::caught a CancellationException" }
+            return@execute
+          }
+
 
           terminal.println(HorizontalRule())
           if (it is KattyException.CommandNotFound)
@@ -134,21 +148,6 @@ open class KTerminal(
     return InputReceiver.Status.Continue
   }
 
-  suspend fun cmdLoop() {
-    registerDefaultKeyboardActions()
-    printPrompt()
-    terminal.receiveKeyEventsFlow().collect(::processKeyEvent)
-  }
-
-  protected open fun handleUnknownKey(key: KeyboardEvent) {
-    var prefix = if (key.ctrl) "Ctrl-" else ""
-    if (key.alt) prefix += "Alt-"
-    if (key.shift) prefix += "Shift-"
-    terminal.rawPrint(terminal.theme.danger("${SystemLineSeparator}Unknown key: $prefix${key.key}$SystemLineSeparator"))
-    println(key)
-    cursorPos = 0
-    currentLine.clear()
-  }
 
   open fun showHistory(up: Boolean) {
     val line = (if (up) history.previous() else history.next()) ?: return
@@ -186,34 +185,84 @@ open class KTerminal(
     cursorPos = 0
   }
 
-  suspend fun runInternal() {
-    runCatching {
-      cmdLoop()
-    }.exceptionOrNull().also { err ->
-      if (err != null && err !is CancellationException && err !is KattyException.ExitException)
-        println(this.terminal.theme.danger(err.stackTraceToString()))
+  protected open fun handleUnknownKey(key: KeyboardEvent) {
+    var prefix = if (key.ctrl) "Ctrl-" else ""
+    if (key.alt) prefix += "Alt-"
+    if (key.shift) prefix += "Shift-"
+    terminal.rawPrint(terminal.theme.danger("${SystemLineSeparator}Unknown key: $prefix${key.key}$SystemLineSeparator"))
+    println(key)
+    cursorPos = 0
+    currentLine.clear()
+  }
 
-      if (err is KattyException.ExitException) {
-        kattyLog.info { "got an exit exception" }
-        if (executor.cancelCurrentJob()) {
-          kattyLog.trace { "job cancelled" }
-          return runInternal()
+  /*  suspend fun runInternal() {
+      runCatching {
+        cmdLoop()
+      }.exceptionOrNull().also { err ->
+        if (err != null && err !is CancellationException && err !is KattyException.ExitException)
+          println(this.terminal.theme.danger(err.stackTraceToString()))
+
+        if (err is KattyException.ExitException) {
+          kattyLog.info { "got an exit exception" }
+          if (executor.cancelCurrentJob()) {
+            kattyLog.trace { "job cancelled" }
+            return runInternal()
+          }
         }
-      }
 
-      commandHandler.parent?.also {
-        this.commandHandler = it
-        cursorPos = 0
-        currentLine.clear()
-        runInternal()
-      } ?: err?.also { throw it }
+        commandHandler.parent?.also {
+          this.commandHandler = it
+          cursorPos = 0
+          currentLine.clear()
+          runInternal()
+        } ?: err?.also { throw it }
+      }
+    }*/
+
+
+  class RawModeContext(val scope: RawModeScope) : CoroutineContext.Element {
+    companion object : CoroutineContext.Key<RawModeContext>
+
+    override val key: CoroutineContext.Key<*> = RawModeContext
+  }
+
+
+  suspend fun cmdLoop() {
+    kattyLog.info { "KTerminal::cmdLoop() terminal context: ${currentCoroutineContext()[KTerminal]}" }
+    printPrompt()
+
+    val scope = currentCoroutineContext()[RawModeContext]?.scope
+    if (scope != null) {
+      log.trace { "cmdLoop::found scope" }
+      while (true)
+        processKeyEvent(scope.readKey())
+    } else {
+      log.trace { "cmdLoop::entering raw mode .." }
+      runCatching {
+        terminal.enterRawMode().use { scope ->
+          withContext(RawModeContext(scope)) {
+            while (true)
+              processKeyEvent(scope.readKey())
+          }
+        }
+      }.exceptionOrNull()?.also {
+        if (it is KattyException.ExitException) {
+          log.info { "got an exit exception .. current job: ${executor.currentJob}" }
+          if (!executor.cancelCurrentJob()) throw it
+          else return cmdLoop()
+        } else throw it
+      }
     }
   }
 
 
-  suspend fun run() = runCatching {
+  private suspend fun run() = runCatching {
+    log.trace { "KTerminal::run() terminal context: ${currentCoroutineContext()[KTerminal]}" }
+    registerDefaultKeyboardActions()
     hello()
-    runInternal()
+    withContext(this) {
+      cmdLoop()
+    }
   }.exceptionOrNull().also { err ->
     //if (err is CancellationException || err is KattyException.ExitException) {
     runCatching {
