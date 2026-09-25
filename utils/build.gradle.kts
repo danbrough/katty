@@ -50,6 +50,10 @@ kotlin {
     nodejs()
   }
 
+  wasmWasi{
+    nodejs()
+  }
+
   sourceSets{
     commonMain {
       dependencies {

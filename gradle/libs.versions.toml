@@ -27,6 +27,7 @@ agp = "9.4.1"
 ##⬆= "9.5.0-alpha04"
 ##⬆= "9.5.0-alpha05"
 ##⬆= "9.5.0-alpha06"
+##⬆= "9.5.0-alpha07"
 
 # https://github.com/Kotlin/dokka
 dokka = "2.2.0"
@@ -43,16 +44,18 @@ datetime = "0.8.0"
 ##    ⬆ = "0.8.0-0.6.x-compat"
 clikt = "5.1.0"
 # https://github.com/orchestr7/ktoml
-ktoml = "0.7.1"
+ktoml = "0.7.2"
 kotlinx-serialization = "1.11.0"
 kotlinx-coroutines = "1.11.0"
-klog = "0.1.5"
+klog = "0.1.7"
 
 [libraries]
 
 klog = { module = "org.danbrough.klog:core", version.ref = "klog" }
 ktoml-core = { module = "com.akuleshov7:ktoml-core", version.ref = "ktoml" }
+#ktoml-core = { module = "io.github.danbrough:ktoml-core", version.ref = "ktoml" }
 ktoml-file = { module = "com.akuleshov7:ktoml-file", version.ref = "ktoml" }
+#ktoml-file = { module = "io.github.danbrough:ktoml-file", version.ref = "ktoml" }
 
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 gradle-kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }

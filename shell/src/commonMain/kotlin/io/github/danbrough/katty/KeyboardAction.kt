@@ -216,6 +216,8 @@ val KeyboardEvent.isCtrlR: Boolean
 val KeyboardEvent.isCtrlW: Boolean
   get() = isCtrl("w")
 
+val KeyboardEvent.isCtrlC: Boolean
+  get() = isCtrl("c")
 
 private fun KTerminal.skipWhitespaceLeft(cursorMovements: CursorMovements): Boolean {
   var skippedAny = false

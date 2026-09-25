@@ -18,6 +18,7 @@ import kotlin.time.Duration.Companion.seconds
 private val log = demoLog
 
 
+
 interface TestScope<T> : CoroutineContext.Element, AutoCloseable
 
 class TopScope : TestScope<TopScope> {
@@ -65,7 +66,7 @@ private var count = 1
 
 @OptIn(ExperimentalCoroutinesApi::class)
 val scopeDemo =
-  basicCommand("scopeDemo", "Demos how to manage scopes. args = [session,message,clear]") { args ->
+  basicCommand("scopeDemo", "Demos how to manage scopes. args = [session,message,clear,test]") { args ->
     println("args: ${args.joinToString(",")} job: ${currentCoroutineContext().job}")
     when (args[1]) {
       "session" -> {

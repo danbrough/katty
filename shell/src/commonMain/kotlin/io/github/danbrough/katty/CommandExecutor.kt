@@ -2,11 +2,8 @@ package io.github.danbrough.katty
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
@@ -66,14 +63,18 @@ open class CommandExecutor() :
         block: suspend C.() -> Unit
       ) {
         val commandContext = commandContext() ?: error("Not running with a CommandContext")
-        if (context is AutoCloseable) {
+        /*if (context is AutoCloseable) {
           commandContext.job.invokeOnCompletion {
             context.close()
           }
-        }
+        }*/
 
-        return withContext(context + Dispatchers.Default) {
-          context.block()
+        return withContext(context) {
+          if (context is AutoCloseable)
+            context.use {
+              it.block()
+            }
+          else context.block()
         }
       }
     }
@@ -86,39 +87,42 @@ open class CommandExecutor() :
   var scope =
     CoroutineScope(supervisorJob + this)
 
-  var currentJob: Job? = null
+  private val jobs = mutableListOf<Job>()
+  val currentJob: Job?
+    get() = jobs.lastOrNull()
 
   /**
    * Starts a new command. If one is already running, it will be cancelled first.
    */
-  @OptIn(ExperimentalCoroutinesApi::class)
   fun execute(
     //Extra context items to add to the command's scope
     context: CoroutineContext = EmptyCoroutineContext,
     command: suspend () -> Unit
   ) {
-    log.trace { "CommandExecutor::execute .." }
+    log.trace { "CommandExecutor[${KattyUtils.threadName()}]::execute .." }
 
-    val commandJob = scope.launch(context + Dispatchers.Default) {
-      coroutineScope {
-        val commandContext = CommandContext(currentCoroutineContext().job)
-        log.trace { "CommandExecutor::launched new command: $commandContext" }
-        try {
-          withContext(commandContext) {
-            command()
-          }
-        } catch (e: CancellationException) {
-          // Command was cancelled, we can handle cleanup here if needed.
-          // The exception is expected behavior.
-          log.trace { "$commandContext cancelled." }
-        } finally {
-          currentJob = null
+    scope.launch(context) {
+      val job = currentCoroutineContext().job
+      val commandContext = CommandContext(currentCoroutineContext().job)
+      log.trace { "CommandExecutor::launched new command: $commandContext job: ${currentCoroutineContext().job}" }
+      try {
+        withContext(commandContext) {
+          command()
         }
+      } catch (e: CancellationException) {
+        // Command was cancelled, we can handle cleanup here if needed.
+        // The exception is expected behavior.
+        log.trace { "$commandContext cancelled." }
       }
+    }.also { job ->
+      job.invokeOnCompletion {
+        jobs.remove(job)
+        log.trace { "CommandExecutor[${KattyUtils.threadName()}]::removed job $job from jobs. jobCount: ${jobs.size}" }
+      }
+      log.trace { "CommandExecutor[${KattyUtils.threadName()}]:: added job: $job to jobs. jobCount: ${jobs.size}" }
+      jobs.add(job)
     }
-    currentJob = commandJob
 
-    log.trace { "launched new job: $commandJob" }
     //yield()
   }
 
@@ -126,7 +130,10 @@ open class CommandExecutor() :
   /**
    * Cancels the executor for immediate shutdown
    */
-  fun cancelCurrentJob(): Boolean = currentJob?.cancel()?.let { true } ?: false
+  fun cancelCurrentJob(): Boolean {
+    log.trace { "CommandExecutor::cancelCurrentJob() jobCount: ${jobs.size}" }
+    return currentJob?.cancel()?.let { true } ?: false
+  }
 
 
   /**
@@ -134,7 +141,7 @@ open class CommandExecutor() :
    */
 
   suspend fun shutdown() {
-    log.trace { "CommandExecutor::${KattyUtils.threadName()} shutdown .." }
+    log.trace { "CommandExecutor::shutdown() ${KattyUtils.threadName()} " }
     supervisorJob.complete()
     supervisorJob.join()
   }

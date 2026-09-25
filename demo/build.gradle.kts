@@ -33,7 +33,15 @@ kotlin {
     binaries.executable()
   }
 
-/*  wasmJs {
+  wasmJs {
+    nodejs {
+      passCliArgumentsToMainFunction()
+    }
+    binaries.executable()
+  }
+
+
+/*  wasmWasi {
     nodejs {
       passCliArgumentsToMainFunction()
     }
