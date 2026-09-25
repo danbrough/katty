@@ -50,9 +50,9 @@ kotlin {
     nodejs()
   }
 
-  wasmWasi{
+/*  wasmWasi{
     nodejs()
-  }
+  }*/
 
   sourceSets{
     commonMain {
