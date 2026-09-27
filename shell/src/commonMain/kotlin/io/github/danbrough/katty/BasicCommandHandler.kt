@@ -75,7 +75,7 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
       if (commands.contains(cmdName)) {
         commands[cmdName]?.invoke(this, args)
       } else {
-        throw KattyException.CommandNotFound(cmdName)
+        throw Errors.CommandNotFound(cmdName)
       }
     }
   }

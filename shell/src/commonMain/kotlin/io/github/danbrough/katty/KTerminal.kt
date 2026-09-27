@@ -13,7 +13,6 @@ import com.github.ajalt.mordant.widgets.HorizontalRule
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.yield
 import kotlinx.io.SystemLineSeparator
 import kotlin.coroutines.CoroutineContext
 
@@ -59,6 +58,7 @@ open class KTerminal(
   fun muted(message: String) = println(message, terminal.theme.muted)
   fun danger(message: String) = println(message, terminal.theme.danger)
   fun success(message: String) = println(message, terminal.theme.success)
+  fun info(message: String) = println(message, terminal.theme.info)
 
   fun print(message: String, style: TextStyle = terminal.theme.info) {
     cursorPos += message.length
@@ -89,8 +89,8 @@ open class KTerminal(
 
 
           terminal.println(HorizontalRule())
-          if (it is KattyException.CommandNotFound)
-            terminal.println(terminal.theme.danger(it.message))
+          if (it is Errors.CommandNotFound)
+            terminal.println(terminal.theme.danger(it.message!!))
           else
             terminal.println(terminal.theme.danger(it.stackTraceToString()))
 
@@ -250,7 +250,7 @@ open class KTerminal(
         }
       }*/
     }.exceptionOrNull()?.also {
-      if (it is KattyException.ExitException) {
+      if (it is Errors.ExitException) {
         log.info { "got an exit exception .. current job: ${executor.currentJob}" }
         if (!executor.cancelCurrentJob()) throw it
         else return cmdLoop()

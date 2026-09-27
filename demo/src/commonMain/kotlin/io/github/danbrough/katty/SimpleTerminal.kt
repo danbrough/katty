@@ -1,6 +1,5 @@
 package io.github.danbrough.katty
 
-import com.github.ajalt.mordant.input.coroutines.receiveKeyEventsFlow
 import com.github.ajalt.mordant.input.enterRawMode
 import com.github.ajalt.mordant.terminal.Terminal
 import kotlinx.coroutines.CoroutineScope
@@ -31,7 +30,7 @@ class SimpleTerminal(val args: List<String>) {
     println("test[${KattyUtils.threadName()}  args: $args")
     cmdScope.launch(Dispatchers.Main) {
       println("test[${KattyUtils.threadName()}  launched coroutine")
-      for(n in 1..10) {
+      for (n in 1..10) {
         delay(1.seconds)
         println("test[${KattyUtils.threadName()}] n = $n")
       }
@@ -61,7 +60,7 @@ class SimpleTerminal(val args: List<String>) {
 
     suspend fun processKeyEvent(e: com.github.ajalt.mordant.input.KeyboardEvent) {
       if (pos == 0) printPrompt()
-      if (e.isCtrlD || e.isCtrlC) throw KattyException.ExitException()
+      if (e.isCtrlD || e.isCtrlC) throw Errors.ExitException()
       if (e.key == "Enter") {
         val cmd = command.toString()
         if (cmd.isNotBlank()) {
@@ -79,8 +78,8 @@ class SimpleTerminal(val args: List<String>) {
     }
 
     runCatching {
-      terminal.enterRawMode().use { scope->
-        while(true) {
+      terminal.enterRawMode().use { scope ->
+        while (true) {
           scope.readKeyOrNull(50.milliseconds)?.also { e ->
             processKeyEvent(e)
           }

@@ -1,5 +1,7 @@
 package io.github.danbrough.katty
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.runBlocking
 
 class JvmMain {
@@ -9,6 +11,7 @@ class JvmMain {
       demoLog.info { "${KattyUtils.threadName()}: in JvmMain.main()" }
       runBlocking {
         demoLog.info { "${KattyUtils.threadName()}: JvmMain.main() coroutine" }
+
         demoMain(
           args,
           basicCommand("testShutdown", "Tests the shutdown hook") {

@@ -13,7 +13,9 @@ plugins {
   alias(libs.plugins.kotlin.multiplatform)
   alias(libs.plugins.kotlinx.serialization)
   alias(libs.plugins.shadow)
+  id("thang")
 }
+
 
 kotlin {
   applyDefaultHierarchyTemplate()
@@ -41,12 +43,12 @@ kotlin {
   }
 
 
-/*  wasmWasi {
-    nodejs {
-      passCliArgumentsToMainFunction()
-    }
-    binaries.executable()
-  }*/
+  /*  wasmWasi {
+      nodejs {
+        passCliArgumentsToMainFunction()
+      }
+      binaries.executable()
+    }*/
 
   sourceSets {
     commonMain {

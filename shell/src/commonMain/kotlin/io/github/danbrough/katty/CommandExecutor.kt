@@ -6,54 +6,55 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
 private val log = logKattyShell
 
-open class CommandExecutor() : CoroutineContext.Element {
+open class CommandExecutor(override val key: CoroutineContext.Key<*> = CommandExecutor) :
+  ShellContext {
   // Use a SupervisorJob so that cancelling the executor's scope doesn't cancel unrelated tasks
 
+  companion object : CoroutineContext.Key<CommandExecutor>
 
-  companion object : CoroutineContext.Key<CommandExecutor> {
+  /*  companion object : CoroutineContext.Key<CommandExecutor> {
 
-    suspend operator fun minusAssign(context: CoroutineContext.Key<*>) {
-      currentCoroutineContext()[CommandExecutor]?.also { executor ->
-        executor.scope = CoroutineScope(executor.scope.coroutineContext.minusKey(context))
+      suspend operator fun minusAssign(context: CoroutineContext.Key<*>) {
+        currentCoroutineContext()[CommandExecutor]?.also { executor ->
+          executor.scope = CoroutineScope(executor.scope.coroutineContext.minusKey(context))
+        }
       }
-    }
 
-    suspend operator fun plusAssign(context: CoroutineContext) {
-      currentCoroutineContext()[CommandExecutor]?.also { executor ->
-        log.trace { "CommandExecutor::adding $context to scope: ${executor.scope}" }
-        executor.scope += context
-        if (context is AutoCloseable) {
-          log.trace { "CommandExecutor::context is AutoClosable .. adding completion hook to close $context}" }
-          executor.supervisorJob.invokeOnCompletion {
-            context.close()
+      suspend operator fun plusAssign(context: CoroutineContext) {
+        currentCoroutineContext()[CommandExecutor]?.also { executor ->
+          log.trace { "CommandExecutor::adding $context to scope: ${executor.scope}" }
+          executor.scope += context
+          if (context is AutoCloseable) {
+            log.trace { "CommandExecutor::context is AutoClosable .. adding completion hook to close $context}" }
+            executor.supervisorJob.invokeOnCompletion {
+              context.close()
+            }
           }
         }
       }
+
+      suspend fun <E : CoroutineContext.Element> getOrCreate(
+        key: CoroutineContext.Key<E>,
+        creator: () -> E
+      ): E =
+        currentCoroutineContext()[CommandExecutor]?.let { executor ->
+          executor.scope.coroutineContext[key] ?: creator().also {
+            CommandExecutor += it
+          }
+        } ?: error("Expecting CommandExecutor in context")
     }
 
-    suspend fun <E : CoroutineContext.Element> getOrCreate(
-      key: CoroutineContext.Key<E>,
-      creator: () -> E
-    ): E =
-      currentCoroutineContext()[CommandExecutor]?.let { executor ->
-        executor.scope.coroutineContext[key] ?: creator().also {
-          CommandExecutor += it
-        }
-      } ?: error("Expecting CommandExecutor in context")
-  }
-
-  override val key: CoroutineContext.Key<*> = CommandExecutor
+    override val key: CoroutineContext.Key<*> = CommandExecutor*/
 
   val supervisorJob = SupervisorJob()
-  var scope =
-    CoroutineScope(supervisorJob + this)
+  val scope: CoroutineScope = CoroutineScope(supervisorJob + this)
+
+  private var launchContext: CoroutineContext = this
 
   val jobs = mutableListOf<CommandContext>()
   val currentJob: CommandContext?
@@ -64,14 +65,13 @@ open class CommandExecutor() : CoroutineContext.Element {
    */
   fun execute(
     args: List<String>,
-    //Extra context items to add to the command's scope
-    context: CoroutineContext = EmptyCoroutineContext,
     command: suspend CommandContext.() -> Unit
   ) {
     log.trace { "CommandExecutor[${KattyUtils.threadName()}]::execute .." }
     val commandContext = CommandContext(args)
 
-    scope.launch(context) {
+
+    scope.launch(launchContext) {
       val cmdJob = currentCoroutineContext().job
       log.trace { "CommandExecutor::launched new command: $commandContext job: $cmdJob" }
       try {
@@ -113,8 +113,26 @@ open class CommandExecutor() : CoroutineContext.Element {
 
   suspend fun shutdown() {
     log.trace { "CommandExecutor::shutdown() ${KattyUtils.threadName()} " }
-    supervisorJob.complete()
+    close()
     supervisorJob.join()
+  }
+
+  private val contextItems = mutableListOf<Any>()
+
+  override fun add(element: CoroutineContext.Element) {
+    launchContext += element
+  }
+
+  override fun remove(key: CoroutineContext.Key<*>) {
+    launchContext = launchContext.minusKey(key)
+  }
+
+  override fun close() {
+    contextItems.filterIsInstance<AutoCloseable>().forEach {
+      it.close()
+    }
+    contextItems.clear()
+    supervisorJob.complete()
   }
 }
 
