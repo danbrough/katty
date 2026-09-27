@@ -11,19 +11,9 @@ import com.akuleshov7.ktoml.tree.nodes.TomlKeyValuePrimitive
 import com.akuleshov7.ktoml.tree.nodes.TomlNode
 import com.akuleshov7.ktoml.tree.nodes.TomlStubEmptyNode
 import com.akuleshov7.ktoml.tree.nodes.TomlTable
-import com.akuleshov7.ktoml.tree.nodes.pairs.values.TomlArray
-import com.akuleshov7.ktoml.tree.nodes.pairs.values.TomlBasicString
-import com.akuleshov7.ktoml.tree.nodes.pairs.values.TomlBoolean
-import com.akuleshov7.ktoml.tree.nodes.pairs.values.TomlDateTime
-import com.akuleshov7.ktoml.tree.nodes.pairs.values.TomlDouble
-import com.akuleshov7.ktoml.tree.nodes.pairs.values.TomlLiteralString
-import com.akuleshov7.ktoml.tree.nodes.pairs.values.TomlLong
-import com.akuleshov7.ktoml.tree.nodes.pairs.values.TomlNull
-import com.akuleshov7.ktoml.tree.nodes.pairs.values.TomlUnsignedLong
 import io.github.danbrough.katty.BasicCommand
 import io.github.danbrough.katty.DemoAppConfig
 import io.github.danbrough.katty.KTerminal
-import io.github.danbrough.katty.readText
 import kotlinx.io.files.Path
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -32,6 +22,7 @@ val DemoConfigArgs = BasicCommand("demo configuration args") {
   demoConfigArgs(it)
 }
 
+suspend fun Path.readText():String = TODO()
 
 suspend fun KTerminal.demoConfigArgs(args: List<String>) {
 

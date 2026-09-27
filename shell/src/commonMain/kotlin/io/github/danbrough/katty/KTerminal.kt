@@ -17,7 +17,7 @@ import kotlinx.coroutines.yield
 import kotlinx.io.SystemLineSeparator
 import kotlin.coroutines.CoroutineContext
 
-private val log = kattyLog
+private val log = logKattyShell
 
 open class KTerminal(
   var commandHandler: CommandHandler,
@@ -65,22 +65,18 @@ open class KTerminal(
     terminal.print(style(message))
   }
 
-  open suspend fun runCommand(
-    cmdLine: String? = null,
-    args: List<String>? = null
-  ) {
-    cmdLine ?: args ?: error("No args or cmdLine provided to runCommand()")
+  open suspend fun runCommand(cmdLine: String) = history.addToHistory(cmdLine).also {
+    runCommand(commandHandler.parseCommandLine(cmdLine))
+  }
 
-    executor.execute {
+  open suspend fun runCommand(args: List<String>) {
+
+    executor.execute(args) {
       cursorPos = 0
       currentLine.clear()
 
       runCatching {
-        cmdLine?.also {
-          history.addToHistory(it)
-          history.saveHistory()
-        }
-        commandHandler.runCommand(this@KTerminal, cmdLine, args)
+        commandHandler.runCommand(this@KTerminal, args)
 
       }.exceptionOrNull().also {
         if (it == null) {
@@ -224,7 +220,8 @@ open class KTerminal(
 
 
   suspend fun cmdLoop() {
-    kattyLog.info { "KTerminal::cmdLoop() terminal context: ${currentCoroutineContext()[KTerminal]}" }
+    val terminal = currentCoroutineContext()[KTerminal]!!.terminal
+    log.info { "KTerminal::cmdLoop() terminal context: $terminal" }
     printPrompt()
 
 //    val scope = currentCoroutineContext()[RawModeContext]?.scope
@@ -237,7 +234,7 @@ open class KTerminal(
     runCatching {
       terminal.receiveKeyEventsFlow().collect {
         processKeyEvent(it)
-        yield()
+        //yield()
       }
       /*terminal.enterRawMode().use { scope ->
         withContext(RawModeContext(scope)) {
@@ -288,7 +285,7 @@ open class KTerminal(
     cursorPos = 0
   }
 
-  suspend fun main(cmdArgs: Array<String>) {
+  suspend fun main(cmdArgs: List<String>) {
     val args = cmdArgs.toMutableList()
     val interactive = args.firstOrNull() == "-i"
     if (interactive) args.removeFirst()

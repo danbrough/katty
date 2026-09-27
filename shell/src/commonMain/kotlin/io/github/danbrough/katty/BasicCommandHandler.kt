@@ -4,6 +4,7 @@ import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
 import kotlinx.coroutines.currentCoroutineContext
 
+private val log = logKattyShell
 
 typealias BasicCommandJob = suspend KTerminal.(List<String>) -> Unit
 
@@ -63,11 +64,9 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
 
   override suspend fun runCommand(
     kTerminal: KTerminal,
-    cmdLine: String?,
-    args: List<String>?
+    args: List<String>
   ) {
-    val args = args ?: parseCommandLineArgs(cmdLine!!)
-    kattyLog.trace { "BasicCommandHandler::runCommand rawMode: ${currentCoroutineContext()[KTerminal.RawModeContext]}" }
+    log.trace { "BasicCommandHandler::runCommand rawMode: ${currentCoroutineContext()[KTerminal.RawModeContext]}" }
 
     val cmdName = args.firstOrNull()?.trim() ?: "help"
     if (cmdName == "help") return showHelp(kTerminal)
@@ -120,4 +119,5 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
       terminal.cursorPos = line.length + terminal.promptLength
     }
   }
+
 }

@@ -343,7 +343,7 @@ private suspend fun KTerminal.searchAction() {
         startOfLine()
         clearLine()
       }
-      runCommand(match)
+      runCommand(listOf(match))
       return
     }
 

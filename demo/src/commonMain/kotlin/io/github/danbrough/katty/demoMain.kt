@@ -29,7 +29,7 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
   }
 
   val app = DemoApp()
-  app.loadConfig(Path("./demo/src/commonMain/resources/config.toml"))
+  //app.loadConfig(Path("./demo/src/commonMain/resources/config.toml")) TODO
 
 
   val commandHandler: BasicCommandHandler = object : BasicCommandHandler() {
@@ -52,12 +52,13 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
     "markdownDemo" to DemoMarkDownCommand,
     "mordantDemo" to DemoMordantCommand,
     "themeDemo" to DemoThemeCommand,
-    "test" to TestCommand,
     scopeDemo,
-    basicCommand("snooze", "Command the sleeps for a while") {
-      println("Having a snooze .. on thread ${KattyUtils.threadName()}")
-      delay(5.seconds)
-      println("Waking up")
+    basicCommand("forever", "Command that runs forever") {
+      var n = 0
+      while(true) {
+        println("${n++}: Forever on thread ${KattyUtils.threadName()}")
+        delay(1.seconds)
+      }
     },
     demoJobControl1,
     basicCommand("testApp", "Check we can access the DemoApp and the KTerminal from the context") {
@@ -80,7 +81,7 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
     )
 
   runCatching {
-    terminal.main(args)
+    terminal.main(args.toList())
   }.exceptionOrNull()?.also {
     if (it !is CancellationException)
       println(it.stackTraceToString())
