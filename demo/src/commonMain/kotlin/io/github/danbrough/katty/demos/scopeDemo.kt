@@ -3,7 +3,7 @@ package io.github.danbrough.katty.demos
 import io.github.danbrough.katty.CommandContext.Companion.withCommandContext
 import io.github.danbrough.katty.basicCommand
 import io.github.danbrough.katty.demoLog
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import io.github.danbrough.katty.shellContext
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.job
@@ -24,14 +24,22 @@ class ContextMessage(val message: String) : CoroutineContext.Element, AutoClosea
   }
 }
 
+data class Thang(val message: String) : CoroutineContext.Element, AutoCloseable {
+  companion object : CoroutineContext.Key<Thang>
+
+  override val key: CoroutineContext.Key<*> = Thang
+
+  override fun close() {
+    log.trace { "Thang::close() message:$message" }
+  }
+}
 
 private var count = 1
 
-@OptIn(ExperimentalCoroutinesApi::class)
 val scopeDemo =
   basicCommand(
     "scopeDemo",
-    "Demos how to manage scopes. args = [session,message,clear,test]"
+    "Demos how to manage scopes. args = [session,message,clear,test,thang]"
   ) { args ->
     println("args: ${args.joinToString(",")} job: ${currentCoroutineContext().job}")
     when (args[1]) {
@@ -52,6 +60,12 @@ val scopeDemo =
         withCommandContext(ContextMessage("Context message created at ${Clock.System.now()}")) {
           runTest()
         }
+      }
+
+      "thang" -> {
+        val ctx = currentCoroutineContext()
+        log.trace { "scopeDemo::thang ctx: $ctx ctx.thang = ${ctx[Thang]}" }
+        shellContext() += Thang("Thang_${count++}")
       }
 
       else -> {}

@@ -6,11 +6,10 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalMainFunctionArgumentsDsl
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsExec
-import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget
 
 plugins {
-  alias(libs.plugins.kotlin.multiplatform)
+  id("io.github.danbrough.katty.kmp")
   alias(libs.plugins.kotlinx.serialization)
   alias(libs.plugins.shadow)
   id("thang")
@@ -18,37 +17,6 @@ plugins {
 
 
 kotlin {
-  applyDefaultHierarchyTemplate()
-  jvm()
-  linuxX64()
-  linuxArm64()
-
-  if (HostManager.hostIsMac) {
-    macosX64()
-    macosArm64()
-  }
-
-  js {
-    nodejs {
-      passCliArgumentsToMainFunction()
-    }
-    binaries.executable()
-  }
-
-  wasmJs {
-    nodejs {
-      passCliArgumentsToMainFunction()
-    }
-    binaries.executable()
-  }
-
-
-  /*  wasmWasi {
-      nodejs {
-        passCliArgumentsToMainFunction()
-      }
-      binaries.executable()
-    }*/
 
   sourceSets {
     commonMain {

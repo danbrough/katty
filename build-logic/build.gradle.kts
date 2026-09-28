@@ -5,4 +5,6 @@ dependencies {
   compileOnly(libs.gradle.kotlin.plugin)
   compileOnly(libs.gradle.publish.plugin)
   compileOnly(libs.gradle.dokka.plugin)
+  compileOnly(libs.gradle.kotlin.serialization.plugin)
+
 }

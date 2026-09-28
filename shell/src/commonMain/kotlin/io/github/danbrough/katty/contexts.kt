@@ -1,23 +1,76 @@
 package io.github.danbrough.katty
 
-import io.github.danbrough.katty.Errors.errorMissingContext
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 
-interface KattyContext : CoroutineContext.Element, AutoCloseable
+interface KattyContext : CoroutineContext.Element, CoroutineContext.Key<KattyContext>,
+  AutoCloseable
 
-interface ShellContext : KattyContext {
-  fun add(element: CoroutineContext.Element)
-  fun remove(key: CoroutineContext.Key<*>)
+
+abstract class ShellContext : KattyContext {
+  companion object : CoroutineContext.Key<ShellContext>
+
+  override val key: CoroutineContext.Key<*> = ShellContext
+
+  protected var context: CoroutineContext = this
+
+  operator fun plusAssign(element: CoroutineContext.Element) {
+    context[element.key]?.also { item->
+      if (item is AutoCloseable) item.close()
+    }
+    context += element
+  }
+
+  operator fun minusAssign(key: CoroutineContext.Key<*>) {
+    context[key]?.also { item->
+      if (item is AutoCloseable) item.close()
+    }
+    context = context.minusKey(key)
+  }
+
+  /**
+   * Close the AutoClosable elements of the coroutine context
+   */
+  override fun close() {
+    context.fold(Unit) { _, element ->
+      if (element is AutoCloseable && element != this@ShellContext)
+        element.close()
+    }
+  }
 }
 
-private object ShellContextKey : CoroutineContext.Key<ShellContext>
+suspend fun shellContext(): ShellContext =
+  currentCoroutineContext()[ShellContext] ?: Errors.errorMissingContext<ShellContext>()
+
+class CommandContext(val cmd: List<String>) : KattyContext {
+  companion object : CoroutineContext.Key<CommandContext> {
+
+    var COMMAND_ID: Long = 1L
+
+    suspend fun get(): CommandContext? = currentCoroutineContext()[CommandContext]
+
+    suspend fun <C : CoroutineContext, R> withCommandContext(
+      context: C,
+      block: suspend C.() -> R
+    ) = withContext(context) {
+      if (context is AutoCloseable)
+        context.use {
+          it.block()
+        }
+      else context.block()
+    }
+  }
+
+  val id: Long = COMMAND_ID++
+
+  var job: Job? = null
+
+  override val key: CoroutineContext.Key<*> = CommandContext
+
+  override fun close() {
+  }
+}
 
 
-@Suppress("UNCHECKED_CAST")
-suspend fun <S : ShellContext> shellContext(): S = currentCoroutineContext()[ShellContextKey] as? S
-  ?: errorMissingContext<ShellContext>("No shell context found")
-
-operator fun <S : ShellContext> S.plusAssign(item: CoroutineContext.Element) = add(item)
-
-operator fun <S : ShellContext> S.minusAssign(key: CoroutineContext.Key<*>) = remove(key)
