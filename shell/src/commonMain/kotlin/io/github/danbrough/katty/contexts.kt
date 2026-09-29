@@ -4,6 +4,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 interface KattyContext : CoroutineContext.Element, CoroutineContext.Key<KattyContext>,
   AutoCloseable
@@ -17,18 +18,19 @@ abstract class ShellContext : KattyContext {
   protected var context: CoroutineContext = this
 
   operator fun plusAssign(element: CoroutineContext.Element) {
-    context[element.key]?.also { item->
+    context[element.key]?.also { item ->
       if (item is AutoCloseable) item.close()
     }
     context += element
   }
 
   operator fun minusAssign(key: CoroutineContext.Key<*>) {
-    context[key]?.also { item->
+    context[key]?.also { item ->
       if (item is AutoCloseable) item.close()
     }
     context = context.minusKey(key)
   }
+
 
   /**
    * Close the AutoClosable elements of the coroutine context
@@ -43,6 +45,12 @@ abstract class ShellContext : KattyContext {
 
 suspend fun shellContext(): ShellContext =
   currentCoroutineContext()[ShellContext] ?: Errors.errorMissingContext<ShellContext>()
+
+
+/*suspend fun <E : CoroutineContext.Element> shellContext(key: CoroutineContext.Key<E>): E =
+  currentCoroutineContext()[ShellContext]?.context[key]
+    ?: Errors.errorMissingContext<ShellContext>()*/
+
 
 class CommandContext(val cmd: List<String>) : KattyContext {
   companion object : CoroutineContext.Key<CommandContext> {

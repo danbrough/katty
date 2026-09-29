@@ -6,6 +6,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private val log = logKattyShell
 
@@ -33,7 +34,9 @@ open class CommandExecutor() : ShellContext() {
       val cmdJob = currentCoroutineContext().job
       //log.trace { "CommandExecutor::launched new command: $commandContext job: $cmdJob" }
       try {
-        commandContext.command()
+
+          commandContext.command()
+
       } catch (e: CancellationException) {
         // Command was cancelled, we can handle cleanup here if needed.
         // The exception is expected behavior.
