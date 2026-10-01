@@ -30,6 +30,12 @@ kotlin {
         implementation(libs.mordant.markdown)
       }
     }
+
+    jvmMain{
+      dependencies{
+        implementation(libs.kotlinx.coroutines.swing)
+      }
+    }
   }
 
   targets.withType<KotlinNativeTarget>().configureEach {

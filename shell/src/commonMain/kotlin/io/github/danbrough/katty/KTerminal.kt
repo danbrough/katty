@@ -258,8 +258,8 @@ open class KTerminal(
     }
   }
 
-  private suspend fun run() = runCatching {
-    log.trace { "KTerminal::run() terminal context: ${currentCoroutineContext()[KTerminal]}" }
+  suspend fun runLoop() = runCatching {
+    log.trace { "KTerminal::runLoop() terminal context: ${currentCoroutineContext()[KTerminal]}" }
     registerDefaultKeyboardActions()
     hello()
     withContext(this) {
@@ -293,7 +293,7 @@ open class KTerminal(
       runCommand(args = args)
     }
     if (interactive || args.isEmpty()) {
-      run()
+      runLoop()
     }
   }
 

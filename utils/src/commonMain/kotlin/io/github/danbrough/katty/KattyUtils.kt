@@ -4,11 +4,61 @@ package io.github.danbrough.katty
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.job
 import kotlinx.io.Source
 
+
+object CommandLine {
+
+  /**
+   * Parse the [input] into a list of command-line arguments
+   */
+  fun parseCommandLineArgs(input: String): List<String> {
+    val args = mutableListOf<String>()
+    val current = StringBuilder()
+    var inQuotes = false
+    var quoteChar: Char = '"'
+    var escapeNext = false
+
+    for (char in input) {
+      when {
+        escapeNext -> {
+          current.append(char)
+          escapeNext = false
+        }
+
+        char == '\\' && inQuotes -> {
+          escapeNext = true
+        }
+
+        char in setOf('"', '\'') && !inQuotes -> {
+          inQuotes = true
+          quoteChar = char
+        }
+
+        char == quoteChar && inQuotes -> {
+          inQuotes = false
+        }
+
+        char.isWhitespace() && !inQuotes -> {
+          if (current.isNotEmpty()) {
+            args.add(current.toString())
+            current.clear()
+          }
+        }
+
+        else -> {
+          current.append(char)
+        }
+      }
+    }
+
+    if (current.isNotEmpty()) {
+      args.add(current.toString())
+    }
+
+    return args
+  }
+}
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 expect object KattyUtils {
@@ -22,6 +72,7 @@ expect object KattyUtils {
   fun resolveHostName(hostName: String): List<String>
 
   fun atExit(block: () -> Unit): Unit
+
 }
 
 

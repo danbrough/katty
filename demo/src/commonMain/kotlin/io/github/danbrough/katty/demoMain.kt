@@ -4,6 +4,7 @@ package io.github.danbrough.katty
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
 import io.github.danbrough.katty.config.registerConfigCommands
+import io.github.danbrough.katty.demos.ContextDemo
 import io.github.danbrough.katty.demos.DemoMarkDownCommand
 import io.github.danbrough.katty.demos.DemoMordantCommand
 import io.github.danbrough.katty.demos.DemoThemeCommand
@@ -52,7 +53,7 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
     "markdownDemo" to DemoMarkDownCommand,
     "mordantDemo" to DemoMordantCommand,
     "themeDemo" to DemoThemeCommand,
-    scopeDemo,
+    scopeDemo, ContextDemo,
     basicCommand("forever", "Command that runs forever") {
       var n = 0
       while(true) {

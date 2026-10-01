@@ -5,6 +5,10 @@ import kotlinx.coroutines.runBlocking
 
 fun main(args: Array<String>) {
   runBlocking {
-    demoMain(args)
+    if (args.getOrNull(0) == "simple") {
+      SimpleTerminal(args.toList()).run()
+    } else {
+      demoMain(args)
+    }
   }
 }
