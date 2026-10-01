@@ -35,9 +35,17 @@ class SimpleTerminal(val args: List<String>) : CoroutineContext.Element {
   private val supervisorJob = SupervisorJob()
   private val cmdScope = CoroutineScope(supervisorJob)
 
-  val commands = mapOf<String, SimpleCommand>("date" to {
-    println(Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).toString())
-  }, "test" to { test(cmdScope, it) }, "message" to { message(cmdScope, it) })
+  val commands = mapOf<String, SimpleCommand>(
+    "date" to {
+      println(Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).toString())
+    },
+    "test" to { test(cmdScope, it) },
+    "message" to { message(cmdScope, it) },
+    "printMessage" to {
+      success(
+        currentCoroutineContext()[ContextMessage]?.message ?: "no ContextMessage"
+      )
+    })
 
   val command = StringBuilder()
   val prompt = "$ "
@@ -57,13 +65,13 @@ class SimpleTerminal(val args: List<String>) : CoroutineContext.Element {
     style(it)
   })
 
-  fun println(){
+  fun println() {
     pos = 0
     terminal.println()
   }
 
   fun println(str: String, style: TextStyle = terminal.theme.info) =
-    print(str + SystemLineSeparator, style)
+    print(str + SystemLineSeparator, style).also { pos = 0 }
 
   fun info(str: String, style: TextStyle = terminal.theme.info) = println(str, style)
   fun success(str: String, style: TextStyle = terminal.theme.success) = println(str, style)
@@ -156,8 +164,12 @@ suspend fun SimpleTerminal.test(cmdScope: CoroutineScope, args: List<String>) {
 private var count = 1
 suspend fun SimpleTerminal.message(cmdScope: CoroutineScope, args: List<String>) {
   val ctx = currentCoroutineContext()
-  info("current message: ${ctx[ContextMessage]?.message}")
+  info("current message: ${ctx[ContextMessage]?.message} args: [${args.joinToString(",")}]")
   val msg = ContextMessage("ContextMessage: ${count++}")
-  muted("new msg: ${msg.message}")
 
+  muted("new msg: ${msg.message}")
+  withContext(msg) {
+    printPrompt(currentCoroutineContext()[RawModeContext]!!.scope)
+  }
+  //processNextKey(currentCoroutineContext()[RawModeContext]!!.scope)
 }
