@@ -30,12 +30,9 @@ open class KTerminal(
     history.loadHistory()
   }
 
-
   companion object : CoroutineContext.Key<KTerminal>
 
   override val key: CoroutineContext.Key<*> = KTerminal
-
-
   var cursorPos: Int = 0
   var promptLength: Int = 0
 
@@ -52,7 +49,9 @@ open class KTerminal(
 
 
   fun println(message: String = "", style: TextStyle = terminal.theme.info) =
-    print("$message$SystemLineSeparator", style)
+    print("$message$SystemLineSeparator", style).also {
+      cursorPos = 0
+    }
 
   fun warn(message: String) = println(message, terminal.theme.warning)
   fun muted(message: String) = println(message, terminal.theme.muted)
@@ -128,12 +127,13 @@ open class KTerminal(
       val restOfLine = currentLine.substring(cursorPos - promptLength - 1)
 
       if (restOfLine.length == 1) {
-        terminal.print(restOfLine)
+        //terminal.print(restOfLine)
+        terminal.rawPrint(terminal.theme.info(restOfLine))
       } else {
         terminal.cursor.move {
           terminal.cursor.hide(true)
           clearLineAfterCursor()
-          terminal.rawPrint(restOfLine)
+          terminal.rawPrint(terminal.theme.info(restOfLine))
           left(restOfLine.length - 1)
           terminal.cursor.show()
         }
@@ -156,7 +156,7 @@ open class KTerminal(
       clearLineAfterCursor()
     }
 
-    terminal.rawPrint(line)
+    terminal.rawPrint(terminal.theme.info(line))
     terminal.cursor.show()
     cursorPos = line.length + promptLength
     currentLine.clear().append(line)
@@ -267,6 +267,17 @@ open class KTerminal(
     }
   }.exceptionOrNull().also { err ->
     //if (err is CancellationException || err is KattyException.ExitException) {
+    when (err) {
+      is CancellationException, is Errors.ExitException -> {
+        log.trace { "cancelled or exited: ${err.message}" }
+      }
+
+      null -> {}
+      else -> {
+        danger("Error:${err.message}")
+        err.printStackTrace()
+      }
+    }
 
     onClose()
   } //else if (err != null) throw err

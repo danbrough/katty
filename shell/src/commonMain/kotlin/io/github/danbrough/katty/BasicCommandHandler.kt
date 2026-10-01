@@ -3,6 +3,10 @@ package io.github.danbrough.katty
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.io.buffered
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
+import kotlinx.io.writeString
 
 private val log = logKattyShell
 
@@ -80,7 +84,11 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
     }
   }
 
+  var logWriter = SystemFileSystem.sink(Path("/tmp/test.log")).buffered()
+
   override suspend fun tabPressed(terminal: KTerminal) {
+
+    logWriter.writeString("tabPressed linePos: ${terminal.linePos}\n")
 
     fun lastCommonPrefixPosition(strings: Set<String>): Int {
       if (strings.isEmpty()) return -1
@@ -99,14 +107,17 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
 
     val suggestions = commands.filterKeys { it.startsWith(cmdLine) }.keys
     if (suggestions.isEmpty()) return
+    logWriter.writeString("suggestions: [${suggestions.joinToString(",")}]\n")
     val commonPrefixPosition = lastCommonPrefixPosition(suggestions)
+    logWriter.writeString("commonPrefix: $commonPrefixPosition linePos:${terminal.linePos} line [$line] length: ${line.length}\n")
     //println("COMMON PREFIX: $commonPrefixPosition linePos:${cmdLine.length}")
     if (cmdLine.length < commonPrefixPosition) {
       val rest =
         suggestions.first().substring(cmdLine.length).take(commonPrefixPosition - cmdLine.length)
+      logWriter.writeString("rest: [$rest]\n")
       terminal.print(rest)
       terminal.currentLine.append(rest)
-      terminal.cursorPos += rest.length
+      //terminal.cursorPos += rest.length
     } else {
       terminal.println()
       suggestions.forEach {
@@ -118,6 +129,10 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
       terminal.currentLine.append(line)
       terminal.cursorPos = line.length + terminal.promptLength
     }
+
+    logWriter.flush()
   }
+
+
 
 }

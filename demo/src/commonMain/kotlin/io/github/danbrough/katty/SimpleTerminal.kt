@@ -23,14 +23,16 @@ import kotlin.time.Duration.Companion.seconds
 
 private val log = demoLog
 
-
 private typealias SimpleCommand = suspend SimpleTerminal.(args: List<String>) -> Unit
 
+/**
+ * An experiment
+ */
 class SimpleTerminal(val args: List<String>) : CoroutineContext.Element {
   companion object : CoroutineContext.Key<SimpleTerminal>
 
   override val key: CoroutineContext.Key<*> = SimpleTerminal
-  val terminal = Terminal()
+  val terminal = Terminal(theme = KattyTheme)
 
   private val supervisorJob = SupervisorJob()
   private val cmdScope = CoroutineScope(supervisorJob)
@@ -170,6 +172,7 @@ suspend fun SimpleTerminal.message(cmdScope: CoroutineScope, args: List<String>)
   muted("new msg: ${msg.message}")
   withContext(msg) {
     printPrompt(currentCoroutineContext()[RawModeContext]!!.scope)
+    processNextKey(currentCoroutineContext()[RawModeContext]!!.scope)
   }
-  //processNextKey(currentCoroutineContext()[RawModeContext]!!.scope)
+
 }

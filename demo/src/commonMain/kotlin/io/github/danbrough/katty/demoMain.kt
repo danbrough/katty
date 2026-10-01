@@ -3,6 +3,8 @@ package io.github.danbrough.katty
 
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
+import com.github.ajalt.mordant.rendering.Theme
+import com.github.ajalt.mordant.terminal.Terminal
 import io.github.danbrough.katty.config.registerConfigCommands
 import io.github.danbrough.katty.demos.ContextDemo
 import io.github.danbrough.katty.demos.DemoMarkDownCommand
@@ -74,9 +76,14 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
   commandHandler.registerBashyCommands()
   commandHandler.registerConfigCommands()
 
+  val kattyTheme = Theme{
+    ""
+  }
+
   val terminal =
     KTerminal(
       commandHandler,
+      terminal = Terminal(theme = kattyTheme),
       cmdContext = app + KattyUtils.ioDispatcher,
       history = DefaultHistory(Path(configDir, "history.txt"))
     )
