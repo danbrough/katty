@@ -1,8 +1,6 @@
 @file:OptIn(ExperimentalWasmDsl::class)
 
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.konan.target.HostManager
 
 plugins {
   alias(libs.plugins.kmp.android.library)
@@ -13,7 +11,9 @@ plugins {
 
 kotlin {
 
-
+  androidNativeArm64()
+  androidNativeX64()
+  
   android {
     compileSdk { version = release(37) }
     minSdk = 27
@@ -26,7 +26,7 @@ kotlin {
     }
   }
 
-  sourceSets{
+  sourceSets {
     commonMain {
       dependencies {
         implementation(libs.kotlinx.coroutines.core)
@@ -38,11 +38,11 @@ kotlin {
       dependsOn(commonMain.get())
     }
 
-    jvmMain{
+    jvmMain {
       dependsOn(jvmSharedMain)
     }
 
-    androidMain{
+    androidMain {
       dependsOn(jvmSharedMain)
     }
   }
