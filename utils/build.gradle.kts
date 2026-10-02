@@ -13,10 +13,10 @@ kotlin {
 
   androidNativeArm64()
   androidNativeX64()
-  
+
   android {
     compileSdk { version = release(37) }
-    minSdk = 27
+    minSdk = 26
     namespace = "io.github.danbrough.katty.utils"
 
     packaging {

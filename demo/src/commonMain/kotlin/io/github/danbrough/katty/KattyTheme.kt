@@ -2,14 +2,15 @@ package io.github.danbrough.katty
 
 import com.github.ajalt.colormath.model.RGB
 import com.github.ajalt.mordant.rendering.TextStyle
+import com.github.ajalt.mordant.rendering.TextStyles
 import com.github.ajalt.mordant.rendering.Theme
 
 private val DEFAULT_HEADER = RGB("#c678dd")
-private val DEFAULT_HIGHLIGHT = RGB("#61afef")
+private val DEFAULT_HIGHLIGHT = RGB("#82AAFF")
 private val DEFAULT_GRAY = RGB("#5c6370")
-private val DEFAULT_RED = RGB("#e06c75")
-private val DEFAULT_YELLOW = RGB("#e5c07b")
-private val DEFAULT_GREEN = RGB("#98c379")
+private val DEFAULT_RED = RGB("#FF757F")
+private val DEFAULT_YELLOW = RGB("#C792EA")
+private val DEFAULT_GREEN = RGB("#4DD0C2")
 val DEFAULT_STYLE = TextStyle(
   color = null,
   bgColor = null,
@@ -24,10 +25,10 @@ val DEFAULT_STYLE = TextStyle(
 val KattyTheme = Theme {
   styles.putAll(
     mapOf(
-      "success" to TextStyle(DEFAULT_GREEN),
+      "success" to TextStyle(DEFAULT_GREEN) + TextStyles.bold,
       "danger" to TextStyle(DEFAULT_RED),
       "warning" to TextStyle(DEFAULT_YELLOW),
-      "info" to TextStyle(DEFAULT_HIGHLIGHT),
+      "info" to TextStyle(DEFAULT_GREEN),
       "muted" to TextStyle(dim = true),
 
       "list.number" to DEFAULT_STYLE,

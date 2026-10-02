@@ -76,14 +76,10 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
   commandHandler.registerBashyCommands()
   commandHandler.registerConfigCommands()
 
-  val kattyTheme = Theme{
-    ""
-  }
-
   val terminal =
     KTerminal(
       commandHandler,
-      terminal = Terminal(theme = kattyTheme),
+      terminal = Terminal(theme = KattyTheme),
       cmdContext = app + KattyUtils.ioDispatcher,
       history = DefaultHistory(Path(configDir, "history.txt"))
     )
