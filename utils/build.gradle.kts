@@ -24,6 +24,10 @@ kotlin {
         useLegacyPackaging = true
       }
     }
+
+    compilerOptions {
+      jvmTarget = JvmTarget.JVM_17
+    }
   }
 
   sourceSets {
