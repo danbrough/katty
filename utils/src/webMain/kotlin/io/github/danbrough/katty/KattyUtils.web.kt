@@ -5,6 +5,7 @@ package io.github.danbrough.katty
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.io.Source
+import kotlinx.io.files.Path
 
 private fun jsPrintln(s: String?) {
   js("console.info(s)")
@@ -63,6 +64,10 @@ actual object KattyUtils {
 
   actual fun resolveHostName(hostName: String): List<String> {
     TODO("resolveHostName not yet implemented")
+  }
+
+  actual fun getLastModifiedTime(path: Path): Long {
+    TODO("Not yet implemented")
   }
 }
 

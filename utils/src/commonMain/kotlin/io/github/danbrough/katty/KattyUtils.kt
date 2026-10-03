@@ -5,6 +5,7 @@ package io.github.danbrough.katty
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.io.Source
+import kotlinx.io.files.Path
 
 
 object CommandLine {
@@ -72,6 +73,8 @@ expect object KattyUtils {
   fun resolveHostName(hostName: String): List<String>
 
   fun atExit(block: () -> Unit): Unit
+
+  fun getLastModifiedTime(path: Path): Long
 
 }
 

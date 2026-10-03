@@ -5,6 +5,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.io.Source
 import kotlinx.io.asSource
 import kotlinx.io.buffered
+import kotlinx.io.files.Path
+import java.io.File
 import java.net.Inet4Address
 import java.net.Inet6Address
 import kotlin.concurrent.thread
@@ -42,4 +44,7 @@ actual object KattyUtils {
     }
     return addresses
   }
+
+  actual fun getLastModifiedTime(path: Path): Long = File(path.toString()).lastModified()
+
 }

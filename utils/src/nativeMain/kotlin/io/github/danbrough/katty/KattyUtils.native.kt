@@ -27,6 +27,7 @@ import kotlinx.io.IOException
 import kotlinx.io.RawSource
 import kotlinx.io.Source
 import kotlinx.io.buffered
+import kotlinx.io.files.Path
 import platform.posix.AF_UNSPEC
 import platform.posix.FILE
 import platform.posix.NI_MAXHOST
@@ -44,6 +45,7 @@ import platform.posix.memset
 import platform.posix.pclose
 import platform.posix.popen
 import platform.posix.pthread_self
+import platform.posix.stat
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.AtomicReference
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
@@ -151,5 +153,26 @@ actual object KattyUtils {
     freeaddrinfo(resultVar.value)
 
     return ipList.distinct() // Deduplicate in case multiple records point to the same IP
+  }
+
+  actual fun getLastModifiedTime(path: Path): Long {
+
+    // memScoped handles standard C native memory allocation safely
+    return memScoped {
+      val fileStat = alloc<stat>()
+
+      // Call the POSIX stat function
+      val result = stat(path.toString(), fileStat.ptr)
+
+      if (result == 0) {
+        // st_mtime represents seconds since the epoch.
+        // Multiply by 1000 to convert to milliseconds.
+
+        fileStat.st_mtim.tv_sec * 1000L
+      } else {
+        0L // File doesn't exist or permission denied
+      }
+    }
+
   }
 }
