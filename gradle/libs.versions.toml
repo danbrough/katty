@@ -49,7 +49,7 @@ clikt = "5.1.0"
 ktoml = "0.7.2"
 kotlinx-serialization = "1.11.0"
 kotlinx-coroutines = "1.11.0"
-klog = "0.1.7"
+klog = "0.1.9"
 
 [libraries]
 
