@@ -5,6 +5,8 @@ import com.github.ajalt.mordant.input.enterRawMode
 import com.github.ajalt.mordant.input.isCtrlC
 import com.github.ajalt.mordant.rendering.TextStyles
 import com.github.ajalt.mordant.terminal.CursorMovements
+import kotlinx.io.SystemLineSeparator
+import kotlin.time.Clock
 
 enum class KeyboardActionResult {
   CONTINUE, EXIT, ADD_TO_LINE
@@ -30,15 +32,41 @@ object KeyboardActions {
   }
 
   val Enter = KeyboardAction({ key == "Enter" }) {
-    if (currentLine.isNotBlank()) {
-      val cmdLine = currentLine.toString().also {
-        currentLine.clear()
-      }
-      runCommand(cmdLine)
-    } else {
+    if (currentLine.isBlank()) {
       printPrompt(true)
+      return@KeyboardAction
     }
 
+    if (currentLine.last() == '\\'){
+      currentLine.deleteAt(currentLine.length-1)
+      cursorPos--
+      terminal.rawPrint(SystemLineSeparator)
+      return@KeyboardAction
+    }
+
+    currentLine.toString().also { cmdLine->
+      currentLine.clear()
+      runCommand(cmdLine)
+    }
+
+/*    info("\n[$cmdLine]")
+
+    BashCommandParser.parseArguments(cmdLine).also {
+      info("parsed: [${it.joinToString(",")}]")
+    }
+    val bashCommand = "echo \"escaped 'single' quote\" --file=\\/path\\/to\\/file.txt 'hello world'\nand_some"
+    CommandLine.parseCommandLineArgs(bashCommand).also {
+      info("old: [${it.joinToString(",")}]")
+    }
+    BashCommandParser.parseArguments(bashCommand).also {
+      info("demo2: [${it.joinToString(",")}]")
+    }*/
+
+    //printPrompt(true)
+    /*val cmdLine = currentLine.toString().also {
+      currentLine.clear()
+    }
+    runCommand(cmdLine)*/
   }
 
   val LeftArrow = KeyboardAction({ key == "ArrowLeft" }) {
@@ -48,8 +76,6 @@ object KeyboardActions {
         left(1)
       }
     }
-
-
   }
 
   val RightArrow = KeyboardAction({ key == "ArrowRight" }) {
@@ -59,7 +85,6 @@ object KeyboardActions {
         right(1)
       }
     }
-
   }
 
   val Backspace = KeyboardAction({ key == "Backspace" }) {
@@ -266,6 +291,7 @@ private fun KTerminal.ctrlArrowLeft() {
 
 private fun KTerminal.ctrlArrowRight() {
   if (linePos >= currentLine.length - 1) return
+
   terminal.cursor.move {
     terminal.cursor.hide(true)
 

@@ -26,7 +26,8 @@ fun BasicCommandHandler.registerBashyCommands() =
     "cd" to Bashy.CdCommand,
     Bashy.ExitCommand,
     Bashy.RegexCommand,
-    Bashy.ExecCommand
+    Bashy.ExecCommand,
+    Bashy.EchoCommand,
   )
 
 
@@ -165,5 +166,9 @@ object Bashy {
       while (true)
         source.readLine()?.also { println(it) } ?: break
     }
+  }
+
+  val EchoCommand = basicCommand("echo", "prints arguments to stdout") { args ->
+    info(args.drop(1).joinToString(" "))
   }
 }

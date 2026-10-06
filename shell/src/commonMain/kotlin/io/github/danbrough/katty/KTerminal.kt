@@ -234,19 +234,6 @@ open class KTerminal(
         processKeyEvent(it)
         //yield()
       }
-      /*terminal.enterRawMode().use { scope ->
-        withContext(RawModeContext(scope)) {
-          while (true) {
-            scope.readKeyOrNull(timeout = 100.milliseconds)?.also {
-              processKeyEvent(it)
-            } ?: run {
-              log.trace { "cmdLoop::yield" }
-              yield()
-            }
-            //processKeyEvent(scope.readKey())
-          }
-        }
-      }*/
     }.exceptionOrNull()?.also {
       if (it is Errors.ExitException) {
         log.info { "got an exit exception .. current job: ${executor.currentJob}" }
@@ -260,9 +247,7 @@ open class KTerminal(
     log.trace { "KTerminal::runLoop() terminal context: ${currentCoroutineContext()[KTerminal]}" }
     registerDefaultKeyboardActions()
     hello()
-    withContext(this) {
-      cmdLoop()
-    }
+    cmdLoop()
   }.exceptionOrNull().also { err ->
     //if (err is CancellationException || err is KattyException.ExitException) {
     when (err) {
@@ -298,13 +283,13 @@ open class KTerminal(
     val args = cmdArgs.toMutableList()
     val interactive = args.firstOrNull() == "-i"
     if (interactive) args.removeFirst()
-    if (args.isNotEmpty()) {
-      runCommand(args = args,singleCommandRun = true)
-      executor.shutdown()
-      return
-    }
-    if (interactive || args.isEmpty()) {
-      runLoop()
+    withContext(this) {
+      if (args.isNotEmpty()) {
+        runCommand(args = args, singleCommandRun = true)
+        executor.shutdown()
+      } else if (interactive || args.isEmpty()) {
+        runLoop()
+      }
     }
   }
 
