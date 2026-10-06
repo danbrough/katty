@@ -68,24 +68,22 @@ open class KTerminal(
     runCommand(commandHandler.parseCommandLine(cmdLine))
   }
 
-  open suspend fun runCommand(args: List<String>) {
-
+  open suspend fun runCommand(args: List<String>, singleCommandRun: Boolean = false) {
     executor.execute(args) {
       cursorPos = 0
       currentLine.clear()
 
       runCatching {
         commandHandler.runCommand(this@KTerminal, args)
-
       }.exceptionOrNull().also {
         if (it == null) {
-          printPrompt(false)
+          if (!singleCommandRun)
+            printPrompt(false)
         } else {
           if (it is CancellationException) {
             log.trace { "runCommand::caught a CancellationException" }
             return@execute
           }
-
 
           terminal.println(HorizontalRule())
           if (it is Errors.CommandNotFound)
@@ -301,7 +299,9 @@ open class KTerminal(
     val interactive = args.firstOrNull() == "-i"
     if (interactive) args.removeFirst()
     if (args.isNotEmpty()) {
-      runCommand(args = args)
+      runCommand(args = args,singleCommandRun = true)
+      executor.shutdown()
+      return
     }
     if (interactive || args.isEmpty()) {
       runLoop()
