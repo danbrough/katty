@@ -22,7 +22,6 @@ open class KeyboardAction(
 
 object KeyboardActions {
 
-
   val CtrlDCtrlCToExit = KeyboardAction({ isCtrlD || isCtrlC }) {
     throw Errors.ExitException()
   }
@@ -32,6 +31,7 @@ object KeyboardActions {
   }
 
   val Enter = KeyboardAction({ key == "Enter" }) {
+
     if (currentLine.isBlank()) {
       printPrompt(true)
       return@KeyboardAction
@@ -48,25 +48,6 @@ object KeyboardActions {
       currentLine.clear()
       runCommand(cmdLine)
     }
-
-/*    info("\n[$cmdLine]")
-
-    BashCommandParser.parseArguments(cmdLine).also {
-      info("parsed: [${it.joinToString(",")}]")
-    }
-    val bashCommand = "echo \"escaped 'single' quote\" --file=\\/path\\/to\\/file.txt 'hello world'\nand_some"
-    CommandLine.parseCommandLineArgs(bashCommand).also {
-      info("old: [${it.joinToString(",")}]")
-    }
-    BashCommandParser.parseArguments(bashCommand).also {
-      info("demo2: [${it.joinToString(",")}]")
-    }*/
-
-    //printPrompt(true)
-    /*val cmdLine = currentLine.toString().also {
-      currentLine.clear()
-    }
-    runCommand(cmdLine)*/
   }
 
   val LeftArrow = KeyboardAction({ key == "ArrowLeft" }) {
@@ -136,6 +117,7 @@ object KeyboardActions {
           index < currentLine.length && currentLine[index].isWhitespace()
 
         fun previousCharIsWhitespace(): Boolean = index > 0 && currentLine[index - 1].isWhitespace()
+
         fun previousCharIsNotWhitespace(): Boolean =
           index > 0 && !currentLine[index - 1].isWhitespace()
 
@@ -197,17 +179,14 @@ object KeyboardActions {
   }
   val ArrowDown = KeyboardAction({ key == "ArrowDown" }) {
     showHistory(false)
-
   }
 
   val CtrlArrowLeft = KeyboardAction({ isCtrl("ArrowLeft") }) {
     ctrlArrowLeft()
-
   }
 
   val CtrlArrowRight = KeyboardAction({ isCtrl("ArrowRight") }) {
     ctrlArrowRight()
-
   }
 
   val DefaultActions =
@@ -378,9 +357,9 @@ private suspend fun KTerminal.searchAction() {
     }
   }
 
-
   cursorPos = 0
   currentLine.clear()
+
   terminal.cursor.move {
     startOfLine()
     clearLine()

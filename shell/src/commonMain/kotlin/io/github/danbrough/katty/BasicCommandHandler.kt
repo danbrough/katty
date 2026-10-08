@@ -2,7 +2,6 @@ package io.github.danbrough.katty
 
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
@@ -28,8 +27,6 @@ open class BasicCommand(
   private val helpText: String? = null,
   private val job: BasicCommandJob? = null
 ) {
-
-
   /**
    * Provide a description about this command
    */
@@ -55,7 +52,6 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
     commands.putAll(cmds)
   }
 
-
   operator fun set(name: String, description: String, job: BasicCommandJob) {
     registerCommands(name to BasicCommand(description, job))
   }
@@ -70,10 +66,7 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
     kTerminal: KTerminal,
     args: List<String>
   ) {
-    log.trace { "BasicCommandHandler::runCommand rawMode: ${currentCoroutineContext()[KTerminal.RawModeContext]}" }
-
-    val cmdName = args.firstOrNull()?.trim() ?: "help"
-    if (cmdName == "help") return showHelp(kTerminal)
+    val cmdName = args.firstOrNull()?.trim() ?: return showHelp(kTerminal)
 
     kTerminal.run {
       if (commands.contains(cmdName)) {
@@ -95,6 +88,7 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
       if (strings.size == 1) return strings.first().length
 
       val shortest = strings.minByOrNull { it.length } ?: return 0
+
 
       return shortest.foldIndexed(0) { index, acc, char ->
         if (strings.all { it[index] == char }) index + 1 else acc
@@ -132,7 +126,4 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
 
     logWriter.flush()
   }
-
-
-
 }

@@ -17,7 +17,7 @@ interface CommandHandler {
   suspend fun showHelp(kTerminal: KTerminal) = Unit
   suspend fun tabPressed(terminal: KTerminal) = Unit
 
-  fun parseCommandLine(cmdLine: String): List<String> = CommandLine.parseCommandLineArgs(cmdLine)
+  fun parseCommandLine(cmdLine: String): List<String> = ArgumentTokenizer.tokenize(cmdLine)
 
   /**
    * Return the string length of the prompt and the formatted prompt itself

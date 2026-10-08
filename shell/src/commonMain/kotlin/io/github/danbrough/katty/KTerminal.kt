@@ -4,6 +4,7 @@ import com.github.ajalt.mordant.input.InputReceiver
 import com.github.ajalt.mordant.input.KeyboardEvent
 import com.github.ajalt.mordant.input.RawModeScope
 import com.github.ajalt.mordant.input.coroutines.receiveKeyEventsFlow
+import com.github.ajalt.mordant.input.enterRawMode
 import com.github.ajalt.mordant.rendering.TextAlign
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyle
@@ -11,7 +12,6 @@ import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.widgets.Caption
 import com.github.ajalt.mordant.widgets.HorizontalRule
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
 import kotlinx.io.SystemLineSeparator
 import kotlin.coroutines.CoroutineContext
@@ -22,8 +22,7 @@ open class KTerminal(
   var commandHandler: CommandHandler,
   val history: History = DefaultHistory(),
   val terminal: Terminal = Terminal(),
-  val executor: CommandExecutor = CommandExecutor(),
-  cmdContext: CoroutineContext = KattyUtils.ioDispatcher,
+  val executor: CommandExecutor = CommandExecutor()
 ) : CoroutineContext.Element {
 
   init {
@@ -41,12 +40,9 @@ open class KTerminal(
   val linePos: Int
     get() = cursorPos - promptLength
 
-
-  val keyboardActions: MutableList<KeyboardAction> = mutableListOf()
-
-  protected open fun registerDefaultKeyboardActions() =
-    keyboardActions.addAll(KeyboardActions.DefaultActions)
-
+  val keyboardActions: MutableList<KeyboardAction> = mutableListOf<KeyboardAction>().also {
+    it.addAll(KeyboardActions.DefaultActions)
+  }
 
   fun println(message: String = "", style: TextStyle = terminal.theme.info) =
     print("$message$SystemLineSeparator", style).also {
@@ -57,6 +53,7 @@ open class KTerminal(
   fun muted(message: String) = println(message, terminal.theme.muted)
   fun danger(message: String) = println(message, terminal.theme.danger)
   fun success(message: String) = println(message, terminal.theme.success)
+
   fun info(message: String) = println(message, terminal.theme.info)
 
   fun print(message: String, style: TextStyle = terminal.theme.info) {
@@ -185,71 +182,41 @@ open class KTerminal(
     currentLine.clear()
   }
 
-  /*  suspend fun runInternal() {
-      runCatching {
-        cmdLoop()
-      }.exceptionOrNull().also { err ->
-        if (err != null && err !is CancellationException && err !is KattyException.ExitException)
-          println(this.terminal.theme.danger(err.stackTraceToString()))
-
-        if (err is KattyException.ExitException) {
-          kattyLog.info { "got an exit exception" }
-          if (executor.cancelCurrentJob()) {
-            kattyLog.trace { "job cancelled" }
-            return runInternal()
-          }
-        }
-
-        commandHandler.parent?.also {
-          this.commandHandler = it
-          cursorPos = 0
-          currentLine.clear()
-          runInternal()
-        } ?: err?.also { throw it }
-      }
-    }*/
-
-
-  class RawModeContext(val scope: RawModeScope) : CoroutineContext.Element {
-    companion object : CoroutineContext.Key<RawModeContext>
-
-    override val key: CoroutineContext.Key<*> = RawModeContext
-  }
-
 
   suspend fun cmdLoop() {
-    val terminal = currentCoroutineContext()[KTerminal]!!.terminal
-    log.info { "KTerminal::cmdLoop() terminal context: $terminal" }
-    printPrompt()
-
-//    val scope = currentCoroutineContext()[RawModeContext]?.scope
-//    if (scope != null) {
-//      log.trace { "cmdLoop::found scope" }
-//      while (true)
-//        processKeyEvent(scope.readKey())
-//    } else {
-    log.trace { "cmdLoop::entering raw mode .." }
-    runCatching {
-      terminal.receiveKeyEventsFlow().collect {
-        processKeyEvent(it)
-        //yield()
+    log.info { "KTerminal::cmdLoop()" }
+    while (true) {
+      printPrompt()
+      runCatching {
+        terminal.receiveKeyEventsFlow().collect {
+          processKeyEvent(it)
+          //yield()
+        }
+      }.exceptionOrNull()?.also {
+        if (it is Errors.ExitException) {
+          log.info { "got an exit exception .. current job: ${executor.currentJob}" }
+          if (executor.cancelCurrentJob()) continue
+        }
+        throw it
       }
-    }.exceptionOrNull()?.also {
-      if (it is Errors.ExitException) {
-        log.info { "got an exit exception .. current job: ${executor.currentJob}" }
-        if (!executor.cancelCurrentJob()) throw it
-        else return cmdLoop()
-      } else throw it
     }
   }
 
-  suspend fun runLoop() = runCatching {
-    log.trace { "KTerminal::runLoop() terminal context: ${currentCoroutineContext()[KTerminal]}" }
-    registerDefaultKeyboardActions()
+  private lateinit var rawScope: RawModeScope
+
+   fun readKey(): KeyboardEvent {
+    if (!::rawScope.isInitialized)
+      rawScope = terminal.enterRawMode()
+    return rawScope.readKeyOrNull()!!
+  }
+
+
+  open suspend fun runLoop() = runCatching {
+    log.trace { "KTerminal::runLoop()" }
     hello()
-    cmdLoop()
+
+      cmdLoop()
   }.exceptionOrNull().also { err ->
-    //if (err is CancellationException || err is KattyException.ExitException) {
     when (err) {
       is CancellationException, is Errors.ExitException -> {
         log.trace { "cancelled or exited: ${err.message}" }
@@ -261,12 +228,12 @@ open class KTerminal(
         err.printStackTrace()
       }
     }
-
     onClose()
-  } //else if (err != null) throw err
+  }
 
   protected open suspend fun onClose() {
     runCatching {
+      if (::rawScope.isInitialized) rawScope.close()
       if (history.saveHistory())
         println("History saved.")
       cursorPos = 0
@@ -279,17 +246,30 @@ open class KTerminal(
     cursorPos = 0
   }
 
+
   suspend fun main(cmdArgs: List<String>) {
     val args = cmdArgs.toMutableList()
-    val interactive = args.firstOrNull() == "-i"
-    if (interactive) args.removeFirst()
+
+    val removeArgIf: (String) -> Boolean = {
+      if (args.firstOrNull() == it) {
+        args.removeFirst()
+        true
+      } else false
+    }
+
+    val interactive = removeArgIf("-i") || args.isEmpty()
+    log.trace { "interactive: $interactive args.count: ${args.size}" }
+
     withContext(this) {
       if (args.isNotEmpty()) {
+        log.trace { "running command: $args" }
         runCommand(args = args, singleCommandRun = true)
-        executor.shutdown()
-      } else if (interactive || args.isEmpty()) {
-        runLoop()
+        if (!interactive) {
+          executor.shutdown()
+          return@withContext
+        }
       }
+      runLoop()
     }
   }
 
@@ -299,4 +279,10 @@ open class KTerminal(
 }
 
 
+private suspend fun KTerminal.readCommand() {
 
+  while(true){
+    val e = readKey()
+
+  }
+}

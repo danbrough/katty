@@ -3,7 +3,6 @@ package io.github.danbrough.katty
 
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
-import com.github.ajalt.mordant.rendering.Theme
 import com.github.ajalt.mordant.terminal.Terminal
 import io.github.danbrough.katty.config.registerConfigCommands
 import io.github.danbrough.katty.demos.ContextDemo
@@ -16,6 +15,7 @@ import io.github.danbrough.katty.demos.scopeDemo
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import org.danbrough.klog.logger
@@ -58,7 +58,7 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
     scopeDemo, ContextDemo,
     basicCommand("forever", "Command that runs forever") {
       var n = 0
-      while(true) {
+      while (true) {
         println("${n++}: Forever on thread ${KattyUtils.threadName()}")
         delay(1.seconds)
       }
@@ -80,12 +80,13 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
     KTerminal(
       commandHandler,
       terminal = Terminal(theme = KattyTheme),
-      cmdContext = app + KattyUtils.ioDispatcher,
       history = DefaultHistory(Path(configDir, "history.txt"))
     )
 
   runCatching {
-    terminal.main(args.toList())
+    withContext(app) {
+      terminal.main(args.toList())
+    }
   }.exceptionOrNull()?.also {
     if (it !is CancellationException)
       println(it.stackTraceToString())
