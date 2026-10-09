@@ -9,36 +9,6 @@ import kotlinx.io.writeString
 
 private val log = logKattyShell
 
-typealias BasicCommandJob = suspend KTerminal.(List<String>) -> Unit
-
-fun basicCommand(
-  cmdName: String,
-  helpText: String,
-  job: BasicCommandJob
-) = cmdName to BasicCommand(helpText, job)
-
-
-fun basicCommand(
-  helpText: String,
-  job: BasicCommandJob
-) = BasicCommand(helpText, job)
-
-open class BasicCommand(
-  private val helpText: String? = null,
-  private val job: BasicCommandJob? = null
-) {
-  /**
-   * Provide a description about this command
-   */
-  fun helpText(): String? = helpText
-
-  /**
-   * Invoke this command
-   */
-  open suspend operator fun invoke(kTerminal: KTerminal, args: List<String>) =
-    job?.invoke(kTerminal, args)
-}
-
 
 open class BasicCommandHandler(override val parent: CommandHandler? = null) : CommandHandler {
 

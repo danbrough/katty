@@ -23,7 +23,7 @@ open class KTerminal(
   val history: History = DefaultHistory(),
   val terminal: Terminal = Terminal(),
   val executor: CommandExecutor = CommandExecutor()
-) : CoroutineContext.Element {
+) : KattyShell {
 
   init {
     history.loadHistory()
@@ -49,12 +49,12 @@ open class KTerminal(
       cursorPos = 0
     }
 
-  fun warn(message: String) = println(message, terminal.theme.warning)
-  fun muted(message: String) = println(message, terminal.theme.muted)
-  fun danger(message: String) = println(message, terminal.theme.danger)
-  fun success(message: String) = println(message, terminal.theme.success)
+  override fun warn(message: String) = println(message, terminal.theme.warning)
+  override fun muted(message: String) = println(message, terminal.theme.muted)
+  override fun danger(message: String) = println(message, terminal.theme.danger)
+  override fun success(message: String) = println(message, terminal.theme.success)
 
-  fun info(message: String) = println(message, terminal.theme.info)
+  override fun info(message: String) = println(message, terminal.theme.info)
 
   fun print(message: String, style: TextStyle = terminal.theme.info) {
     cursorPos += message.length
@@ -65,7 +65,7 @@ open class KTerminal(
     runCommand(commandHandler.parseCommandLine(cmdLine))
   }
 
-  open suspend fun runCommand(args: List<String>, singleCommandRun: Boolean = false) {
+  override suspend fun runCommand(args: List<String>, singleCommandRun: Boolean) {
     executor.execute(args) {
       cursorPos = 0
       currentLine.clear()
@@ -204,7 +204,7 @@ open class KTerminal(
 
   private lateinit var rawScope: RawModeScope
 
-   fun readKey(): KeyboardEvent {
+  fun readKey(): KeyboardEvent {
     if (!::rawScope.isInitialized)
       rawScope = terminal.enterRawMode()
     return rawScope.readKeyOrNull()!!
@@ -215,7 +215,7 @@ open class KTerminal(
     log.trace { "KTerminal::runLoop()" }
     hello()
 
-      cmdLoop()
+    cmdLoop()
   }.exceptionOrNull().also { err ->
     when (err) {
       is CancellationException, is Errors.ExitException -> {
@@ -281,7 +281,7 @@ open class KTerminal(
 
 private suspend fun KTerminal.readCommand() {
 
-  while(true){
+  while (true) {
     val e = readKey()
 
   }

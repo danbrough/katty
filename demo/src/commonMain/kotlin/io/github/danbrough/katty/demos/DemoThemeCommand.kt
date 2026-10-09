@@ -4,14 +4,13 @@ import com.github.ajalt.mordant.rendering.TextAlign
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
 import com.github.ajalt.mordant.rendering.Theme
-import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.widgets.Caption
 import com.github.ajalt.mordant.widgets.HorizontalRule
 import io.github.danbrough.katty.BasicCommand
 import io.github.danbrough.katty.KTerminal
 
 val DemoThemeCommand = BasicCommand("theme demo") {
-  demoTheme()
+  (this as KTerminal).demoTheme()
 }
 
 fun KTerminal.demoTheme() {
@@ -31,11 +30,11 @@ fun KTerminal.demoTheme() {
     terminal.println(Caption(HorizontalRule(), bottom = caption, bottomAlign = TextAlign.LEFT))
 
     val msg = "example message to display .. #*$&^@&$*#^(E#$&^#)*@$  public fun example(){}"
-    println("muted $msg",theme.muted)
-    println("warning $msg",theme.warning)
-    println("danger $msg",theme.danger)
-    println("info $msg",theme.info)
-    println("success $msg",theme.success)
+    println("muted $msg", theme.muted)
+    println("warning $msg", theme.warning)
+    println("danger $msg", theme.danger)
+    println("info $msg", theme.info)
+    println("success $msg", theme.success)
   }
 
   printBasic(original, "Original Theme")

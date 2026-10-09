@@ -42,5 +42,5 @@ val DemoMarkDownCommand = BasicCommand("demo markdown") {
     ```
   """.trimIndent()
   )
-  terminal.println(content)
+  info(content.toString())
 }

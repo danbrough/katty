@@ -27,6 +27,7 @@ import kotlinx.io.writeString
 
 val DemoConfigCommand = BasicCommand("config demo") {
   println("config demo")
+  this as KTerminal
   mergeDemo()
   configDemo()
 }

@@ -14,7 +14,6 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.files.SystemPathSeparator
 import kotlinx.io.readLine
-import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Clock
 
 
@@ -81,7 +80,7 @@ object Bashy {
       second()
     }
 
-    override suspend fun invoke(kTerminal: KTerminal, args: List<String>) {
+    override suspend fun invoke(kTerminal: KattyShell, args: List<String>) {
       val tz = TimeZone.currentSystemDefault()
       val dateTime = Clock.System.now().toLocalDateTime(tz)
       println(normal(dateTime.format(format) + " ${tz.id}"))
@@ -110,7 +109,7 @@ object Bashy {
           style(it.first.name)
         }.also {
           println(it)
-          cursorPos = 0
+          //TODO? cursorPos = 0
         }
     }
 
@@ -154,11 +153,7 @@ object Bashy {
   }
 
   val ExitCommand = basicCommand("exit", "exits the shell") {
-    commandHandler.parent?.also {
-      this.commandHandler = it
-      cursorPos = 0
-      currentLine.clear()
-    } ?: throw CancellationException("Exit requested")
+    throw Errors.ExitException()
   }
 
   val ExecCommand = basicCommand("exec", "executes a command in the shell") { args ->

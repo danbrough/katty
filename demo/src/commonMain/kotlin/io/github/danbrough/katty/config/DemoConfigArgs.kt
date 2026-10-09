@@ -19,6 +19,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 
 val DemoConfigArgs = BasicCommand("demo configuration args") {
+  this as KTerminal
   demoConfigArgs(it)
 }
 
