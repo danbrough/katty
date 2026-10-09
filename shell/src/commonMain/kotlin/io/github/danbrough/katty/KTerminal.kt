@@ -2,8 +2,8 @@ package io.github.danbrough.katty
 
 import com.github.ajalt.mordant.input.InputReceiver
 import com.github.ajalt.mordant.input.KeyboardEvent
+import com.github.ajalt.mordant.input.MouseTracking
 import com.github.ajalt.mordant.input.RawModeScope
-import com.github.ajalt.mordant.input.coroutines.receiveKeyEventsFlow
 import com.github.ajalt.mordant.input.enterRawMode
 import com.github.ajalt.mordant.rendering.TextAlign
 import com.github.ajalt.mordant.rendering.TextColors
@@ -185,12 +185,12 @@ open class KTerminal(
 
   suspend fun cmdLoop() {
     log.info { "KTerminal::cmdLoop()" }
+
     while (true) {
       printPrompt()
       runCatching {
-        terminal.receiveKeyEventsFlow().collect {
-          processKeyEvent(it)
-          //yield()
+        while (true) {
+          processKeyEvent(readKeyEvent())
         }
       }.exceptionOrNull()?.also {
         if (it is Errors.ExitException) {
@@ -202,17 +202,13 @@ open class KTerminal(
     }
   }
 
-  private lateinit var rawScope: RawModeScope
+  private lateinit var rawModeScope: RawModeScope
 
-  fun readKey(): KeyboardEvent {
-    if (!::rawScope.isInitialized)
-      rawScope = terminal.enterRawMode()
-    return rawScope.readKeyOrNull()!!
-  }
-
+  suspend fun readKeyEvent(): KeyboardEvent = rawModeScope.readKey()
 
   open suspend fun runLoop() = runCatching {
     log.trace { "KTerminal::runLoop()" }
+    rawModeScope = terminal.enterRawMode(MouseTracking.Off)
     hello()
 
     cmdLoop()
@@ -233,7 +229,7 @@ open class KTerminal(
 
   protected open suspend fun onClose() {
     runCatching {
-      if (::rawScope.isInitialized) rawScope.close()
+      if (::rawModeScope.isInitialized) rawModeScope.close()
       if (history.saveHistory())
         println("History saved.")
       cursorPos = 0
@@ -278,11 +274,3 @@ open class KTerminal(
   }
 }
 
-
-private suspend fun KTerminal.readCommand() {
-
-  while (true) {
-    val e = readKey()
-
-  }
-}
