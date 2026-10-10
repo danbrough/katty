@@ -18,7 +18,7 @@ kotlin {
   android {
     compileSdk { version = release(37) }
     minSdk = 26
-    namespace = "io.github.danbrough.katty.utils"
+    namespace = "io.github.danbrough.katty.core"
 
     packaging {
       jniLibs {

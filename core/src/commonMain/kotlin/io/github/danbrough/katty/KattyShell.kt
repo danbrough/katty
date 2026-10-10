@@ -8,5 +8,6 @@ interface KattyShell : CoroutineContext.Element {
   fun danger(message: String)
   fun success(message: String)
   fun info(message: String)
-   suspend fun runCommand(args: List<String>, singleCommandRun: Boolean = false)
+
+  suspend fun runCommand(args: List<String>, singleCommandRun: Boolean = false)
 }

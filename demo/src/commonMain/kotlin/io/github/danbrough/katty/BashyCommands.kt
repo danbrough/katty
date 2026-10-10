@@ -2,6 +2,9 @@ package io.github.danbrough.katty
 
 import com.github.ajalt.mordant.rendering.TextColors
 import io.github.danbrough.katty.Bashy.Theme.normal
+import io.github.danbrough.katty.command.BasicCommand
+import io.github.danbrough.katty.command.BasicCommandHandler
+import io.github.danbrough.katty.command.basicCommand
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format

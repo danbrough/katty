@@ -1,6 +1,6 @@
 package io.github.danbrough.katty.config
 
-import io.github.danbrough.katty.BasicCommandHandler
+import io.github.danbrough.katty.command.BasicCommandHandler
 
 fun BasicCommandHandler.registerConfigCommands() {
   registerCommands(

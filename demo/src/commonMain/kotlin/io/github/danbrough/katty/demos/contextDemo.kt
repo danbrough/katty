@@ -1,6 +1,6 @@
 package io.github.danbrough.katty.demos
 
-import io.github.danbrough.katty.basicCommand
+import io.github.danbrough.katty.command.basicCommand
 import io.github.danbrough.katty.globalSession
 import kotlinx.coroutines.currentCoroutineContext
 

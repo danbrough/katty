@@ -1,11 +1,14 @@
-package io.github.danbrough.katty
+package io.github.danbrough.katty.command
+/*
 
 object CommandLine {
 
-  /**
+  */
+/**
    * Parses a single Bash command string into a List of arguments,
    * respecting single quotes, double quotes, and backslash escape characters.
-   */
+   *//*
+
   fun parseCommandLineArgs(arguments: String?): List<String> {
     if (arguments.isNullOrEmpty()) {
       return emptyList()
@@ -75,6 +78,7 @@ object CommandLine {
 }
 
 
+*/
 /*
 fun main() {
   val bashCommand = "echo \"escaped 'single' quote\" --file=\\/path\\/to\\/file.txt 'hello world'"
@@ -86,3 +90,4 @@ fun main() {
   }
 }
 */
+

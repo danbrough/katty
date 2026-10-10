@@ -34,8 +34,8 @@ import com.github.ajalt.mordant.widgets.progress.speed
 import com.github.ajalt.mordant.widgets.progress.text
 import com.github.ajalt.mordant.widgets.progress.timeRemaining
 import com.github.ajalt.mordant.widgets.withPadding
-import io.github.danbrough.katty.BasicCommand
 import io.github.danbrough.katty.KTerminal
+import io.github.danbrough.katty.command.BasicCommand
 import kotlin.time.TimeSource
 
 private val shadowColor = rgb("#24218c")

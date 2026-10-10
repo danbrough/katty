@@ -12,7 +12,6 @@ plugins {
   id("io.github.danbrough.katty.kmp")
   alias(libs.plugins.kotlinx.serialization)
   alias(libs.plugins.shadow)
-  id("thang")
 }
 
 
@@ -31,8 +30,8 @@ kotlin {
       }
     }
 
-    jvmMain{
-      dependencies{
+    jvmMain {
+      dependencies {
         implementation(libs.kotlinx.coroutines.swing)
       }
     }

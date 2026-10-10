@@ -1,7 +1,7 @@
 package io.github.danbrough.katty.demos
 
 import io.github.danbrough.katty.CommandContext.Companion.withCommandContext
-import io.github.danbrough.katty.basicCommand
+import io.github.danbrough.katty.command.basicCommand
 import io.github.danbrough.katty.demoLog
 import io.github.danbrough.katty.shellContext
 import kotlinx.coroutines.currentCoroutineContext

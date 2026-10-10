@@ -13,7 +13,7 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
-        api(projects.utils)
+        api(projects.core)
         api(libs.mordant)
         api(libs.mordant.coroutines)
         api(libs.kotlinx.io.core)

@@ -1,7 +1,12 @@
-package io.github.danbrough.katty
+package io.github.danbrough.katty.command
 
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
+import io.github.danbrough.katty.CommandHandler
+import io.github.danbrough.katty.Errors
+import io.github.danbrough.katty.KTerminal
+import io.github.danbrough.katty.KattyShell
+import io.github.danbrough.katty.logKattyShell
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
@@ -26,14 +31,14 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
     registerCommands(name to BasicCommand(description, job))
   }
 
-  override suspend fun showHelp(kTerminal: KTerminal) {
+  override suspend fun showHelp(kTerminal: KattyShell) {
     commands.mapValues { it.value.helpText() }.filter { it.value != null }.forEach {
-      kTerminal.println(TextColors.green(TextStyles.bold(it.key) + ":\t${it.value}"))
+      kTerminal.info(TextColors.green(TextStyles.bold(it.key) + ":\t${it.value}"))
     }
   }
 
   override suspend fun runCommand(
-    kTerminal: KTerminal,
+    kTerminal: KattyShell,
     args: List<String>
   ) {
     val cmdName = args.firstOrNull()?.trim() ?: return showHelp(kTerminal)
@@ -49,8 +54,9 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
 
   var logWriter = SystemFileSystem.sink(Path("/tmp/test.log")).buffered()
 
-  override suspend fun tabPressed(terminal: KTerminal) {
+  override suspend fun tabPressed(terminal: KattyShell) {
 
+    terminal as KTerminal
     logWriter.writeString("tabPressed linePos: ${terminal.linePos}\n")
 
     fun lastCommonPrefixPosition(strings: Set<String>): Int {

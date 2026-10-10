@@ -1,7 +1,7 @@
 package io.github.danbrough.katty.demos
 
 import com.github.ajalt.mordant.markdown.Markdown
-import io.github.danbrough.katty.BasicCommand
+import io.github.danbrough.katty.command.BasicCommand
 
 
 val DemoMarkDownCommand = BasicCommand("demo markdown") {

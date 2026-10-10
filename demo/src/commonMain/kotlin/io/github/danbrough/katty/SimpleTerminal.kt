@@ -85,7 +85,7 @@ class SimpleTerminal(val args: List<String>) : CoroutineContext.Element {
   suspend fun processKeyEvent(e: KeyboardEvent, scope: RawModeScope) {
     if (e.isCtrlD || e.isCtrlC) throw Errors.ExitException()
     if (e.key == "Enter") {
-      val cmd = CommandLine.parseCommandLineArgs(command.toString().trim())
+      val cmd = ArgumentTokenizer.tokenize(command.toString().trim())
       //log.trace { "enter pressed cmd: [${cmd.joinToString(",")}]" }
       if (cmd.isNotEmpty()) {
         command.clear()

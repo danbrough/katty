@@ -13,10 +13,9 @@ import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.widgets.Caption
 import com.github.ajalt.mordant.widgets.HorizontalRule
 import io.github.danbrough.katty.Bashy
-import io.github.danbrough.katty.BasicCommand
-import io.github.danbrough.katty.DemoApp
 import io.github.danbrough.katty.KTerminal
 import io.github.danbrough.katty.KattyApplication
+import io.github.danbrough.katty.command.BasicCommand
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.io.buffered
 import kotlinx.io.files.Path

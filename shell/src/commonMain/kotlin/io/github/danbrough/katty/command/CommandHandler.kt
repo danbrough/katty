@@ -9,13 +9,13 @@ interface CommandHandler {
 
   val parent: CommandHandler?
 
-  suspend fun runCommand(kTerminal: KTerminal, cmdLine: String) =
+  suspend fun runCommand(kTerminal: KattyShell, cmdLine: String) =
     runCommand(kTerminal, parseCommandLine(cmdLine))
 
-  suspend fun runCommand(kTerminal: KTerminal, args: List<String>)
+  suspend fun runCommand(kTerminal: KattyShell, args: List<String>)
 
-  suspend fun showHelp(kTerminal: KTerminal) = Unit
-  suspend fun tabPressed(terminal: KTerminal) = Unit
+  suspend fun showHelp(kTerminal: KattyShell) = Unit
+  suspend fun tabPressed(terminal: KattyShell) = Unit
 
   fun parseCommandLine(cmdLine: String): List<String> = ArgumentTokenizer.tokenize(cmdLine)
 
