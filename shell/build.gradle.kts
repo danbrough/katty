@@ -18,7 +18,6 @@ kotlin {
         api(libs.mordant.coroutines)
         api(libs.kotlinx.io.core)
         api(libs.kotlinx.coroutines.core)
-        //implementation(libs.ktoml.core)
         implementation(libs.klog)
       }
     }

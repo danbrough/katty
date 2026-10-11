@@ -9,12 +9,12 @@ interface CommandHandler {
 
   val parent: CommandHandler?
 
-  suspend fun runCommand(kTerminal: KattyShell, cmdLine: String) =
-    runCommand(kTerminal, parseCommandLine(cmdLine))
+  suspend fun runCommand(shell: KattyShell, cmdLine: String) =
+    runCommand(shell, parseCommandLine(cmdLine))
 
-  suspend fun runCommand(kTerminal: KattyShell, args: List<String>)
+  suspend fun runCommand(shell: KattyShell, args: List<String>)
 
-  suspend fun showHelp(kTerminal: KattyShell) = Unit
+  suspend fun showHelp(shell: KattyShell) = Unit
   suspend fun tabPressed(terminal: KattyShell) = Unit
 
   fun parseCommandLine(cmdLine: String): List<String> = ArgumentTokenizer.tokenize(cmdLine)
@@ -22,6 +22,6 @@ interface CommandHandler {
   /**
    * Return the string length of the prompt and the formatted prompt itself
    */
-  suspend fun prompt(): Pair<Int, String> = DEFAULT_PROMPT_STRLEN to DEFAULT_PROMPT
+  fun prompt(): Pair<Int, String> = DEFAULT_PROMPT_STRLEN to DEFAULT_PROMPT
 }
 

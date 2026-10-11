@@ -10,11 +10,26 @@ interface KattyContext : CoroutineContext.Element, CoroutineContext.Key<KattyCon
 
 
 abstract class ShellContext : KattyContext {
-  companion object : CoroutineContext.Key<ShellContext>
+  companion object : CoroutineContext.Key<ShellContext> {
+
+    suspend fun add(element: CoroutineContext.Element) {
+      shellContext().context += element
+    }
+
+    suspend fun remove(key: CoroutineContext.Key<*>) {
+      val shellContext = shellContext()
+      shellContext.context[key]?.also { e ->
+        shellContext.context = shellContext.context.minusKey(key)
+        if (e is AutoCloseable) e.close()
+      }
+    }
+  }
 
   override val key: CoroutineContext.Key<*> = ShellContext
 
   protected var context: CoroutineContext = this
+
+/*
 
   operator fun plusAssign(element: CoroutineContext.Element) {
     context[element.key]?.also { item ->
@@ -30,6 +45,7 @@ abstract class ShellContext : KattyContext {
     context = context.minusKey(key)
   }
 
+*/
 
   /**
    * Close the AutoClosable elements of the coroutine context

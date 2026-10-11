@@ -65,7 +65,7 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
     },
     basicCommand("testApp", "Check we can access the DemoApp and the KTerminal from the context") {
       println("the app is ${kattyApp<DemoApp>()}")
-      println("terminal is ${currentCoroutineContext()[KTerminal]}")
+      println("terminal is ${currentCoroutineContext()[KattyTerminal]}")
       KattyUtils.atExit {
         println("DOING THIS AT EXIT")
       }
@@ -76,7 +76,7 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
   commandHandler.registerConfigCommands()
 
   val terminal =
-    KTerminal(
+    KattyTerminal(
       commandHandler,
       terminal = Terminal(theme = KattyTheme),
       history = DefaultHistory(Path(configDir, "history.txt"))

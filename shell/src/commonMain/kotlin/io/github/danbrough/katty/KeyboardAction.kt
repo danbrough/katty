@@ -6,7 +6,6 @@ import com.github.ajalt.mordant.input.isCtrlC
 import com.github.ajalt.mordant.rendering.TextStyles
 import com.github.ajalt.mordant.terminal.CursorMovements
 import kotlinx.io.SystemLineSeparator
-import kotlin.time.Clock
 
 enum class KeyboardActionResult {
   CONTINUE, EXIT, ADD_TO_LINE
@@ -14,9 +13,9 @@ enum class KeyboardActionResult {
 
 open class KeyboardAction(
   val matcher: KeyboardEvent.() -> Boolean,
-  private val action: suspend KTerminal.(KeyboardEvent) -> Unit = { }
+  private val action: suspend KattyTerminal.(KeyboardEvent) -> Unit = { }
 ) {
-  open suspend operator fun invoke(kTerminal: KTerminal, event: KeyboardEvent): Unit =
+  open suspend operator fun invoke(kTerminal: KattyTerminal, event: KeyboardEvent): Unit =
     action(kTerminal, event)
 }
 
@@ -95,7 +94,7 @@ object KeyboardActions {
   }
 
   object End : KeyboardAction({ key == "End" || isCtrl("e") }) {
-    override suspend fun invoke(kTerminal: KTerminal, event: KeyboardEvent) {
+    override suspend fun invoke(kTerminal: KattyTerminal, event: KeyboardEvent) {
       kTerminal.run {
         cursorPos = promptLength + currentLine.length
         terminal.cursor.move {
@@ -107,7 +106,7 @@ object KeyboardActions {
   }
 
   object CtrlW : KeyboardAction({ isCtrlW }) {
-    override suspend fun invoke(kTerminal: KTerminal, event: KeyboardEvent) {
+    override suspend fun invoke(kTerminal: KattyTerminal, event: KeyboardEvent) {
       kTerminal.run {
         if (currentLine.isBlank()) return
         var index = cursorPos - promptLength
@@ -223,7 +222,7 @@ val KeyboardEvent.isCtrlW: Boolean
 val KeyboardEvent.isCtrlC: Boolean
   get() = isCtrl("c")
 
-private fun KTerminal.skipWhitespaceLeft(cursorMovements: CursorMovements): Boolean {
+private fun KattyTerminal.skipWhitespaceLeft(cursorMovements: CursorMovements): Boolean {
   var skippedAny = false
   while (linePos > 0 && (linePos >= currentLine.length || currentLine[linePos].isLetterOrDigit())) {
     skippedAny = true
@@ -233,7 +232,7 @@ private fun KTerminal.skipWhitespaceLeft(cursorMovements: CursorMovements): Bool
   return skippedAny
 }
 
-private fun KTerminal.skipToWordStartLeft(cursorMovements: CursorMovements): Boolean {
+private fun KattyTerminal.skipToWordStartLeft(cursorMovements: CursorMovements): Boolean {
   var skippedAny = false
   while (linePos > 1 && (!currentLine[linePos - 1].isWhitespace())) {
     skippedAny = true
@@ -243,7 +242,7 @@ private fun KTerminal.skipToWordStartLeft(cursorMovements: CursorMovements): Boo
   return skippedAny
 }
 
-private fun KTerminal.ctrlArrowLeft() {
+private fun KattyTerminal.ctrlArrowLeft() {
   if (cursorPos <= promptLength) return
   terminal.cursor.move {
     terminal.cursor.hide(true)
@@ -268,7 +267,7 @@ private fun KTerminal.ctrlArrowLeft() {
 }
 
 
-private fun KTerminal.ctrlArrowRight() {
+private fun KattyTerminal.ctrlArrowRight() {
   if (linePos >= currentLine.length - 1) return
 
   terminal.cursor.move {
@@ -290,7 +289,7 @@ private fun KTerminal.ctrlArrowRight() {
 }
 
 
-private suspend fun KTerminal.searchAction() {
+private suspend fun KattyTerminal.searchAction() {
 
   val searchPrompt: (String) -> String = {
     "search `$it`: "

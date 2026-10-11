@@ -13,7 +13,7 @@ import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.widgets.Caption
 import com.github.ajalt.mordant.widgets.HorizontalRule
 import io.github.danbrough.katty.Bashy
-import io.github.danbrough.katty.KTerminal
+import io.github.danbrough.katty.KattyTerminal
 import io.github.danbrough.katty.KattyApplication
 import io.github.danbrough.katty.command.BasicCommand
 import kotlinx.coroutines.currentCoroutineContext
@@ -26,17 +26,17 @@ import kotlinx.io.writeString
 
 val DemoConfigCommand = BasicCommand("config demo") {
   println("config demo")
-  this as KTerminal
+  this as KattyTerminal
   mergeDemo()
   configDemo()
 }
 
-private suspend fun KTerminal.configDemo() {
+private suspend fun KattyTerminal.configDemo() {
   val app = currentCoroutineContext()[KattyApplication] ?: error("Expecting a DemoApp in context")
   terminal.printSectionTitle("Global Config", app.config)
 }
 
-suspend fun KTerminal.mergeDemo() {
+suspend fun KattyTerminal.mergeDemo() {
   val parser = TomlParser(TomlInputConfig())
 
   val files =

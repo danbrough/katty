@@ -4,7 +4,6 @@ import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
 import io.github.danbrough.katty.CommandHandler
 import io.github.danbrough.katty.Errors
-import io.github.danbrough.katty.KTerminal
 import io.github.danbrough.katty.KattyShell
 import io.github.danbrough.katty.logKattyShell
 import kotlinx.io.buffered
@@ -17,7 +16,7 @@ private val log = logKattyShell
 
 open class BasicCommandHandler(override val parent: CommandHandler? = null) : CommandHandler {
 
-  override suspend fun prompt(): Pair<Int, String> = "$ ".let {
+  override fun prompt(): Pair<Int, String> = "$ ".let {
     it.length to TextStyles.bold(TextColors.brightGreen(it))
   }
 
@@ -31,19 +30,19 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
     registerCommands(name to BasicCommand(description, job))
   }
 
-  override suspend fun showHelp(kTerminal: KattyShell) {
+  override suspend fun showHelp(shell: KattyShell) {
     commands.mapValues { it.value.helpText() }.filter { it.value != null }.forEach {
-      kTerminal.info(TextColors.green(TextStyles.bold(it.key) + ":\t${it.value}"))
+      shell.info(TextColors.green(TextStyles.bold(it.key) + ":\t${it.value}"))
     }
   }
 
   override suspend fun runCommand(
-    kTerminal: KattyShell,
+    shell: KattyShell,
     args: List<String>
   ) {
-    val cmdName = args.firstOrNull()?.trim() ?: return showHelp(kTerminal)
+    val cmdName = args.firstOrNull()?.trim() ?: return showHelp(shell)
 
-    kTerminal.run {
+    shell.run {
       if (commands.contains(cmdName)) {
         commands[cmdName]?.invoke(this, args)
       } else {
@@ -54,10 +53,8 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
 
   var logWriter = SystemFileSystem.sink(Path("/tmp/test.log")).buffered()
 
-  override suspend fun tabPressed(terminal: KattyShell) {
-
-    terminal as KTerminal
-    logWriter.writeString("tabPressed linePos: ${terminal.linePos}\n")
+  override suspend fun tabPressed(shell: KattyShell) {
+    logWriter.writeString("tabPressed linePos: ${shell.linePos}\n")
 
     fun lastCommonPrefixPosition(strings: Set<String>): Int {
       if (strings.isEmpty()) return -1
@@ -71,7 +68,7 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
       }
     }
 
-    val line = terminal.currentLine.toString()
+    val line = shell.currentLine.toString()
     val cmdLine = line.trimStart()
     if (cmdLine.isBlank()) return
 
@@ -79,25 +76,25 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
     if (suggestions.isEmpty()) return
     logWriter.writeString("suggestions: [${suggestions.joinToString(",")}]\n")
     val commonPrefixPosition = lastCommonPrefixPosition(suggestions)
-    logWriter.writeString("commonPrefix: $commonPrefixPosition linePos:${terminal.linePos} line [$line] length: ${line.length}\n")
+    logWriter.writeString("commonPrefix: $commonPrefixPosition linePos:${shell.linePos} line [$line] length: ${line.length}\n")
     //println("COMMON PREFIX: $commonPrefixPosition linePos:${cmdLine.length}")
     if (cmdLine.length < commonPrefixPosition) {
       val rest =
         suggestions.first().substring(cmdLine.length).take(commonPrefixPosition - cmdLine.length)
       logWriter.writeString("rest: [$rest]\n")
-      terminal.print(rest)
-      terminal.currentLine.append(rest)
+      shell.print(rest)
+      shell.currentLine.append(rest)
       //terminal.cursorPos += rest.length
     } else {
-      terminal.println()
+      shell.println()
       suggestions.forEach {
-        terminal.print(it + '\t')
+        shell.print(it + '\t')
       }
 
-      terminal.printPrompt(newLine = true)
-      terminal.print(line)
-      terminal.currentLine.append(line)
-      terminal.cursorPos = line.length + terminal.promptLength
+      shell.printPrompt(newLine = true)
+      shell.print(line)
+      shell.currentLine.append(line)
+      shell.cursorPos = line.length + shell.promptLength
     }
 
     logWriter.flush()

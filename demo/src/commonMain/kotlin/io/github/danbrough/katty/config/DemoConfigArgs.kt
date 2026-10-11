@@ -12,20 +12,20 @@ import com.akuleshov7.ktoml.tree.nodes.TomlNode
 import com.akuleshov7.ktoml.tree.nodes.TomlStubEmptyNode
 import com.akuleshov7.ktoml.tree.nodes.TomlTable
 import io.github.danbrough.katty.DemoAppConfig
-import io.github.danbrough.katty.KTerminal
+import io.github.danbrough.katty.KattyTerminal
 import io.github.danbrough.katty.command.BasicCommand
 import kotlinx.io.files.Path
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 
 val DemoConfigArgs = BasicCommand("demo configuration args") {
-  this as KTerminal
+  this as KattyTerminal
   demoConfigArgs(it)
 }
 
 suspend fun Path.readText(): String = TODO()
 
-suspend fun KTerminal.demoConfigArgs(args: List<String>) {
+suspend fun KattyTerminal.demoConfigArgs(args: List<String>) {
 
   println("demoConfigArgs: ${args.joinToString(",")}")
 

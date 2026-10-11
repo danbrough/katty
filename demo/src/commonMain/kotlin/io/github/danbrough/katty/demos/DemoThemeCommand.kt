@@ -6,14 +6,14 @@ import com.github.ajalt.mordant.rendering.TextStyles
 import com.github.ajalt.mordant.rendering.Theme
 import com.github.ajalt.mordant.widgets.Caption
 import com.github.ajalt.mordant.widgets.HorizontalRule
-import io.github.danbrough.katty.KTerminal
+import io.github.danbrough.katty.KattyTerminal
 import io.github.danbrough.katty.command.BasicCommand
 
 val DemoThemeCommand = BasicCommand("theme demo") {
-  (this as KTerminal).demoTheme()
+  (this as KattyTerminal).demoTheme()
 }
 
-fun KTerminal.demoTheme() {
+fun KattyTerminal.demoTheme() {
 
   val original = terminal.theme
 

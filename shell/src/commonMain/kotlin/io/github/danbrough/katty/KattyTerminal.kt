@@ -18,36 +18,38 @@ import kotlin.coroutines.CoroutineContext
 
 private val log = logKattyShell
 
-open class KTerminal(
+open class KattyTerminal(
   var commandHandler: CommandHandler,
   val history: History = DefaultHistory(),
   val terminal: Terminal = Terminal(),
   val executor: CommandExecutor = CommandExecutor()
-) : KattyShell {
+) : KattyShell() {
 
   init {
     history.loadHistory()
   }
 
-  companion object : CoroutineContext.Key<KTerminal>
+  companion object : CoroutineContext.Key<KattyTerminal>
 
-  override val key: CoroutineContext.Key<*> = KTerminal
-  var cursorPos: Int = 0
-  var promptLength: Int = 0
-
-  var currentLine: StringBuilder = StringBuilder()
-
-  val linePos: Int
-    get() = cursorPos - promptLength
+  override val key: CoroutineContext.Key<*> = KattyTerminal
 
   val keyboardActions: MutableList<KeyboardAction> = mutableListOf<KeyboardAction>().also {
     it.addAll(KeyboardActions.DefaultActions)
   }
 
+  override fun print(message: String) = print(message, terminal.theme.info)
+  override fun println(message: String) = println(message, terminal.theme.info)
+  override fun println() = println(style = terminal.theme.info)
+
   fun println(message: String = "", style: TextStyle = terminal.theme.info) =
     print("$message$SystemLineSeparator", style).also {
       cursorPos = 0
     }
+
+  fun print(message: String, style: TextStyle = terminal.theme.info) {
+    cursorPos += message.length
+    terminal.print(style(message))
+  }
 
   override fun warn(message: String) = println(message, terminal.theme.warning)
   override fun muted(message: String) = println(message, terminal.theme.muted)
@@ -56,10 +58,6 @@ open class KTerminal(
 
   override fun info(message: String) = println(message, terminal.theme.info)
 
-  fun print(message: String, style: TextStyle = terminal.theme.info) {
-    cursorPos += message.length
-    terminal.print(style(message))
-  }
 
   open suspend fun runCommand(cmdLine: String) = history.addToHistory(cmdLine).also {
     runCommand(commandHandler.parseCommandLine(cmdLine))
@@ -71,7 +69,7 @@ open class KTerminal(
       currentLine.clear()
 
       runCatching {
-        commandHandler.runCommand(this@KTerminal, args)
+        commandHandler.runCommand(this@KattyTerminal, args)
       }.exceptionOrNull().also {
         if (it == null) {
           if (!singleCommandRun)
@@ -89,7 +87,7 @@ open class KTerminal(
             terminal.println(terminal.theme.danger(it.stackTraceToString()))
 
           terminal.println(HorizontalRule())
-          commandHandler.showHelp(this@KTerminal)
+          commandHandler.showHelp(this@KattyTerminal)
           terminal.println(HorizontalRule())
         }
       }
@@ -97,7 +95,7 @@ open class KTerminal(
   }
 
 
-  suspend fun printPrompt(newLine: Boolean = true) {
+  override suspend fun printPrompt(newLine: Boolean) {
     commandHandler.prompt().also { p ->
       terminal.rawPrint("${if (newLine) SystemLineSeparator else ""}${p.second}")
       promptLength = p.first
@@ -111,7 +109,7 @@ open class KTerminal(
       printPrompt(newLine = false)
 
     keyboardActions.firstOrNull { it.matcher(event) }?.also {
-      it.invoke(this@KTerminal, event)
+      it.invoke(this@KattyTerminal, event)
       return@processKeyEvent InputReceiver.Status.Continue
     }
 
