@@ -29,23 +29,23 @@ abstract class ShellContext : KattyContext {
 
   protected var context: CoroutineContext = this
 
-/*
+  /*
 
-  operator fun plusAssign(element: CoroutineContext.Element) {
-    context[element.key]?.also { item ->
-      if (item is AutoCloseable) item.close()
+    operator fun plusAssign(element: CoroutineContext.Element) {
+      context[element.key]?.also { item ->
+        if (item is AutoCloseable) item.close()
+      }
+      context += element
     }
-    context += element
-  }
 
-  operator fun minusAssign(key: CoroutineContext.Key<*>) {
-    context[key]?.also { item ->
-      if (item is AutoCloseable) item.close()
+    operator fun minusAssign(key: CoroutineContext.Key<*>) {
+      context[key]?.also { item ->
+        if (item is AutoCloseable) item.close()
+      }
+      context = context.minusKey(key)
     }
-    context = context.minusKey(key)
-  }
 
-*/
+  */
 
   /**
    * Close the AutoClosable elements of the coroutine context
@@ -62,6 +62,12 @@ suspend fun shellContext(): ShellContext =
   currentCoroutineContext()[ShellContext] ?: Errors.errorMissingContext<ShellContext>()
 
 
+suspend fun <E : CoroutineContext.Element> shellContext(
+  key: CoroutineContext.Key<E>,
+  creator: suspend () -> E
+): E = currentCoroutineContext()[key] ?: creator().also {
+  ShellContext.add(it)
+}
 /*suspend fun <E : CoroutineContext.Element> shellContext(key: CoroutineContext.Key<E>): E =
   currentCoroutineContext()[ShellContext]?.context[key]
     ?: Errors.errorMissingContext<ShellContext>()*/

@@ -22,7 +22,7 @@ open class KeyboardAction(
 object KeyboardActions {
 
   val CtrlDCtrlCToExit = KeyboardAction({ isCtrlD || isCtrlC }) {
-    throw Errors.ExitException()
+    throw KattyError.ExitException()
   }
 
   val SearchAction = KeyboardAction({ isCtrlR }) {

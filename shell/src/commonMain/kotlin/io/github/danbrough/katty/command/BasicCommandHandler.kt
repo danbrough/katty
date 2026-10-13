@@ -4,6 +4,7 @@ import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
 import io.github.danbrough.katty.CommandHandler
 import io.github.danbrough.katty.Errors
+import io.github.danbrough.katty.KattyError
 import io.github.danbrough.katty.KattyShell
 import io.github.danbrough.katty.logKattyShell
 import kotlinx.io.buffered
@@ -46,7 +47,7 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
       if (commands.contains(cmdName)) {
         commands[cmdName]?.invoke(this, args)
       } else {
-        throw Errors.CommandNotFound(cmdName)
+        throw KattyError.CommandNotFound(cmdName)
       }
     }
   }

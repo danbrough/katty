@@ -15,7 +15,7 @@ interface CommandHandler {
   suspend fun runCommand(shell: KattyShell, args: List<String>)
 
   suspend fun showHelp(shell: KattyShell) = Unit
-  suspend fun tabPressed(terminal: KattyShell) = Unit
+  suspend fun tabPressed(shell: KattyShell) = Unit
 
   fun parseCommandLine(cmdLine: String): List<String> = ArgumentTokenizer.tokenize(cmdLine)
 

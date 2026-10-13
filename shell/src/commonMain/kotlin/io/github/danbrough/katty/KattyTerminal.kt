@@ -81,8 +81,8 @@ open class KattyTerminal(
           }
 
           terminal.println(HorizontalRule())
-          if (it is Errors.CommandNotFound)
-            terminal.println(terminal.theme.danger(it.message!!))
+          if (it is KattyError.CommandNotFound)
+            terminal.println(terminal.theme.danger(it.message))
           else
             terminal.println(terminal.theme.danger(it.stackTraceToString()))
 
@@ -191,7 +191,7 @@ open class KattyTerminal(
           processKeyEvent(readKeyEvent())
         }
       }.exceptionOrNull()?.also {
-        if (it is Errors.ExitException) {
+        if (it is KattyError.ExitException) {
           log.info { "got an exit exception .. current job: ${executor.currentJob}" }
           if (executor.cancelCurrentJob()) continue
         }
@@ -212,7 +212,7 @@ open class KattyTerminal(
     cmdLoop()
   }.exceptionOrNull().also { err ->
     when (err) {
-      is CancellationException, is Errors.ExitException -> {
+      is CancellationException, is KattyError.ExitException -> {
         log.trace { "cancelled or exited: ${err.message}" }
       }
 
