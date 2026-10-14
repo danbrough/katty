@@ -1,28 +1,36 @@
 package io.github.danbrough.katty.demos
 
+import io.github.danbrough.katty.KattyContext
 import io.github.danbrough.katty.command.basicCommand
-import io.github.danbrough.katty.globalSession
-import kotlinx.coroutines.currentCoroutineContext
+import io.github.danbrough.katty.logDemo
+import io.github.danbrough.katty.shellContext
+import kotlin.coroutines.AbstractCoroutineContextElement
+import kotlin.coroutines.CoroutineContext
+
+
+private val log = logDemo
+
+class Stuff(val name: String) : AbstractCoroutineContextElement(Stuff), KattyContext {
+  override fun close() {
+    log.debug { "Stuff::close() name:$name" }
+  }
+
+  override fun toString(): String {
+    return "Stuff[name=$name]"
+  }
+
+  companion object : CoroutineContext.Key<Stuff>
+}
 
 val ContextDemo = basicCommand("context", "Context demos") {
-  success("ran context demo")
-  globalSession {
-    val ctx1 = currentCoroutineContext()
-    currentCoroutineContext().fold(Unit) { _, ctx ->
-      success("coroutine context: $ctx")
-    }
-    globalSession {
-      currentCoroutineContext().fold(Unit) { _, ctx ->
-        info("coroutine context: $ctx")
-      }
-      info("ctx1: $ctx1 == current: ${currentCoroutineContext()} is ${ctx1 == currentCoroutineContext()}")
+  val shell = shellContext()
 
-      globalSession {
-        currentCoroutineContext().fold(Unit) { _, ctx ->
-          muted("coroutine context: $ctx")
-        }
-        muted("ctx1: $ctx1 == current: ${currentCoroutineContext()} is ${ctx1 == currentCoroutineContext()}")
-      }
-    }
+  val stuff = shellContext(Stuff) {
+    log.info { "creating a stuff" }
+    Stuff("stuff")
   }
+  log.debug { "shellContext: $shell" }
+  info("stuff: $stuff")
+  success("ran context demo")
 }
+

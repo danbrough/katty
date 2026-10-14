@@ -2,8 +2,7 @@ package io.github.danbrough.katty.demos
 
 import io.github.danbrough.katty.CommandContext.Companion.withCommandContext
 import io.github.danbrough.katty.command.basicCommand
-import io.github.danbrough.katty.demoLog
-import io.github.danbrough.katty.shellContext
+import io.github.danbrough.katty.logDemo
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.job
@@ -11,7 +10,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 
-private val log = demoLog
+private val log = logDemo
 
 
 class ContextMessage(val message: String) : CoroutineContext.Element, AutoCloseable {
@@ -63,9 +62,10 @@ val scopeDemo =
       }
 
       "thang" -> {
-        val ctx = currentCoroutineContext()
+        warn("not implemented")
+    /*    val ctx = currentCoroutineContext()
         log.trace { "scopeDemo::thang ctx: $ctx ctx.thang = ${ctx[Thang]}" }
-        shellContext() += Thang("Thang_${count++}")
+        shellContext() += Thang("Thang_${count++}")*/
       }
 
       else -> {}

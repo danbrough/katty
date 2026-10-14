@@ -12,7 +12,7 @@ private val log = logKattyShell
 open class CommandExecutor() : ShellContext() {
 
   val supervisorJob = SupervisorJob()
-  val scope: CoroutineScope = CoroutineScope(supervisorJob)
+  override val scope: CoroutineScope = CoroutineScope(supervisorJob)
 
   val jobs = mutableListOf<CommandContext>()
   val currentJob: CommandContext?

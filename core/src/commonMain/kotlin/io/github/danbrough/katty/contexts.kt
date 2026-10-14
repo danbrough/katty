@@ -1,5 +1,6 @@
 package io.github.danbrough.katty
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
@@ -29,23 +30,7 @@ abstract class ShellContext : KattyContext {
 
   protected var context: CoroutineContext = this
 
-  /*
-
-    operator fun plusAssign(element: CoroutineContext.Element) {
-      context[element.key]?.also { item ->
-        if (item is AutoCloseable) item.close()
-      }
-      context += element
-    }
-
-    operator fun minusAssign(key: CoroutineContext.Key<*>) {
-      context[key]?.also { item ->
-        if (item is AutoCloseable) item.close()
-      }
-      context = context.minusKey(key)
-    }
-
-  */
+  abstract val scope: CoroutineScope
 
   /**
    * Close the AutoClosable elements of the coroutine context
@@ -59,7 +44,7 @@ abstract class ShellContext : KattyContext {
 }
 
 suspend fun shellContext(): ShellContext =
-  currentCoroutineContext()[ShellContext] ?: Errors.errorMissingContext<ShellContext>()
+  currentCoroutineContext()[ShellContext] ?: KattyError.errorMissingContext<ShellContext>()
 
 
 suspend fun <E : CoroutineContext.Element> shellContext(

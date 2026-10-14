@@ -8,13 +8,13 @@ import com.github.ajalt.mordant.input.enterRawMode
 import com.github.ajalt.mordant.rendering.TextAlign
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyle
+import com.github.ajalt.mordant.rendering.Widget
 import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.widgets.Caption
 import com.github.ajalt.mordant.widgets.HorizontalRule
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 import kotlinx.io.SystemLineSeparator
-import kotlin.coroutines.CoroutineContext
 
 private val log = logKattyShell
 
@@ -29,16 +29,13 @@ open class KattyTerminal(
     history.loadHistory()
   }
 
-  companion object : CoroutineContext.Key<KattyTerminal>
-
-  override val key: CoroutineContext.Key<*> = KattyTerminal
-
   val keyboardActions: MutableList<KeyboardAction> = mutableListOf<KeyboardAction>().also {
     it.addAll(KeyboardActions.DefaultActions)
   }
 
   override fun print(message: String) = print(message, terminal.theme.info)
   override fun println(message: String) = println(message, terminal.theme.info)
+  fun println(content: Widget) = terminal.println(content)
   override fun println() = println(style = terminal.theme.info)
 
   fun println(message: String = "", style: TextStyle = terminal.theme.info) =
@@ -67,6 +64,7 @@ open class KattyTerminal(
     executor.execute(args) {
       cursorPos = 0
       currentLine.clear()
+      println()
 
       runCatching {
         commandHandler.runCommand(this@KattyTerminal, args)

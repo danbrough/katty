@@ -156,7 +156,7 @@ object Bashy {
   }
 
   val ExitCommand = basicCommand("exit", "exits the shell") {
-    throw Errors.ExitException()
+    KattyError.errorExit()
   }
 
   val ExecCommand = basicCommand("exec", "executes a command in the shell") { args ->

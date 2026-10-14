@@ -22,7 +22,7 @@ import kotlinx.io.files.SystemFileSystem
 import org.danbrough.klog.logger
 import kotlin.time.Duration.Companion.seconds
 
-internal val demoLog = logger("KATTY_DEMO")
+internal val logDemo = logger("KATTY_DEMO")
 
 suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, BasicCommand>) {
   val configDir = Path(KattyUtils.getEnv("HOME")!!, ".katty")
@@ -39,7 +39,7 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
   val commandHandler: BasicCommandHandler = object : BasicCommandHandler() {
     val username = KattyUtils.getEnv("USER") ?: "user"
 
-    override suspend fun prompt(): Pair<Int, String> {
+    override fun prompt(): Pair<Int, String> {
       val parts = listOf("$username@katty ", Bashy.currentDir.toString(), " $ ")
       return parts.sumOf { it.length } to TextStyles.bold(
         TextColors.brightCyan(parts[0]) + TextColors.blue(
@@ -47,6 +47,7 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
         )
       )
     }
+
   }
 
   commandHandler.registerCommands(*extraCommands)
@@ -65,7 +66,7 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
     },
     basicCommand("testApp", "Check we can access the DemoApp and the KTerminal from the context") {
       println("the app is ${kattyApp<DemoApp>()}")
-      println("terminal is ${currentCoroutineContext()[KattyTerminal]}")
+      println("terminal is ${currentCoroutineContext()[KattyShell]}")
       KattyUtils.atExit {
         println("DOING THIS AT EXIT")
       }
@@ -78,7 +79,7 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
   val terminal =
     KattyTerminal(
       commandHandler,
-      terminal = Terminal(theme = KattyTheme),
+      terminal = Terminal(),
       history = DefaultHistory(Path(configDir, "history.txt"))
     )
 

@@ -21,7 +21,7 @@ import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-private val log = demoLog
+private val log = logDemo
 
 private typealias SimpleCommand = suspend SimpleTerminal.(args: List<String>) -> Unit
 
@@ -32,7 +32,7 @@ class SimpleTerminal(val args: List<String>) : CoroutineContext.Element {
   companion object : CoroutineContext.Key<SimpleTerminal>
 
   override val key: CoroutineContext.Key<*> = SimpleTerminal
-  val terminal = Terminal(theme = KattyTheme)
+  val terminal = Terminal()
 
   private val supervisorJob = SupervisorJob()
   private val cmdScope = CoroutineScope(supervisorJob)
@@ -83,7 +83,7 @@ class SimpleTerminal(val args: List<String>) : CoroutineContext.Element {
 
 
   suspend fun processKeyEvent(e: KeyboardEvent, scope: RawModeScope) {
-    if (e.isCtrlD || e.isCtrlC) throw Errors.ExitException()
+    if (e.isCtrlD || e.isCtrlC) KattyError.errorExit()
     if (e.key == "Enter") {
       val cmd = ArgumentTokenizer.tokenize(command.toString().trim())
       //log.trace { "enter pressed cmd: [${cmd.joinToString(",")}]" }
@@ -120,7 +120,7 @@ class SimpleTerminal(val args: List<String>) : CoroutineContext.Element {
             printPrompt(scope)
           }
         }.exceptionOrNull()?.also {
-          if (it is Errors.ExitException) break
+          if (it is KattyError.ExitException) break
           println("ERROR: ${it.message}")
           run()
         }
