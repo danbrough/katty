@@ -15,13 +15,11 @@ sealed class KattyError(override val message: String) : Exception(message) {
   class InvalidCommandArgs(override val message: String) : KattyError(message)
 
   companion object {
-    fun errorInvalidCommandUsage(message: String): Nothing = throw KattyError.InvalidCommandArgs(
-      message
-    )
+    fun errorInvalidCommandUsage(message: String): Nothing = throw InvalidCommandArgs(message)
 
-    fun errorExit(): Nothing = throw KattyError.ExitException()
+    fun errorExit(): Nothing = throw ExitException()
 
     inline fun <reified C : KattyContext> errorMissingContext(message: String = "Missing context: ${C::class.simpleName}"): Nothing =
-      throw KattyError.MissingContextException(message, C::class)
+      throw MissingContextException(message, C::class)
   }
 }
