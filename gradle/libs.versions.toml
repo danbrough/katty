@@ -9,6 +9,7 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 publish = { id = "com.vanniktech.maven.publish", version.ref = "publish" }
+ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 
 [versions]
 
@@ -30,6 +31,7 @@ agp = "9.4.1"
 ##⬆= "9.5.0-alpha07"
 ##⬆= "9.5.0-alpha08"
 ##⬆= "9.5.0-alpha09"
+##⬆= "9.5.0-alpha10"
 
 # https://github.com/Kotlin/dokka
 dokka = "2.2.0"
@@ -49,9 +51,55 @@ clikt = "5.1.0"
 ktoml = "0.7.2"
 kotlinx-serialization = "1.11.0"
 kotlinx-coroutines = "1.11.0"
-klog = "0.1.11"
+klog = "0.1.12"
+kotlincrypto = "0.8.0"
+ktor = "3.6.0"
+
+logback = "1.6.5"
+
+
+
 
 [libraries]
+logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+#ktor
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-json = { module = "io.ktor:ktor-client-json", version.ref = "ktor" }
+ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
+ktor-client-encoding = { module = "io.ktor:ktor-client-encoding", version.ref = "ktor" }
+ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+ktor-client-curl = { module = "io.ktor:ktor-client-curl", version.ref = "ktor" }
+ktor-client-wasmjs = { module = "io.ktor:ktor-client-js-wasm-js", version.ref = "ktor" }
+ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
+ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
+ktor-server-test-host-jvm = { module = "io.ktor:ktor-server-test-host-jvm", version.ref = "ktor" }
+ktor-server-curl = { module = "io.ktor:ktor-server-curl", version.ref = "ktor" }
+ktor-client-sse = { module = "io.ktor:ktor-client-sse", version.ref = "ktor" }
+ktor-network = { module = "io.ktor:ktor-network", version.ref = "ktor" }
+ktor-http = { module = "io.ktor:ktor-http", version.ref = "ktor" }
+ktor-io = { module = "io.ktor:ktor-io", version.ref = "ktor" }
+ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktor" }
+ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktor" }
+ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
+ktor-server-sse = { module = "io.ktor:ktor-server-sse", version.ref = "ktor" }
+ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
+ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
+ktor-server-netty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
+ktor-server-compression = { module = "io.ktor:ktor-server-compression", version.ref = "ktor" }
+ktor-server-forwarded-header = { module = "io.ktor:ktor-server-forwarded-header", version.ref = "ktor" }
+ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktor" }
+ktor-client-jvm = { module = "io.ktor:ktor-client-jvm", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-network-tls-certificates = { module = "io.ktor:ktor-network-tls-certificates", version.ref = "ktor" }
+
+kotlincrypto-md = { module = "org.kotlincrypto.hash:md", version.ref = "kotlincrypto" }
+kotlincrypto-sha1 = { module = "org.kotlincrypto.hash:sha1", version.ref = "kotlincrypto" }
+kotlincrypto-sha2 = { module = "org.kotlincrypto.hash:sha2", version.ref = "kotlincrypto" }
+kotlincrypto-sha3 = { module = "org.kotlincrypto.hash:sh3", version.ref = "kotlincrypto" }
+kotlincrypto-blake = { module = "org.kotlincrypto.hash:blake", version.ref = "kotlincrypto" }
 
 klog = { module = "org.danbrough.klog:core", version.ref = "klog" }
 ktoml-core = { module = "com.akuleshov7:ktoml-core", version.ref = "ktoml" }

@@ -34,7 +34,7 @@ open class CommandExecutor() : ShellContext() {
       //log.trace { "CommandExecutor::launched new command: $commandContext job: $cmdJob" }
       try {
 
-          commandContext.command()
+        commandContext.command()
 
       } catch (e: CancellationException) {
         // Command was cancelled, we can handle cleanup here if needed.

@@ -7,7 +7,9 @@ import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 
 interface KattyContext : CoroutineContext.Element, CoroutineContext.Key<KattyContext>,
-  AutoCloseable
+  AutoCloseable {
+  override fun close() = Unit
+}
 
 
 abstract class ShellContext : KattyContext {
@@ -83,8 +85,6 @@ class CommandContext(val cmd: List<String>) : KattyContext {
 
   override val key: CoroutineContext.Key<*> = CommandContext
 
-  override fun close() {
-  }
 }
 
 
