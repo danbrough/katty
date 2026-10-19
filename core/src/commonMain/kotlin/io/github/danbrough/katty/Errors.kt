@@ -1,5 +1,6 @@
 package io.github.danbrough.katty
 
+import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
 
 sealed class KattyError(override val message: String) : Exception(message) {
@@ -19,7 +20,7 @@ sealed class KattyError(override val message: String) : Exception(message) {
 
     fun errorExit(): Nothing = throw ExitException()
 
-    inline fun <reified C : KattyContext> errorMissingContext(message: String = "Missing context: ${C::class.simpleName}"): Nothing =
+    inline fun <reified C : CoroutineContext> errorMissingContext(message: String = "Missing context: ${C::class.simpleName}"): Nothing =
       throw MissingContextException(message, C::class)
   }
 }

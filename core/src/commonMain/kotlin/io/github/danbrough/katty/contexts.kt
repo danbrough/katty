@@ -1,5 +1,6 @@
 package io.github.danbrough.katty
 
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
@@ -10,28 +11,40 @@ interface KattyContext : CoroutineContext.Element, AutoCloseable {
   override fun close() = Unit
 }
 
+suspend fun <E : CoroutineContext.Element> CoroutineContext.Key<E>.get(): E? =
+  currentCoroutineContext()[this@get]
+
+suspend inline fun <reified E : CoroutineContext.Element> CoroutineContext.Key<E>.getOrThrow(): E =
+  currentCoroutineContext()[this@getOrThrow] ?: KattyError.errorMissingContext<E>()
 
 abstract class ShellContext : KattyContext {
   companion object : CoroutineContext.Key<ShellContext> {
 
     suspend fun add(element: CoroutineContext.Element) {
-      shellContext().context += element
+      shellContext().add(element)
     }
 
     suspend fun remove(key: CoroutineContext.Key<*>) {
-      val shellContext = shellContext()
-      shellContext.context[key]?.also { e ->
-        shellContext.context = shellContext.context.minusKey(key)
-        if (e is AutoCloseable) e.close()
-      }
+      shellContext().remove(key)
     }
   }
 
   override val key: CoroutineContext.Key<*> = ShellContext
 
-  protected var context: CoroutineContext = this
+  protected var context: CoroutineContext = CoroutineName("ShellContext") + this
 
   abstract val scope: CoroutineScope
+
+  suspend fun add(element: CoroutineContext.Element) {
+    context += element
+  }
+
+  suspend fun remove(key: CoroutineContext.Key<*>) {
+    context[key]?.also { e ->
+      context = context.minusKey(key)
+      if (e is AutoCloseable) e.close()
+    }
+  }
 
   /**
    * Close the AutoClosable elements of the coroutine context
@@ -57,6 +70,7 @@ suspend fun <E : CoroutineContext.Element> shellContext(
 
 
 class CommandContext(val cmd: List<String>) : KattyContext {
+  override val key: CoroutineContext.Key<*> = CommandContext
   companion object : CoroutineContext.Key<CommandContext> {
 
     suspend fun get(): CommandContext? = currentCoroutineContext()[CommandContext]
@@ -75,7 +89,6 @@ class CommandContext(val cmd: List<String>) : KattyContext {
 
   var job: Job? = null
 
-  override val key: CoroutineContext.Key<*> = CommandContext
 
 }
 

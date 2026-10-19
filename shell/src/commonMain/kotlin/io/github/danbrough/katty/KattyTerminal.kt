@@ -12,6 +12,8 @@ import com.github.ajalt.mordant.rendering.Widget
 import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.widgets.Caption
 import com.github.ajalt.mordant.widgets.HorizontalRule
+import io.github.danbrough.katty.command.CommandExecutor
+import io.github.danbrough.katty.command.CommandHandler
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 import kotlinx.io.SystemLineSeparator
@@ -22,7 +24,8 @@ open class KattyTerminal(
   var commandHandler: CommandHandler,
   val history: History = DefaultHistory(),
   val terminal: Terminal = Terminal(),
-  val executor: CommandExecutor = CommandExecutor()
+  val executor: CommandExecutor = CommandExecutor(),
+  override val welcomeMessage: String = "Welcome to Katty",
 ) : KattyShell() {
 
   init {
@@ -158,7 +161,7 @@ open class KattyTerminal(
     terminal.println(
       Caption(
         HorizontalRule(),
-        bottom = TextColors.brightGreen("Welcome to Katty"),
+        bottom = TextColors.brightGreen(welcomeMessage),
         bottomAlign = TextAlign.LEFT
       )
     )

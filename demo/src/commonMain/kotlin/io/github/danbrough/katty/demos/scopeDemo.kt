@@ -1,11 +1,17 @@
 package io.github.danbrough.katty.demos
 
 import io.github.danbrough.katty.CommandContext.Companion.withCommandContext
+import io.github.danbrough.katty.KattyUtils
+import io.github.danbrough.katty.ShellContext
 import io.github.danbrough.katty.command.basicCommand
+import io.github.danbrough.katty.get
 import io.github.danbrough.katty.logDemo
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
@@ -23,6 +29,7 @@ class ContextMessage(val message: String) : CoroutineContext.Element, AutoClosea
   }
 }
 
+
 data class Thang(val message: String) : CoroutineContext.Element, AutoCloseable {
   companion object : CoroutineContext.Key<Thang>
 
@@ -35,42 +42,53 @@ data class Thang(val message: String) : CoroutineContext.Element, AutoCloseable 
 
 private var count = 1
 
-val scopeDemo =
-  basicCommand(
-    "scopeDemo",
-    "Demos how to manage scopes. args = [session,message,clear,test,thang]"
-  ) { args ->
-    println("args: ${args.joinToString(",")} job: ${currentCoroutineContext().job}")
-    when (args[1]) {
-      "session" -> {
-        log.info { "scopeDemo::session" }
-      }
+private const val USAGE = "Demos how to manage scopes. args = [session,message,clear,test,thang]"
+val scopeDemo = basicCommand(
+  "scopeDemo",
+  USAGE,
+) { args ->
+  println("args: ${args.joinToString(",")} job: ${currentCoroutineContext().job}")
+  val cmd = args.getOrNull(1) ?: run {
+    info(USAGE)
+    return@basicCommand
+  }
+  when (args[1]) {
+    "session" -> {
+      log.info { "scopeDemo::session" }
+    }
 
-      "message" -> {
-        log.info { "scopeDemo::message ${currentCoroutineContext()[ContextMessage]?.message}" }
-        //CommandExecutor += ContextMessage("message ${count++}")
-      }
+    "message" -> {
+      log.info { "scopeDemo::message ${ContextMessage.get()?.message ?: "not yet set"}" }
 
-      "clear" -> {
-        //CommandExecutor -= ContextMessage
-      }
-
-      "test" -> {
-        withCommandContext(ContextMessage("Context message created at ${Clock.System.now()}")) {
-          runTest()
+      coroutineScope {
+        launch(KattyUtils.ioDispatcher) {
+          ShellContext.add(ContextMessage("message ${count++}"))
+        }
+        launch(KattyUtils.ioDispatcher) {
+          ShellContext.add(ContextMessage("message ${count++}"))
         }
       }
-
-      "thang" -> {
-        warn("not implemented")
-    /*    val ctx = currentCoroutineContext()
-        log.trace { "scopeDemo::thang ctx: $ctx ctx.thang = ${ctx[Thang]}" }
-        shellContext() += Thang("Thang_${count++}")*/
-      }
-
-      else -> {}
     }
+
+    "clear" -> {
+      ShellContext.remove(ContextMessage)
+    }
+
+    "test" -> {
+      withCommandContext(ContextMessage("Context message created at ${Clock.System.now()}")) {
+        runTest()
+      }
+    }
+
+    "thang" -> {
+      warn("not implemented")/*    val ctx = currentCoroutineContext()
+            log.trace { "scopeDemo::thang ctx: $ctx ctx.thang = ${ctx[Thang]}" }
+            shellContext() += Thang("Thang_${count++}")*/
+    }
+
+    else -> {}
   }
+}
 
 private suspend fun runTest() {
   val message = currentCoroutineContext()[ContextMessage]?.message

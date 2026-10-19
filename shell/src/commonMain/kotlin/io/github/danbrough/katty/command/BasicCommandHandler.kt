@@ -2,7 +2,6 @@ package io.github.danbrough.katty.command
 
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
-import io.github.danbrough.katty.CommandHandler
 import io.github.danbrough.katty.KattyError
 import io.github.danbrough.katty.KattyShell
 import io.github.danbrough.katty.logKattyShell
