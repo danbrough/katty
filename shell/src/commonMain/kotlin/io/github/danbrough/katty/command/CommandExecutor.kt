@@ -5,18 +5,14 @@ import io.github.danbrough.katty.KattyUtils
 import io.github.danbrough.katty.ShellContext
 import io.github.danbrough.katty.logKattyShell
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 
 private val log = logKattyShell
 
-open class CommandExecutor() : ShellContext() {
-
-  val supervisorJob = SupervisorJob()
-  override val scope: CoroutineScope = CoroutineScope(supervisorJob)
+open class CommandExecutor : ShellContext() {
 
   val jobs = mutableListOf<CommandContext>()
   val currentJob: CommandContext?
@@ -32,10 +28,12 @@ open class CommandExecutor() : ShellContext() {
   ) {
     //log.trace { "CommandExecutor[${KattyUtils.threadName()}]::execute .. launchContext: $context" }
     val commandContext = CommandContext(args)
+    val commandContextWithName =
+      CoroutineName("Command[${args.joinToString(" ")}]") + commandContext
 
-    scope.launch(commandContext + context + KattyUtils.ioDispatcher) {
+    scope.launch(commandContextWithName + context) {
       val cmdJob = currentCoroutineContext().job
-      //log.trace { "CommandExecutor::launched new command: $commandContext job: $cmdJob" }
+      log.trace { "CommandExecutor::launched new command: $commandContext job: $cmdJob job:${job}" }
       try {
 
         commandContext.command()
@@ -51,12 +49,12 @@ open class CommandExecutor() : ShellContext() {
       //   log.trace { "CommandExecutor[${KattyUtils.threadName()}]:: added job: $job to jobs. jobCount: ${jobs.size}" }
       job.invokeOnCompletion {
         jobs.remove(commandContext)
-        //   log.trace { "CommandExecutor[${KattyUtils.threadName()}]::removed job $job from jobs. jobCount: ${jobs.size}" }
+        log.trace { "CommandExecutor[${KattyUtils.threadName()}]::removed job $job from jobs. jobCount: ${jobs.size} supervisorJob.active=:${supervisorJob.isActive}" }
         commandContext.close()
       }
     }
 
-    log.trace { "CommandExecutor::execute done" }
+    log.trace { "CommandExecutor::execute [${args.joinToString(" ")}] done" }
 
     //yield()
   }

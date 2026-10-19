@@ -1,14 +1,15 @@
 package io.github.danbrough.katty
 
+import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 
-interface KattyContext : CoroutineContext.Element, AutoCloseable{
+interface KattyContext : CoroutineContext.Element, AutoCloseable {
   override fun close() = Unit
 }
 
@@ -18,7 +19,7 @@ suspend fun <E : CoroutineContext.Element> CoroutineContext.Key<E>.get(): E? =
 suspend inline fun <reified E : CoroutineContext.Element> CoroutineContext.Key<E>.getOrThrow(): E =
   currentCoroutineContext()[this@getOrThrow] ?: KattyError.errorMissingContext<E>()
 
-abstract class ShellContext : KattyContext {
+open class ShellContext(parentJob: Job? = null) : KattyContext {
   companion object : CoroutineContext.Key<ShellContext> {
 
     suspend fun add(element: CoroutineContext.Element) {
@@ -30,17 +31,19 @@ abstract class ShellContext : KattyContext {
     }
   }
 
+  open val supervisorJob: CompletableJob = SupervisorJob(parentJob)
+
+  open val scope: CoroutineScope = CoroutineScope(CoroutineName("ShellContext") + supervisorJob)
   override val key: CoroutineContext.Key<*> = ShellContext
 
   protected var context: CoroutineContext = CoroutineName("ShellContext") + this
 
-  abstract val scope: CoroutineScope
 
-  suspend fun add(element: CoroutineContext.Element) {
+  fun add(element: CoroutineContext.Element) {
     context += element
   }
 
-  suspend fun remove(key: CoroutineContext.Key<*>) {
+  fun remove(key: CoroutineContext.Key<*>) {
     context[key]?.also { e ->
       context = context.minusKey(key)
       if (e is AutoCloseable) e.close()
@@ -58,8 +61,16 @@ abstract class ShellContext : KattyContext {
   }
 }
 
+
+suspend fun shellContextOrNull(): ShellContext? = currentCoroutineContext()[ShellContext]
 suspend fun shellContext(): ShellContext =
-  currentCoroutineContext()[ShellContext] ?: KattyError.errorMissingContext<ShellContext>()
+  shellContextOrNull() ?: KattyError.errorMissingContext<ShellContext>()
+
+
+fun CoroutineContext.elementList(): List<CoroutineContext> =
+  fold(mutableListOf()) { acc, element ->
+    acc.apply { add(element) }
+  }
 
 
 suspend fun <E : CoroutineContext.Element> shellContext(
@@ -72,6 +83,7 @@ suspend fun <E : CoroutineContext.Element> shellContext(
 
 class CommandContext(val cmd: List<String>) : KattyContext {
   override val key: CoroutineContext.Key<*> = CommandContext
+
   companion object : CoroutineContext.Key<CommandContext> {
 
     suspend fun get(): CommandContext? = currentCoroutineContext()[CommandContext]

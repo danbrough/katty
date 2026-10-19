@@ -2,8 +2,14 @@ package io.github.danbrough.katty
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlin.coroutines.CoroutineContext
 
-class DemoApp : KattyApplication<DemoAppConfig>()
+class DemoApp : CoroutineContext.Element {
+  companion object : CoroutineContext.Key<DemoApp>
+
+  override val key: CoroutineContext.Key<*> = DemoApp
+
+}
 
 
 /**

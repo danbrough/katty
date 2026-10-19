@@ -16,8 +16,11 @@ import io.github.danbrough.katty.command.CommandExecutor
 import io.github.danbrough.katty.command.CommandHandler
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
 import kotlinx.io.SystemLineSeparator
+import kotlin.time.Duration.Companion.seconds
 
 private val log = logKattyShell
 
@@ -74,13 +77,15 @@ open class KattyTerminal(
         commandHandler.runCommand(this@KattyTerminal, args)
       }.exceptionOrNull().also {
         if (it == null) {
-          if (!singleCommandRun)
-            printPrompt(false)
+          if (singleCommandRun) return@execute
+          printPrompt(false)
         } else {
           if (it is CancellationException) {
             log.trace { "runCommand::caught a CancellationException" }
             return@execute
           }
+
+          if (singleCommandRun) return@execute
 
           terminal.println(HorizontalRule())
           if (it is KattyError.CommandNotFound)
@@ -202,23 +207,34 @@ open class KattyTerminal(
     }
   }
 
-  suspend fun postCmdLoop() {
-    log.info { "KTerminal::postCmdLoop()" }
+  open suspend fun nonInteractiveCmdLoop() {
+    log.trace { "KTerminal::nonInteractiveCmdLoop()" }
     rawModeScope = terminal.enterRawMode(MouseTracking.Off)
 
     try {
       runCatching {
         while (true) {
-          val evt = readKeyEvent()
-          if (evt.isCtrlC || evt.isCtrlD) break
+          val evt = rawModeScope.readKeyOrNull(1.seconds)
+          if (evt == null) {
+            log.debug { "currentJob: ${executor.currentJob}" }
+            if (executor.currentJob?.isActive != true) break
+          } else {
+            if (evt.isCtrlC || evt.isCtrlD) {
+              executor.cancelCurrentJob()
+              break
+            }
+          }
         }
       }.exceptionOrNull()?.also {
         if (it !is KattyError.ExitException && it !is CancellationException)
           danger(it.message ?: "Error in postCmdLoop")
         return
       }
-
     } finally {
+      log.trace {
+        "KTerminal::nonInteractiveCmdLoop() finally reached.\n" +
+            "supervisorjob.active=${executor.scope.coroutineContext.job}"
+      }
       onClose()
     }
   }
@@ -249,6 +265,7 @@ open class KattyTerminal(
   }
 
   protected open suspend fun onClose() {
+    log.debug { "KattyTerminal::onClose()" }
     runCatching {
       if (::rawModeScope.isInitialized) rawModeScope.close()
       if (history.saveHistory())
@@ -282,12 +299,11 @@ open class KattyTerminal(
       if (args.isNotEmpty()) {
         info("running command: $args")
         runCommand(args = args, singleCommandRun = true)
-        if (!interactive) {
-          postCmdLoop()
-          return@withContext
-        }
       }
-      runLoop()
+      if (interactive)
+        runLoop()
+      else
+        nonInteractiveCmdLoop()
     }
   }
 

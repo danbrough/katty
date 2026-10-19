@@ -25,6 +25,8 @@ import kotlin.time.Duration.Companion.seconds
 internal val logDemo = logger("KATTY_DEMO")
 
 suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, BasicCommand>) {
+
+  if (args.getOrNull(0) == "serverTest") return serverTest()
   val configDir = Path(KattyUtils.getEnv("HOME")!!, ".katty")
 
   if (!SystemFileSystem.exists(configDir)) {
@@ -66,11 +68,12 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
       }
     },
     basicCommand("testApp", "Check we can access the DemoApp and the KTerminal from the context") {
-      println("the app is ${kattyApp<DemoApp>()}")
-      println("terminal is ${currentCoroutineContext()[KattyShell]}")
+      info("terminal is ${currentCoroutineContext()[KattyShell]}")
       KattyUtils.atExit {
         println("DOING THIS AT EXIT")
       }
+      delay(5.seconds)
+      info("testApp finished")
     },
   )
 
@@ -95,3 +98,4 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
   }
 
 }
+

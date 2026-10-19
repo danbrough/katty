@@ -1,11 +1,11 @@
 package io.github.danbrough.katty.server
 
 import io.github.danbrough.katty.KattyContext
-import io.github.danbrough.katty.KattyError
 import io.github.danbrough.katty.KattyShell
 import io.github.danbrough.katty.ShellContext
 import io.github.danbrough.katty.command.basicCommand
 import io.github.danbrough.katty.shellContext
+import io.github.danbrough.katty.shellContextOrNull
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.application.serverConfig
@@ -19,6 +19,7 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.websocket.WebSockets
 import kotlinx.coroutines.currentCoroutineContext
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 private val log = logServer
 
@@ -56,7 +57,7 @@ open class KattyServer(
     application.applicationConfiguration(this)
 
   suspend fun start() {
-    val context = shellContext()
+    val context = shellContextOrNull() ?: EmptyCoroutineContext
     engine = embeddedServer(
       factory = engineFactory,
       rootConfig = serverConfig {
@@ -70,7 +71,7 @@ open class KattyServer(
       }
     )
 
-    engine.startSuspend()
+    engine.startSuspend(wait = true)
   }
 
 
@@ -82,23 +83,21 @@ open class KattyServer(
 
 }
 
-fun commandServer(creator: suspend () -> KattyServer) =
+fun commandServer(creator: suspend (args: List<String>) -> KattyServer) =
   basicCommand("server", "server [start | stop]") {
-    val action = it.getOrNull(1) ?: KattyError.errorInvalidCommandUsage("No action supplied")
-    when (action) {
-      "start" -> {
-        shellContext(KattyServer) {
-          info("starting katty webserver..")
-          creator().apply {
-            start()
-          }
+    val args = it.drop(1)
+    if (args.contains("start")) {
+      shellContext(KattyServer) {
+        info("starting katty webserver..")
+        creator(args).apply {
+          start()
         }
       }
-
-      "stop" -> {
-        info("stopping server: shellContext:${shellContext()} terminal:${currentCoroutineContext()[KattyShell]}")
-        ShellContext.remove(KattyServer)
-      }
+    } else if (args.contains("stop")) {
+      info("stopping server: shellContext:${shellContext()} terminal:${currentCoroutineContext()[KattyShell]}")
+      ShellContext.remove(KattyServer)
+    } else {
+      warn("unknown command: $args")
     }
   }
 
