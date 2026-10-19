@@ -1,4 +1,4 @@
-package io.github.danbrough.kattyS.server
+package io.github.danbrough.katty.server
 
 import org.danbrough.klog.logger
 

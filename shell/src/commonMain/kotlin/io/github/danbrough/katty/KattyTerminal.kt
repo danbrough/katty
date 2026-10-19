@@ -15,6 +15,7 @@ import com.github.ajalt.mordant.widgets.HorizontalRule
 import io.github.danbrough.katty.command.CommandExecutor
 import io.github.danbrough.katty.command.CommandHandler
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.withContext
 import kotlinx.io.SystemLineSeparator
 
@@ -201,6 +202,27 @@ open class KattyTerminal(
     }
   }
 
+  suspend fun postCmdLoop() {
+    log.info { "KTerminal::postCmdLoop()" }
+    rawModeScope = terminal.enterRawMode(MouseTracking.Off)
+
+    try {
+      runCatching {
+        while (true) {
+          val evt = readKeyEvent()
+          if (evt.isCtrlC || evt.isCtrlD) break
+        }
+      }.exceptionOrNull()?.also {
+        if (it !is KattyError.ExitException && it !is CancellationException)
+          danger(it.message ?: "Error in postCmdLoop")
+        return
+      }
+
+    } finally {
+      onClose()
+    }
+  }
+
   private lateinit var rawModeScope: RawModeScope
 
   suspend fun readKeyEvent(): KeyboardEvent = rawModeScope.readKey()
@@ -255,12 +277,13 @@ open class KattyTerminal(
     val interactive = removeArgIf("-i") || args.isEmpty()
     log.trace { "interactive: $interactive args.count: ${args.size}" }
 
-    withContext(this) {
+
+    withContext(CoroutineName("KattyTerminal") + this) {
       if (args.isNotEmpty()) {
-        log.trace { "running command: $args" }
+        info("running command: $args")
         runCommand(args = args, singleCommandRun = true)
         if (!interactive) {
-          executor.shutdown()
+          postCmdLoop()
           return@withContext
         }
       }

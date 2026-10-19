@@ -2,12 +2,13 @@ package io.github.danbrough.katty
 
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 
-interface KattyContext : CoroutineContext.Element, AutoCloseable {
+interface KattyContext : CoroutineContext.Element, AutoCloseable{
   override fun close() = Unit
 }
 
@@ -85,7 +86,6 @@ class CommandContext(val cmd: List<String>) : KattyContext {
       else context.block()
     }
   }
-
 
   var job: Job? = null
 

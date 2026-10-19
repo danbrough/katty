@@ -57,6 +57,7 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
     "mordantDemo" to DemoMordantCommand,
     "themeDemo" to DemoThemeCommand,
     scopeDemo, ContextDemo,
+    DemoServerCommand,
     basicCommand("forever", "Command that runs forever") {
       var n = 0
       while (true) {

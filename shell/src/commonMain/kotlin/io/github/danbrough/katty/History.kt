@@ -34,6 +34,7 @@ open class DefaultHistory(
 ) : History {
 
   private var index: Int = 0
+  private var dirty: Boolean = false
 
   override fun loadHistory() {
     if (historyFile == null || !SystemFileSystem.exists(historyFile)) return
@@ -51,6 +52,7 @@ open class DefaultHistory(
 
   override fun saveHistory(): Boolean {
     historyFile ?: return false
+    if (!dirty) return false
     SystemFileSystem.sink(historyFile).buffered().use { sink ->
       history.forEach {
         sink.writeString("$it$SystemLineSeparator")
@@ -73,6 +75,7 @@ open class DefaultHistory(
   override fun addToHistory(line: String) {
     history.remove(line)
     history.add(line)
+    dirty = true
     if (history.size > maxSize)
       history.removeFirst()
     index = history.size

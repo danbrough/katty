@@ -57,10 +57,8 @@ ktor = "3.6.0"
 
 logback = "1.6.5"
 
-
-
-
 [libraries]
+
 logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 #ktor

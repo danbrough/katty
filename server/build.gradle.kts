@@ -10,12 +10,12 @@ kotlin {
     commonMain {
       dependencies {
         implementation(libs.klog)
-        implementation(projects.core)
+        api(projects.core)
         implementation(libs.ktor.network)
         implementation(libs.ktor.io)
         implementation(libs.ktor.serialization.kotlinx.json)
-        implementation(libs.ktor.server.core)
-        implementation(libs.ktor.server.websockets)
+        api(libs.ktor.server.core)
+        api(libs.ktor.server.websockets)
         implementation(libs.ktor.server.content.negotiation)
         implementation(libs.ktor.server.forwarded.header)
         //implementation("io.ktor:ktor-server-forwarded-header:3.6.0")

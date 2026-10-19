@@ -33,7 +33,7 @@ open class CommandExecutor() : ShellContext() {
     //log.trace { "CommandExecutor[${KattyUtils.threadName()}]::execute .. launchContext: $context" }
     val commandContext = CommandContext(args)
 
-    scope.launch(commandContext + context) {
+    scope.launch(commandContext + context + KattyUtils.ioDispatcher) {
       val cmdJob = currentCoroutineContext().job
       //log.trace { "CommandExecutor::launched new command: $commandContext job: $cmdJob" }
       try {
@@ -55,6 +55,8 @@ open class CommandExecutor() : ShellContext() {
         commandContext.close()
       }
     }
+
+    log.trace { "CommandExecutor::execute done" }
 
     //yield()
   }

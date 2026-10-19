@@ -21,6 +21,7 @@ kotlin {
     commonMain {
       dependencies {
         implementation(projects.shell)
+        implementation(projects.server)
         implementation(libs.kotlinx.datetime)
         implementation(libs.kotlinx.io.core)
         implementation(libs.ktoml.core)
