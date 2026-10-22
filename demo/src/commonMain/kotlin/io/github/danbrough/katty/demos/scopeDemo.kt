@@ -6,39 +6,21 @@ import io.github.danbrough.katty.ShellContext
 import io.github.danbrough.katty.command.basicCommand
 import io.github.danbrough.katty.get
 import io.github.danbrough.katty.logDemo
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlin.concurrent.atomics.AtomicReference
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.concurrent.atomics.updateAndFetch
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 
 private val log = logDemo
 
-
-class ContextMessage(val message: String) : CoroutineContext.Element, AutoCloseable {
-  companion object : CoroutineContext.Key<ContextMessage>
-
-  override val key: CoroutineContext.Key<*> = ContextMessage
-
-  override fun close() {
-    log.trace { "ContextMessage::close() message:$message" }
-  }
-}
-
-
-data class Thang(val message: String) : CoroutineContext.Element, AutoCloseable {
-  companion object : CoroutineContext.Key<Thang>
-
-  override val key: CoroutineContext.Key<*> = Thang
-
-  override fun close() {
-    log.trace { "Thang::close() message:$message" }
-  }
-}
 
 private var count = 1
 
@@ -98,3 +80,4 @@ private suspend fun runTest() {
     log.info { "runTest():$n still running with message: $message" }
   }
 }
+

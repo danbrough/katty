@@ -83,7 +83,7 @@ object Bashy {
       second()
     }
 
-    override suspend fun invoke(kTerminal: KattyShell, args: List<String>) {
+    override suspend fun invoke(shell: KattyShell, a: List<String>) {
       val tz = TimeZone.currentSystemDefault()
       val dateTime = Clock.System.now().toLocalDateTime(tz)
       println(normal(dateTime.format(format) + " ${tz.id}"))

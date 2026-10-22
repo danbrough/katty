@@ -16,6 +16,7 @@ ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 # https://plugins.gradle.org/plugin/org.jetbrains.kotlin.jvm
 kotlin = "2.4.21"
 ##  ⬆ = "2.5.0-Beta1"
+##  ⬆ = "2.5.0-Beta2"
 # https://github.com/Kotlin/kotlinx-io
 kotlinx-io = "0.9.1"
 # https://github.com/vanniktech/gradle-maven-publish-plugin
@@ -32,6 +33,8 @@ agp = "9.4.1"
 ##⬆= "9.5.0-alpha08"
 ##⬆= "9.5.0-alpha09"
 ##⬆= "9.5.0-alpha10"
+##⬆= "9.5.0-rc01"
+##⬆= "9.6.0-alpha01"
 
 # https://github.com/Kotlin/dokka
 dokka = "2.2.0"

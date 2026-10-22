@@ -2,10 +2,11 @@ package io.github.danbrough.katty.server
 
 import io.github.danbrough.katty.KattyContext
 import io.github.danbrough.katty.KattyShell
+import io.github.danbrough.katty.KattyShellKey
 import io.github.danbrough.katty.ShellContext
 import io.github.danbrough.katty.command.basicCommand
 import io.github.danbrough.katty.shellContext
-import io.github.danbrough.katty.shellContextOrNull
+import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.application.serverConfig
@@ -16,14 +17,20 @@ import io.ktor.server.engine.ApplicationEngineFactory
 import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.forwardedheaders.ForwardedHeaders
+import io.ktor.server.routing.IgnoreTrailingSlash
 import io.ktor.server.websocket.WebSockets
+import io.ktor.server.websocket.pingPeriod
+import io.ktor.server.websocket.timeout
 import kotlinx.coroutines.currentCoroutineContext
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.time.Duration.Companion.seconds
 
 private val log = logServer
 
 open class KattyServer(
+  val parentContext: CoroutineContext,
   val host: String = "127.0.0.1",
   val port: Int = DEFAULT_WEBSERVER_PORT,
   val engineFactory: ApplicationEngineFactory<*, *> = CIO,
@@ -54,14 +61,36 @@ open class KattyServer(
     }
 
   protected open suspend fun configureApplication(application: Application): Unit =
-    application.applicationConfiguration(this)
+    application.run {
+
+      install(IgnoreTrailingSlash)
+
+      install(ForwardedHeaders)
+      /*  install(XForwardedHeaders) {
+          // Use the first proxy IP in the X-Forwarded-For chain
+          useFirstProxy()
+        }*/
+      install(ContentNegotiation) {
+        json()
+      }
+
+
+      install(WebSockets) {
+        pingPeriod = 15.seconds
+        timeout = 15.seconds
+        maxFrameSize = Long.MAX_VALUE
+        masking = false
+      }
+
+      wsShell()
+      applicationConfiguration(this@KattyServer)
+    }
 
   suspend fun start() {
-    val context = shellContextOrNull() ?: EmptyCoroutineContext
     engine = embeddedServer(
       factory = engineFactory,
       rootConfig = serverConfig {
-        parentCoroutineContext = context
+        parentCoroutineContext = this@KattyServer.parentContext
         module {
           configureApplication(this)
         }
@@ -71,7 +100,7 @@ open class KattyServer(
       }
     )
 
-    engine.startSuspend(wait = true)
+    engine.startSuspend(wait = false)
   }
 
 
@@ -83,7 +112,7 @@ open class KattyServer(
 
 }
 
-fun commandServer(creator: suspend (args: List<String>) -> KattyServer) =
+fun commandServer(creator: suspend KattyShell.(args: List<String>) -> KattyServer) =
   basicCommand("server", "server [start | stop]") {
     val args = it.drop(1)
     if (args.contains("start")) {
@@ -94,7 +123,7 @@ fun commandServer(creator: suspend (args: List<String>) -> KattyServer) =
         }
       }
     } else if (args.contains("stop")) {
-      info("stopping server: shellContext:${shellContext()} terminal:${currentCoroutineContext()[KattyShell]}")
+      info("stopping server: shellContext:${shellContext()} terminal:${currentCoroutineContext()[KattyShellKey]}")
       ShellContext.remove(KattyServer)
     } else {
       warn("unknown command: $args")
@@ -102,13 +131,4 @@ fun commandServer(creator: suspend (args: List<String>) -> KattyServer) =
   }
 
 
-suspend fun Application.kattyWebSocket(
-  path: String = KattyServer.DEFAULT_WEBSOCKET_PATH,
-  shell: KattyShell
-) {
-
-  install(WebSockets) {
-
-  }
-}
 

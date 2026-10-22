@@ -16,6 +16,7 @@ import io.github.danbrough.katty.command.CommandExecutor
 import io.github.danbrough.katty.command.CommandHandler
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
@@ -30,7 +31,7 @@ open class KattyTerminal(
   val terminal: Terminal = Terminal(),
   val executor: CommandExecutor = CommandExecutor(),
   override val welcomeMessage: String = "Welcome to Katty",
-) : KattyShell() {
+) : AbstractKattyShell() {
 
   init {
     history.loadHistory()
@@ -215,10 +216,8 @@ open class KattyTerminal(
       runCatching {
         while (true) {
           val evt = rawModeScope.readKeyOrNull(1.seconds)
-          if (evt == null) {
-            log.debug { "currentJob: ${executor.currentJob}" }
-            if (executor.currentJob?.isActive != true) break
-          } else {
+          if (executor.currentJob?.isActive != true) break
+          if (evt != null) {
             if (evt.isCtrlC || evt.isCtrlD) {
               executor.cancelCurrentJob()
               break
@@ -231,10 +230,6 @@ open class KattyTerminal(
         return
       }
     } finally {
-      log.trace {
-        "KTerminal::nonInteractiveCmdLoop() finally reached.\n" +
-            "supervisorjob.active=${executor.scope.coroutineContext.job}"
-      }
       onClose()
     }
   }
@@ -292,10 +287,10 @@ open class KattyTerminal(
     }
 
     val interactive = removeArgIf("-i") || args.isEmpty()
-    log.trace { "interactive: $interactive args.count: ${args.size}" }
+    log.trace { "interactive: $interactive args.count: ${args.size} shellContext:${shellContextOrNull()}" }
 
-
-    withContext(CoroutineName("KattyTerminal") + this) {
+    withContext(CoroutineName("KattyTerminal") + this@KattyTerminal  + executor) {
+      log.warn { "shellContext:${shellContextOrNull()} terminal: ${currentCoroutineContext()[KattyShellKey]}" }
       if (args.isNotEmpty()) {
         info("running command: $args")
         runCommand(args = args, singleCommandRun = true)

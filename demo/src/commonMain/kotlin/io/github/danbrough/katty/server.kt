@@ -6,21 +6,38 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 
-val DemoServerCommand = commandServer {
-  KattyServer {
-    routing {
-      get("/") {
-        call.respondText {
-          "Demo server working at ${
-            Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-          }  thread:${KattyUtils.threadName()} coroutine:${currentCoroutineContext()[CoroutineName]}\nTerminal: ${currentCoroutineContext()[KattyShell]}\n"
+val DemoServerCommand = commandServer { args ->
+
+  info(
+    """
+      starting katty webserver.. args: $args terminal: ${kattyShellOrNull()}
+      shellContext: ${shellContextOrNull()}
+      
+  """.trimIndent()
+  )
+
+    KattyServer(shellContext().context) {
+      routing {
+        get("/") {
+          call.respondText {
+            """
+            Welcome to the demo server at ${
+              Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+            }
+            thread: ${KattyUtils.threadName()} coroutineName: ${currentCoroutineContext()[CoroutineName]}
+            shellContext: ${shellContextOrNull()}
+            terminal: ${kattyShellOrNull()}
+            
+          """.trimIndent()
+          }
         }
       }
     }
-  }
+
 }

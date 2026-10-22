@@ -3,7 +3,6 @@ package io.github.danbrough.katty
 
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
-import com.github.ajalt.mordant.terminal.Terminal
 import io.github.danbrough.katty.command.BasicCommand
 import io.github.danbrough.katty.command.BasicCommandHandler
 import io.github.danbrough.katty.command.basicCommand
@@ -12,11 +11,11 @@ import io.github.danbrough.katty.demos.ContextDemo
 import io.github.danbrough.katty.demos.DemoMarkDownCommand
 import io.github.danbrough.katty.demos.DemoMordantCommand
 import io.github.danbrough.katty.demos.DemoThemeCommand
+import io.github.danbrough.katty.demos.mutableContextDemo
 import io.github.danbrough.katty.demos.scopeDemo
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import org.danbrough.klog.logger
@@ -26,7 +25,6 @@ internal val logDemo = logger("KATTY_DEMO")
 
 suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, BasicCommand>) {
 
-  if (args.getOrNull(0) == "serverTest") return serverTest()
   val configDir = Path(KattyUtils.getEnv("HOME")!!, ".katty")
 
   if (!SystemFileSystem.exists(configDir)) {
@@ -59,6 +57,7 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
     "mordantDemo" to DemoMordantCommand,
     "themeDemo" to DemoThemeCommand,
     scopeDemo, ContextDemo,
+    mutableContextDemo(),
     DemoServerCommand,
     basicCommand("forever", "Command that runs forever") {
       var n = 0
@@ -68,7 +67,13 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
       }
     },
     basicCommand("testApp", "Check we can access the DemoApp and the KTerminal from the context") {
-      info("terminal is ${currentCoroutineContext()[KattyShell]}")
+      info(
+        """
+        testApp::KattyShell is ${currentCoroutineContext()[KattyShellKey]} shellContext:${shellContextOrNull()}
+        DemoApp:${currentCoroutineContext()[DemoApp]}
+        
+        """.trimIndent()
+      )
       KattyUtils.atExit {
         println("DOING THIS AT EXIT")
       }
@@ -83,15 +88,13 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
   val terminal =
     KattyTerminal(
       commandHandler,
-      terminal = Terminal(),
       history = DefaultHistory(Path(configDir, "history.txt")),
       welcomeMessage = "Welcome to the katty demo app"
     )
 
+
   runCatching {
-    withContext(app) {
-      terminal.main(args.toList())
-    }
+    terminal.main(args.toList())
   }.exceptionOrNull()?.also {
     if (it !is CancellationException)
       println(it.stackTraceToString())

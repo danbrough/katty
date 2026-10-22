@@ -34,4 +34,8 @@ kotlin {
   wasmJs {
     nodejs()
   }
+
+  compilerOptions {
+    optIn.add("kotlin.concurrent.atomics.ExperimentalAtomicApi")
+  }
 }

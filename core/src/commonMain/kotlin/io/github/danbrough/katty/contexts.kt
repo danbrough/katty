@@ -19,53 +19,6 @@ suspend fun <E : CoroutineContext.Element> CoroutineContext.Key<E>.get(): E? =
 suspend inline fun <reified E : CoroutineContext.Element> CoroutineContext.Key<E>.getOrThrow(): E =
   currentCoroutineContext()[this@getOrThrow] ?: KattyError.errorMissingContext<E>()
 
-open class ShellContext(parentJob: Job? = null) : KattyContext {
-  companion object : CoroutineContext.Key<ShellContext> {
-
-    suspend fun add(element: CoroutineContext.Element) {
-      shellContext().add(element)
-    }
-
-    suspend fun remove(key: CoroutineContext.Key<*>) {
-      shellContext().remove(key)
-    }
-  }
-
-  open val supervisorJob: CompletableJob = SupervisorJob(parentJob)
-
-  open val scope: CoroutineScope = CoroutineScope(CoroutineName("ShellContext") + supervisorJob)
-  override val key: CoroutineContext.Key<*> = ShellContext
-
-  protected var context: CoroutineContext = CoroutineName("ShellContext") + this
-
-
-  fun add(element: CoroutineContext.Element) {
-    context += element
-  }
-
-  fun remove(key: CoroutineContext.Key<*>) {
-    context[key]?.also { e ->
-      context = context.minusKey(key)
-      if (e is AutoCloseable) e.close()
-    }
-  }
-
-  /**
-   * Close the AutoClosable elements of the coroutine context
-   */
-  override fun close() {
-    context.fold(Unit) { _, element ->
-      if (element is AutoCloseable && element != this@ShellContext)
-        element.close()
-    }
-  }
-}
-
-
-suspend fun shellContextOrNull(): ShellContext? = currentCoroutineContext()[ShellContext]
-suspend fun shellContext(): ShellContext =
-  shellContextOrNull() ?: KattyError.errorMissingContext<ShellContext>()
-
 
 fun CoroutineContext.elementList(): List<CoroutineContext> =
   fold(mutableListOf()) { acc, element ->
@@ -100,6 +53,9 @@ class CommandContext(val cmd: List<String>) : KattyContext {
   }
 
   var job: Job? = null
+
+  override fun toString(): String =
+    "Command[${cmd.joinToString(" ")}:job:$job:active:${job?.isActive}]"
 
 
 }

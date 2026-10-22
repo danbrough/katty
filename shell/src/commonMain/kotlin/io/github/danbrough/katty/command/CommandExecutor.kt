@@ -9,9 +9,11 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 private val log = logKattyShell
 
+@OptIn(ExperimentalAtomicApi::class)
 open class CommandExecutor : ShellContext() {
 
   val jobs = mutableListOf<CommandContext>()
@@ -33,11 +35,10 @@ open class CommandExecutor : ShellContext() {
 
     scope.launch(commandContextWithName + context) {
       val cmdJob = currentCoroutineContext().job
-      log.trace { "CommandExecutor::launched new command: $commandContext job: $cmdJob job:${job}" }
+
+      log.trace { "CommandExecutor::launched new command: $commandContext job: $cmdJob job:${supervisorJob} name:${currentCoroutineContext()[CoroutineName]}" }
       try {
-
         commandContext.command()
-
       } catch (e: CancellationException) {
         // Command was cancelled, we can handle cleanup here if needed.
         // The exception is expected behavior.
@@ -49,7 +50,7 @@ open class CommandExecutor : ShellContext() {
       //   log.trace { "CommandExecutor[${KattyUtils.threadName()}]:: added job: $job to jobs. jobCount: ${jobs.size}" }
       job.invokeOnCompletion {
         jobs.remove(commandContext)
-        log.trace { "CommandExecutor[${KattyUtils.threadName()}]::removed job $job from jobs. jobCount: ${jobs.size} supervisorJob.active=:${supervisorJob.isActive}" }
+        //log.trace { "CommandExecutor[${KattyUtils.threadName()}]::removed job $job from jobs. jobCount: ${jobs.size} supervisorJob.active=:${supervisorJob.isActive}" }
         commandContext.close()
       }
     }
@@ -63,10 +64,7 @@ open class CommandExecutor : ShellContext() {
   /**
    * Cancels the executor for immediate shutdown
    */
-  fun cancelCurrentJob(): Boolean {
-    //log.trace { "CommandExecutor::cancelCurrentJob() jobCount: ${jobs.size}" }
-    return currentJob?.job?.cancel()?.let { true } ?: false
-  }
+  fun cancelCurrentJob(): Boolean = currentJob?.job?.cancel()?.let { true } ?: false
 
 
   /**
@@ -79,9 +77,8 @@ open class CommandExecutor : ShellContext() {
     supervisorJob.join()
   }
 
-
   override fun close() {
-    //log.info { "CommandExecutor::close()" }
+    log.info { "CommandExecutor::close()" }
     super.close()
     supervisorJob.complete()
   }
