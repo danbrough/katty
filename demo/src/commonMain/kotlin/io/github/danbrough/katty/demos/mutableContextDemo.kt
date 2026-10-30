@@ -1,12 +1,8 @@
 package io.github.danbrough.katty.demos
 
-import io.github.danbrough.katty.MutableContext
 import io.github.danbrough.katty.command.basicCommand
 import io.github.danbrough.katty.elementList
-import kotlinx.coroutines.CoroutineName
-
-
-val mutableContext = MutableContext(CoroutineName("Stuff"))
+import io.github.danbrough.katty.shellContext
 
 
 private var count = 0
@@ -21,15 +17,21 @@ fun mutableContextDemo() = basicCommand("mutableDemo", USAGE) {
 
   when (action) {
     "get" -> {
-      info("thang: ${mutableContext[ContextMessage]}")
+      info(
+        "thang: ${
+          shellContext(ContextMessage) {
+            ContextMessage("This is the message")
+          }
+        }"
+      )
     }
 
     "set" -> {
-      mutableContext.addToContext(ContextMessage("message ${count++}"))
+      shellContext().addToContext(ContextMessage("message ${count++}"))
     }
 
-    "remove" -> mutableContext.removeFromContext(ContextMessage)
+    "remove" -> shellContext().removeFromContext(ContextMessage)
 
-    "info" -> info("elements: [${mutableContext.elementList().joinToString(" ")}]")
+    "info" -> info("elements: [${shellContext().elementList().joinToString(" ")}]")
   }
 }

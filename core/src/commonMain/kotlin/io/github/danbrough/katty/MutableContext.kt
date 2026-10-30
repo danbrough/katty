@@ -5,11 +5,20 @@ import kotlin.concurrent.atomics.updateAndFetch
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
-class MutableContext(initialContext: CoroutineContext = EmptyCoroutineContext) : CoroutineContext {
+open class MutableContext(
+  initialContext: CoroutineContext = EmptyCoroutineContext,
+  override val key: CoroutineContext.Key<*> = MutableContext
+) :
+  CoroutineContext.Element {
   private val contextRef: AtomicReference<CoroutineContext> = AtomicReference(initialContext)
 
+  companion object : CoroutineContext.Key<MutableContext>
+
+
+  @Suppress("UNCHECKED_CAST")
   override fun <E : CoroutineContext.Element> get(key: CoroutineContext.Key<E>): E? =
-    contextRef.load()[key]
+    if (key == this.key) (this as E) else
+      contextRef.load()[key]
 
   override fun <R> fold(
     initial: R,
@@ -33,4 +42,5 @@ class MutableContext(initialContext: CoroutineContext = EmptyCoroutineContext) :
         it.minusKey(key)
       } ?: it
     }
+
 }

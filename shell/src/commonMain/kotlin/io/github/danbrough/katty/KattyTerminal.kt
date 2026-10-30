@@ -18,7 +18,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
 import kotlinx.io.SystemLineSeparator
 import kotlin.time.Duration.Companion.seconds
@@ -26,7 +25,8 @@ import kotlin.time.Duration.Companion.seconds
 private val log = logKattyShell
 
 open class KattyTerminal(
-  var commandHandler: CommandHandler,
+  val commandHandler: CommandHandler,
+  val commandRegistry: MutableMap<String, KattyCommand<*, *>> = mutableMapOf(),
   val history: History = DefaultHistory(),
   val terminal: Terminal = Terminal(),
   val executor: CommandExecutor = CommandExecutor(),
@@ -34,6 +34,7 @@ open class KattyTerminal(
 ) : AbstractKattyShell() {
 
   init {
+    executor.addToContext(this)
     history.loadHistory()
   }
 
@@ -73,9 +74,10 @@ open class KattyTerminal(
       cursorPos = 0
       currentLine.clear()
       println()
-
       runCatching {
-        commandHandler.runCommand(this@KattyTerminal, args)
+        commandRegistry[args[0]]?.also { cmd ->
+          cmd.run(this@KattyTerminal, args)
+        } ?: commandHandler.runCommand(this@KattyTerminal, args)
       }.exceptionOrNull().also {
         if (it == null) {
           if (singleCommandRun) return@execute
@@ -289,7 +291,7 @@ open class KattyTerminal(
     val interactive = removeArgIf("-i") || args.isEmpty()
     log.trace { "interactive: $interactive args.count: ${args.size} shellContext:${shellContextOrNull()}" }
 
-    withContext(CoroutineName("KattyTerminal") + this@KattyTerminal  + executor) {
+    withContext(CoroutineName("KattyTerminal") + this@KattyTerminal + executor) {
       log.warn { "shellContext:${shellContextOrNull()} terminal: ${currentCoroutineContext()[KattyShellKey]}" }
       if (args.isNotEmpty()) {
         info("running command: $args")
@@ -300,10 +302,6 @@ open class KattyTerminal(
       else
         nonInteractiveCmdLoop()
     }
-  }
-
-  suspend fun push(commandHandler: CommandHandler) {
-    this.commandHandler = commandHandler
   }
 }
 

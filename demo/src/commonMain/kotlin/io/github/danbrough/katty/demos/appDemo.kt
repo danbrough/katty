@@ -1,34 +1,36 @@
 package io.github.danbrough.katty.demos
 
-import io.github.danbrough.katty.KattyCommand
+import io.github.danbrough.katty.KattyCommand.Context
+import io.github.danbrough.katty.KattyCommandBasic
 import io.github.danbrough.katty.KattyShell
-import io.github.danbrough.katty.kattyShell
+import io.github.danbrough.katty.get
+import io.github.danbrough.katty.kattyShellOrNull
+import io.github.danbrough.katty.logDemo
+import io.github.danbrough.katty.shellContextOrNull
 
 
-class BasicCommand(
-  commandName: String, command: suspend Context.() -> Unit
-) : KattyCommand<BasicCommand.Context, Unit>(commandName, command) {
-
-  override suspend fun context(shell: KattyShell, args: List<String>): Context =
-    Context(shell, args)
-
-  class Context(val shell: KattyShell, val args: List<String>)
+val AppDemoCommand = KattyCommandBasic(::AppDemoContext) {
+  success("args:[${args.joinToString(",")}]")
+  info("kattyShell: ${kattyShellOrNull()}")
+  info("shellContext: ${shellContextOrNull()}")
+  muted("context message: ${ContextMessage.get()?.message}")
+  shellContextOrNull()?.addToContext(ContextMessage("The count was: ${app.count}"))
+  success("count: ${app.count++}")
 }
 
-class AppDemo() : KattyCommand<AppDemo.Context, Unit>("appDemo", Context::appDemo) {
 
-  var count = 0
-
-  class Context(val demo: AppDemo, val shell: KattyShell, val args: List<String>)
-
-
-  override suspend fun context(shell: KattyShell, args: List<String>): Context =
-    Context(this, shell, args)
+class AppDemo() {
+  var count = 1
 }
 
-suspend fun AppDemo.Context.appDemo() {
-  shell.run {
-    info("running  count=${demo.count++} args:[${args.joinToString(",")}]")
-    warn("shell is: ${kattyShell()}")
+
+class AppDemoContext(shell: KattyShell, args: List<String>) : Context(shell, args) {
+  companion object {
+    val appDemo by lazy {
+      logDemo.error { "CREATING APP DEMO" }
+      AppDemo()
+    }
   }
+
+  val app = appDemo
 }

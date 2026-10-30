@@ -7,6 +7,7 @@ import io.github.danbrough.katty.command.BasicCommand
 import io.github.danbrough.katty.command.BasicCommandHandler
 import io.github.danbrough.katty.command.basicCommand
 import io.github.danbrough.katty.config.registerConfigCommands
+import io.github.danbrough.katty.demos.AppDemoCommand
 import io.github.danbrough.katty.demos.ContextDemo
 import io.github.danbrough.katty.demos.DemoMarkDownCommand
 import io.github.danbrough.katty.demos.DemoMordantCommand
@@ -16,15 +17,21 @@ import io.github.danbrough.katty.demos.scopeDemo
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import org.danbrough.klog.logger
+import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.seconds
 
 internal val logDemo = logger("KATTY_DEMO")
 
 suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, BasicCommand>) {
 
+  if (args.getOrNull(0) == "test") {
+    contextTest()
+    return
+  }
   val configDir = Path(KattyUtils.getEnv("HOME")!!, ".katty")
 
   if (!SystemFileSystem.exists(configDir)) {
@@ -92,6 +99,7 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
       welcomeMessage = "Welcome to the katty demo app"
     )
 
+  terminal.commandRegistry["appDemo"] = AppDemoCommand
 
   runCatching {
     terminal.main(args.toList())
@@ -102,3 +110,21 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
 
 }
 
+class Stuff : MutableContext() {
+
+  companion object : CoroutineContext.Key<Stuff>
+
+  override val key: CoroutineContext.Key<*> = Stuff
+}
+
+private suspend fun contextTest() {
+  val log = logDemo
+  val stuff = Stuff()
+  log.info { "contextTest()" }
+
+  log.info { "stuff[Stuff] = ${stuff[Stuff]}" }
+  stuff.addToContext(ContextMessage("Hello There!"))
+  withContext(stuff){
+    log.info { "contextMessage: ${ContextMessage.get()}" }
+  }
+}
