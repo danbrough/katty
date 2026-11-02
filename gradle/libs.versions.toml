@@ -13,12 +13,11 @@ ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 
 [versions]
 
-# https://plugins.gradle.org/plugin/org.jetbrains.kotlin.jvm
 kotlin = "2.4.21"
 ##  ⬆ = "2.5.0-Beta1"
 ##  ⬆ = "2.5.0-Beta2"
 # https://github.com/Kotlin/kotlinx-io
-kotlinx-io = "0.9.1"
+kotlinx-io ="0.9.2"
 # https://github.com/vanniktech/gradle-maven-publish-plugin
 publish = "0.37.0"
 

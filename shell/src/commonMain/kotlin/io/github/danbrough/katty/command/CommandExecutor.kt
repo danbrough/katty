@@ -3,14 +3,13 @@ package io.github.danbrough.katty.command
 import io.github.danbrough.katty.CommandContext
 import io.github.danbrough.katty.KattyUtils
 import io.github.danbrough.katty.ShellContext
-import io.github.danbrough.katty.elementList
 import io.github.danbrough.katty.logKattyShell
+import io.github.danbrough.katty.shellContextOrNull
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 private val log = logKattyShell
 
@@ -20,7 +19,6 @@ open class CommandExecutor() : ShellContext() {
   val currentJob: CommandContext?
     get() = jobs.lastOrNull()
 
-
   /**
    * Starts a new command. If one is already running, it will be cancelled first.
    */
@@ -29,25 +27,30 @@ open class CommandExecutor() : ShellContext() {
     command: suspend CommandContext.() -> Unit
   ) {
 
-    this.key
     //log.trace { "CommandExecutor[${KattyUtils.threadName()}]::execute .. launchContext: $context" }
     val commandContext = CommandContext(args)
     val commandContextWithName =
-      this@CommandExecutor + CoroutineName("Command[${args.joinToString(" ")}]") + commandContext
+      CoroutineName("Command[${args.joinToString(" ")}]") + commandContext
+
+    scope.launch(this) {
+
+      log.warn { "ShellContext: ${shellContextOrNull()}" }
+
+    }
+
 
     scope.launch(commandContextWithName) {
-      withContext(this@CommandExecutor) {
-        log.error { "CommandExecutor::launch shellContext: ${currentCoroutineContext().elementList()}" }
-        val cmdJob = currentCoroutineContext().job
+      /*log.error { "CommandExecutor::launch shellContext: ${currentCoroutineContext().elementList()}" }
+      log.error { "shellContext: ${currentCoroutineContext()[ShellContext]}  or maybe: ${this@CommandExecutor[ShellContext]}" }*/
+      val cmdJob = currentCoroutineContext().job
 
-        log.trace { "CommandExecutor::launched new command: $commandContext job: $cmdJob job:${supervisorJob} name:${currentCoroutineContext()[CoroutineName]}" }
-        try {
-          commandContext.command()
-        } catch (e: CancellationException) {
-          // Command was cancelled, we can handle cleanup here if needed.
-          // The exception is expected behavior.
-          log.trace { "$commandContext cancelled." }
-        }
+      //log.trace { "CommandExecutor::launched new command: $commandContext job: $cmdJob job:${supervisorJob} name:${currentCoroutineContext()[CoroutineName]}" }
+      try {
+        commandContext.command()
+      } catch (e: CancellationException) {
+        // Command was cancelled, we can handle cleanup here if needed.
+        // The exception is expected behavior.
+        log.trace { "$commandContext cancelled." }
       }
 
     }.also { job ->

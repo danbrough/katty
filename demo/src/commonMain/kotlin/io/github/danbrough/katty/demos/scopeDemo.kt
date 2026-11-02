@@ -6,16 +6,12 @@ import io.github.danbrough.katty.ShellContext
 import io.github.danbrough.katty.command.basicCommand
 import io.github.danbrough.katty.get
 import io.github.danbrough.katty.logDemo
+import io.github.danbrough.katty.shellContextOrNull
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
-import kotlin.concurrent.atomics.AtomicReference
-import kotlin.concurrent.atomics.ExperimentalAtomicApi
-import kotlin.concurrent.atomics.updateAndFetch
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 
@@ -24,7 +20,7 @@ private val log = logDemo
 
 private var count = 1
 
-private const val USAGE = "Demos how to manage scopes. args = [session,message,clear,test,thang]"
+private const val USAGE = "Demos how to manage scopes. args = [session,message,shell,clear,test,thang]"
 val scopeDemo = basicCommand(
   "scopeDemo",
   USAGE,
@@ -34,7 +30,12 @@ val scopeDemo = basicCommand(
     info(USAGE)
     return@basicCommand
   }
+
+
   when (args[1]) {
+    "shell" -> {
+      log.debug { "shellCOntext:${shellContextOrNull()}" }
+    }
     "session" -> {
       log.info { "scopeDemo::session" }
     }

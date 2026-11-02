@@ -34,7 +34,7 @@ open class KattyTerminal(
 ) : AbstractKattyShell() {
 
   init {
-    executor.addToContext(this)
+
     history.loadHistory()
   }
 
