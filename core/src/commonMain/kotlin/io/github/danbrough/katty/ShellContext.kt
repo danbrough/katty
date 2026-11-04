@@ -8,13 +8,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.currentCoroutineContext
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
-open class ShellContext : KattyContext {
+open class ShellContext(initialContext: CoroutineContext = EmptyCoroutineContext) : KattyContext {
   override val key: CoroutineContext.Key<*> = ShellContext
-
-  init {
-    println("ShellContext::CREATED")
-  }
 
   companion object : CoroutineContext.Key<ShellContext> {
 
@@ -28,7 +25,7 @@ open class ShellContext : KattyContext {
   }
 
   open val supervisorJob: CompletableJob = SupervisorJob()
-  open val scope: CoroutineScope = CoroutineScope(supervisorJob + this)
+  open val scope: CoroutineScope = CoroutineScope(supervisorJob + this + initialContext)
 
   private val context: ConcurrentMap<CoroutineContext.Key<*>, CoroutineContext.Element> =
     ConcurrentMap()
@@ -36,12 +33,12 @@ open class ShellContext : KattyContext {
 
   suspend fun addToContext(e: CoroutineContext.Element) {
     context.put(e.key, e)
-    println("context: add: ${context.values().joinToString(",")}")
   }
 
   suspend fun removeFromContext(key: CoroutineContext.Key<*>) {
-    context.remove(key)
-    println("context remove: $key: ${context.values().joinToString(",")}")
+    context.remove(key)?.also {
+      if (it is AutoCloseable) it.close()
+    }
   }
 
   @Suppress("UNCHECKED_CAST")

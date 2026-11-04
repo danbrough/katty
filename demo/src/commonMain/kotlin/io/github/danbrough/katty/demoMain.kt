@@ -60,7 +60,7 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
     "themeDemo" to DemoThemeCommand,
     scopeDemo, ContextDemo,
     mutableContextDemo(),
-    DemoServerCommand,
+    demoServerCommand(),
     basicCommand("forever", "Command that runs forever") {
       var n = 0
       while (true) {
@@ -91,7 +91,6 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
     KattyTerminal(
       commandHandler,
       history = DefaultHistory(Path(configDir, "history.txt")),
-      executor = CommandExecutor(),
       welcomeMessage = "Welcome to the katty demo app"
     )
 

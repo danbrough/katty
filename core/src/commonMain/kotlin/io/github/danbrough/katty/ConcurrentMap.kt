@@ -22,8 +22,12 @@ class ConcurrentMap<K, V> {
 
   fun values(): Iterable<V> = map.values
 
-  fun clear() =
+  fun clear() {
+    map.values.forEach {
+      if (it is AutoCloseable) it.close()
+    }
     map.clear()
+  }
 
 
 }

@@ -3,6 +3,7 @@ package io.github.danbrough.katty.command
 import io.github.danbrough.katty.CommandContext
 import io.github.danbrough.katty.KattyUtils
 import io.github.danbrough.katty.ShellContext
+import io.github.danbrough.katty.kattyShellOrNull
 import io.github.danbrough.katty.logKattyShell
 import io.github.danbrough.katty.shellContextOrNull
 import kotlinx.coroutines.CancellationException
@@ -10,10 +11,13 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 private val log = logKattyShell
 
-open class CommandExecutor() : ShellContext() {
+open class CommandExecutor(initialContext: CoroutineContext = EmptyCoroutineContext) :
+  ShellContext(initialContext) {
 
   val jobs = mutableListOf<CommandContext>()
   val currentJob: CommandContext?
@@ -34,7 +38,7 @@ open class CommandExecutor() : ShellContext() {
 
     scope.launch(this) {
 
-      log.warn { "ShellContext: ${shellContextOrNull()}" }
+      log.warn { "ShellContext: ${shellContextOrNull()} kattyShell:${kattyShellOrNull()} " }
 
     }
 

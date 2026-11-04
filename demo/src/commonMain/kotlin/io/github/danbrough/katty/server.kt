@@ -11,7 +11,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 
-val DemoServerCommand = commandServer { args ->
+fun demoServerCommand() = commandServer { args ->
 
   info(
     """

@@ -5,6 +5,7 @@ import io.github.danbrough.katty.KattyShell
 import io.github.danbrough.katty.KattyShellKey
 import io.github.danbrough.katty.ShellContext
 import io.github.danbrough.katty.command.basicCommand
+import io.github.danbrough.katty.kattyShell
 import io.github.danbrough.katty.shellContext
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
@@ -127,7 +128,7 @@ fun commandServer(creator: suspend KattyShell.(args: List<String>) -> KattyServe
         }
       }
     } else if (args.contains("stop")) {
-      info("stopping server: shellContext:${shellContext()} terminal:${currentCoroutineContext()[KattyShellKey]}")
+      info("stopping server: shellContext:${shellContext()} shell:${currentCoroutineContext()[KattyShellKey]}")
       ShellContext.remove(KattyServer)
     } else {
       warn("unknown command: $args")

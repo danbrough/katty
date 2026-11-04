@@ -29,9 +29,10 @@ open class KattyTerminal(
   val commandRegistry: MutableMap<String, KattyCommand<*, *>> = mutableMapOf(),
   val history: History = DefaultHistory(),
   val terminal: Terminal = Terminal(),
-  val executor: CommandExecutor = CommandExecutor(),
   override val welcomeMessage: String = "Welcome to Katty",
 ) : AbstractKattyShell() {
+
+  val executor: CommandExecutor = CommandExecutor(this)
 
   init {
 
