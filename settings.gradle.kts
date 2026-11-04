@@ -29,7 +29,7 @@ plugins {
   id("de.fayard.refreshVersions") version "0.60.6"
 }
 
-include(":core", ":shell", ":server",":demo")
+include(":core", ":shell", ":server", ":client", ":demo")
 //work on it later .. include(":clikt")
 
 

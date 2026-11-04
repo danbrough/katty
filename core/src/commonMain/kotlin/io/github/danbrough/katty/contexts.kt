@@ -1,10 +1,6 @@
 package io.github.danbrough.katty
 
-import kotlinx.coroutines.CompletableJob
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
@@ -12,12 +8,6 @@ import kotlin.coroutines.CoroutineContext
 interface KattyContext : CoroutineContext.Element, AutoCloseable {
   override fun close() = Unit
 }
-
-suspend fun <E : CoroutineContext.Element> CoroutineContext.Key<E>.get(): E? =
-  currentCoroutineContext()[this@get]
-
-suspend inline fun <reified E : CoroutineContext.Element> CoroutineContext.Key<E>.getOrThrow(): E =
-  currentCoroutineContext()[this@getOrThrow] ?: KattyError.errorMissingContext<E>()
 
 
 fun CoroutineContext.elementList(): List<CoroutineContext> =

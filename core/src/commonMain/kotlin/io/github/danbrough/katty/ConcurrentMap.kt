@@ -1,0 +1,29 @@
+package io.github.danbrough.katty
+
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+
+class ConcurrentMap<K, V> {
+
+  private val map = HashMap<K, V>()
+  private val mutex = Mutex()
+
+  suspend fun put(key: K, value: V) = mutex.withLock {
+    map[key] = value
+  }
+
+  suspend operator fun get(key: K): V? = mutex.withLock {
+    map[key]
+  }
+
+  suspend fun remove(key: K): V? = mutex.withLock {
+    map.remove(key)
+  }
+
+  fun values(): Iterable<V> = map.values
+
+  fun clear() =
+    map.clear()
+
+
+}

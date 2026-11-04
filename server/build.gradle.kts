@@ -14,6 +14,7 @@ kotlin {
         implementation(libs.ktor.network)
         implementation(libs.ktor.io)
         implementation(libs.ktor.serialization.kotlinx.json)
+        implementation(libs.ktor.serialization.kotlinx.cbor)
         api(libs.ktor.server.core)
         api(libs.ktor.server.websockets)
         implementation(libs.ktor.server.content.negotiation)
@@ -41,4 +42,10 @@ kotlin {
     }
   }
 }
+
+
+
+
+
+
 

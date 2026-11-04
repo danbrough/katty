@@ -1,6 +1,3 @@
-@file:OptIn(ExperimentalWasmDsl::class)
-
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -32,9 +29,7 @@ kotlin {
   }
 
   compilerOptions {
-
     freeCompilerArgs.add("-Xexpect-actual-classes")
-
   }
 
   sourceSets {
@@ -42,6 +37,8 @@ kotlin {
       dependencies {
         implementation(libs.kotlinx.coroutines.core)
         implementation(libs.kotlinx.io.core)
+        implementation(libs.ktor.serialization.kotlinx.cbor)
+
       }
     }
 

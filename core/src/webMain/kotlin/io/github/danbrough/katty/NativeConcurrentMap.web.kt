@@ -1,7 +1,7 @@
 package io.github.danbrough.katty
 
 
-actual class NativeConcurrentMap<K, V> actual constructor() {
+actual class ConcurrentMap<K, V> actual constructor() {
   private val delegate = mutableMapOf<K, V>()
 
   actual fun put(key: K, value: V) {

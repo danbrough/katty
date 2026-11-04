@@ -6,5 +6,5 @@ dependencies {
   compileOnly(libs.gradle.publish.plugin)
   compileOnly(libs.gradle.dokka.plugin)
   compileOnly(libs.gradle.kotlin.serialization.plugin)
-
+  compileOnly(libs.gradle.kotlinx.atomicfu.plugin)
 }

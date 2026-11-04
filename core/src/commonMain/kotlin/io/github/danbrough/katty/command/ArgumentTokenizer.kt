@@ -130,22 +130,27 @@ object ArgumentTokenizer {
         '\\', '"' -> {
           buf.insert(i, '\\')
         }
+
         '\n' -> {
           buf.deleteAt(i)
           buf.insert(i, "\\n")
         }
+
         '\t' -> {
           buf.deleteAt(i)
           buf.insert(i, "\\t")
         }
+
         '\r' -> {
           buf.deleteAt(i)
           buf.insert(i, "\\r")
         }
+
         '\b' -> {
           buf.deleteAt(i)
           buf.insert(i, "\\b")
         }
+
         '\u000c' -> {
           buf.deleteAt(i)
           buf.insert(i, "\\f")

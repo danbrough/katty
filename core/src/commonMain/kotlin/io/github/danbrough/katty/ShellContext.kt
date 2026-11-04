@@ -9,47 +9,51 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.coroutines.CoroutineContext
 
-open class ShellContext() : KattyContext {
+open class ShellContext : KattyContext {
   override val key: CoroutineContext.Key<*> = ShellContext
+
+  init {
+    println("ShellContext::CREATED")
+  }
 
   companion object : CoroutineContext.Key<ShellContext> {
 
     suspend fun add(element: CoroutineContext.Element) {
-      shellContext().context.put(element.key, element)
+      shellContext().addToContext(element)
     }
 
     suspend fun remove(key: CoroutineContext.Key<*>) {
-      shellContext().context.remove(key)
+      shellContext().removeFromContext(key)
     }
   }
 
   open val supervisorJob: CompletableJob = SupervisorJob()
   open val scope: CoroutineScope = CoroutineScope(supervisorJob + this)
 
-  val context: NativeConcurrentMap<CoroutineContext.Key<*>, CoroutineContext.Element> =
-    NativeConcurrentMap()
+  private val context: ConcurrentMap<CoroutineContext.Key<*>, CoroutineContext.Element> =
+    ConcurrentMap()
 
 
-  fun addToContext(e: CoroutineContext.Element) {
+  suspend fun addToContext(e: CoroutineContext.Element) {
     context.put(e.key, e)
+    println("context: add: ${context.values().joinToString(",")}")
   }
 
-  fun removeFromContext(key: CoroutineContext.Key<*>) {
+  suspend fun removeFromContext(key: CoroutineContext.Key<*>) {
     context.remove(key)
+    println("context remove: $key: ${context.values().joinToString(",")}")
   }
+
+  @Suppress("UNCHECKED_CAST")
+  suspend fun <E : CoroutineContext.Element> getFromContext(key: CoroutineContext.Key<E>): E? =
+    context[key] as? E
 
   /**
    * Close the AutoClosable elements of the coroutine context
    */
   override fun close() {
-    fold(Unit) { _, element ->
-      if (element is AutoCloseable && element != this@ShellContext)
-        element.close()
-    }
-    context.toMap().values.forEach {
-      if (it is AutoCloseable)
-        it.close()
-    }
+    println("ShellContext::close()")
+    context.clear()
   }
 }
 
@@ -57,3 +61,6 @@ suspend fun shellContextOrNull(): ShellContext? = currentCoroutineContext()[Shel
 
 suspend fun shellContext(): ShellContext =
   shellContextOrNull() ?: KattyError.errorMissingContext<ShellContext>()
+
+suspend fun <E : CoroutineContext.Element> shellContext(key: CoroutineContext.Key<E>): E? =
+  shellContextOrNull()?.getFromContext(key)
