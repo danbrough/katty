@@ -9,6 +9,10 @@ class ConcurrentMap<K, V> {
   private val mutex = Mutex()
 
   suspend fun put(key: K, value: V) = mutex.withLock {
+    map[key]?.also {
+      if (it is AutoCloseable)
+        it.close()
+    }
     map[key] = value
   }
 
@@ -16,8 +20,14 @@ class ConcurrentMap<K, V> {
     map[key]
   }
 
+  suspend fun getOrPut(key: K, creator: () -> V): V = mutex.withLock {
+    map.getOrPut(key, creator)
+  }
+
   suspend fun remove(key: K): V? = mutex.withLock {
-    map.remove(key)
+    map.remove(key)?.also {
+      if (it is AutoCloseable) it.close()
+    }
   }
 
   fun values(): Iterable<V> = map.values

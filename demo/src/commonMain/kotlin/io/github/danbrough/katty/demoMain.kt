@@ -5,7 +5,6 @@ import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
 import io.github.danbrough.katty.command.BasicCommand
 import io.github.danbrough.katty.command.BasicCommandHandler
-import io.github.danbrough.katty.command.CommandExecutor
 import io.github.danbrough.katty.command.basicCommand
 import io.github.danbrough.katty.config.registerConfigCommands
 import io.github.danbrough.katty.demos.AppDemoCommand
@@ -60,6 +59,7 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
     "themeDemo" to DemoThemeCommand,
     scopeDemo, ContextDemo,
     mutableContextDemo(),
+    demoClientCommand(),
     demoServerCommand(),
     basicCommand("forever", "Command that runs forever") {
       var n = 0

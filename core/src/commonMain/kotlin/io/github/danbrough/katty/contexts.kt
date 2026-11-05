@@ -16,14 +16,6 @@ fun CoroutineContext.elementList(): List<CoroutineContext> =
   }
 
 
-suspend fun <E : CoroutineContext.Element> shellContext(
-  key: CoroutineContext.Key<E>,
-  creator: suspend () -> E
-): E = currentCoroutineContext()[key] ?: creator().also {
-  ShellContext.add(it)
-}
-
-
 class CommandContext(val cmd: List<String>) : KattyContext {
   override val key: CoroutineContext.Key<*> = CommandContext
 

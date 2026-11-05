@@ -1,11 +1,12 @@
 package io.github.danbrough.katty.demos
 
 import io.github.danbrough.katty.CommandContext.Companion.withCommandContext
-import io.github.danbrough.katty.ShellContext
 import io.github.danbrough.katty.command.basicCommand
 import io.github.danbrough.katty.logDemo
 import io.github.danbrough.katty.shellContext
+import io.github.danbrough.katty.shellContextAdd
 import io.github.danbrough.katty.shellContextOrNull
+import io.github.danbrough.katty.shellContextRemove
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.job
@@ -43,13 +44,13 @@ val scopeDemo = basicCommand(
       log.info { "scopeDemo::message ${shellContext(ContextMessage)?.message ?: "not yet set"}" }
 
 
-      ShellContext.add(ContextMessage("message ${count++}"))
+      shellContextAdd(ContextMessage("message ${count++}"))
 
       log.info { "context message is now: ${shellContext(ContextMessage)}" }
     }
 
     "clear" -> {
-      ShellContext.remove(ContextMessage)
+      shellContextRemove(ContextMessage)
     }
 
     "test" -> {

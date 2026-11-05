@@ -113,28 +113,5 @@ open class KattyServer(
 
 }
 
-fun commandServer(creator: suspend KattyShell.(args: List<String>) -> KattyServer) =
-  basicCommand("server", "server [start | stop]") {
-    val shellContext = shellContext()
-    log.error { "shellContext: $shellContext server:${shellContext[KattyServer]}" }
-    val args = it.drop(1)
-    if (args.contains("start")) {
-
-
-      shellContext(KattyServer) {
-        info("starting katty webserver..")
-        creator(args).apply {
-          start()
-        }
-      }
-    } else if (args.contains("stop")) {
-      info("stopping server: shellContext:${shellContext()} shell:${currentCoroutineContext()[KattyShellKey]}")
-      ShellContext.remove(KattyServer)
-    } else {
-      warn("unknown command: $args")
-    }
-  }
-
-
 
 

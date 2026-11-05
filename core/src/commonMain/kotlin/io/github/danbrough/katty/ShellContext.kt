@@ -13,16 +13,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 open class ShellContext(initialContext: CoroutineContext = EmptyCoroutineContext) : KattyContext {
   override val key: CoroutineContext.Key<*> = ShellContext
 
-  companion object : CoroutineContext.Key<ShellContext> {
-
-    suspend fun add(element: CoroutineContext.Element) {
-      shellContext().addToContext(element)
-    }
-
-    suspend fun remove(key: CoroutineContext.Key<*>) {
-      shellContext().removeFromContext(key)
-    }
-  }
+  companion object : CoroutineContext.Key<ShellContext>
 
   open val supervisorJob: CompletableJob = SupervisorJob()
   open val scope: CoroutineScope = CoroutineScope(supervisorJob + this + initialContext)
@@ -36,10 +27,14 @@ open class ShellContext(initialContext: CoroutineContext = EmptyCoroutineContext
   }
 
   suspend fun removeFromContext(key: CoroutineContext.Key<*>) {
-    context.remove(key)?.also {
-      if (it is AutoCloseable) it.close()
-    }
+    context.remove(key)
   }
+
+  @Suppress("UNCHECKED_CAST")
+  suspend fun <E : CoroutineContext.Element> getOrPut(
+    key: CoroutineContext.Key<E>,
+    creator: () -> E
+  ):E = context.getOrPut(key, creator) as E
 
   @Suppress("UNCHECKED_CAST")
   suspend fun <E : CoroutineContext.Element> getFromContext(key: CoroutineContext.Key<E>): E? =
@@ -49,7 +44,6 @@ open class ShellContext(initialContext: CoroutineContext = EmptyCoroutineContext
    * Close the AutoClosable elements of the coroutine context
    */
   override fun close() {
-    println("ShellContext::close()")
     context.clear()
   }
 }
@@ -61,3 +55,17 @@ suspend fun shellContext(): ShellContext =
 
 suspend fun <E : CoroutineContext.Element> shellContext(key: CoroutineContext.Key<E>): E? =
   shellContextOrNull()?.getFromContext(key)
+
+suspend fun <E : CoroutineContext.Element> shellContext(
+  key: CoroutineContext.Key<E>,
+  creator: () -> E
+): E = shellContext().getOrPut(key, creator)
+
+suspend fun shellContextAdd(e: CoroutineContext.Element) {
+  shellContext().addToContext(e)
+}
+
+suspend fun shellContextRemove(key: CoroutineContext.Key<*>) {
+  shellContext().removeFromContext(key)
+}
+

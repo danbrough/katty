@@ -16,6 +16,7 @@ import io.github.danbrough.katty.command.CommandExecutor
 import io.github.danbrough.katty.command.CommandHandler
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
@@ -33,6 +34,9 @@ open class KattyTerminal(
 ) : AbstractKattyShell() {
 
   val executor: CommandExecutor = CommandExecutor(this)
+
+  override val shellScope: CoroutineScope
+    get() = executor.scope
 
   init {
 

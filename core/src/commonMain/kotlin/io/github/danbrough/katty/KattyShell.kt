@@ -1,10 +1,13 @@
 package io.github.danbrough.katty
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlin.coroutines.CoroutineContext
 
 
 interface KattyShell : KattyContext {
+
+  val shellScope: CoroutineScope
 
   val currentLine: StringBuilder
   val linePos: Int

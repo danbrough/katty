@@ -15,13 +15,12 @@ fun demoServerCommand() = commandServer { args ->
 
   info(
     """
-      starting katty webserver.. args: $args terminal: ${kattyShellOrNull()}
-      shellContext: ${shellContextOrNull()}
-      
+      starting katty webserver.. args: $args           
   """.trimIndent()
   )
 
-  KattyServer(shellContext()) {
+
+  KattyServer(shellScope.coroutineContext) {
     routing {
       get("/") {
         call.respondText {
