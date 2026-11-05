@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.konan.target.HostManager
 plugins {
   id("org.jetbrains.kotlin.multiplatform")
   id("org.jetbrains.kotlin.plugin.serialization")
- // id("org.jetbrains.kotlinx.atomicfu")
+  // id("org.jetbrains.kotlinx.atomicfu")
 }
 
 kotlin {
@@ -37,7 +37,12 @@ kotlin {
   }
 
   compilerOptions {
-    optIn.add("kotlin.concurrent.atomics.ExperimentalAtomicApi")
+    optIn.addAll(
+      "kotlin.concurrent.atomics.ExperimentalAtomicApi",
+      "kotlinx.serialization.ExperimentalSerializationApi",
+      "kotlin.time.ExperimentalTime",
+      "kotlin.uuid.ExperimentalUuidApi",
+    )
   }
 }
 

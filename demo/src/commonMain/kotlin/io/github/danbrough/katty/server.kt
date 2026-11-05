@@ -20,7 +20,7 @@ fun demoServerCommand() = commandServer { args ->
   )
 
 
-  KattyServer(shellScope.coroutineContext) {
+  KattyServer(Message("The Server Scope") + shellScope.coroutineContext) {
     routing {
       get("/") {
         call.respondText {
@@ -31,6 +31,7 @@ fun demoServerCommand() = commandServer { args ->
             thread: ${KattyUtils.threadName()} coroutineName: ${currentCoroutineContext()[CoroutineName]}
             shellContext: ${shellContextOrNull()}
             terminal: ${kattyShellOrNull()}
+            message: ${currentCoroutineContext()[Message]}
             
           """.trimIndent()
         }

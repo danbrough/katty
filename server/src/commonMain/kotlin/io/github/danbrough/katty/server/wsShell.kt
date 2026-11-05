@@ -1,5 +1,7 @@
 package io.github.danbrough.katty.server
 
+import io.github.danbrough.katty.Action
+import io.github.danbrough.katty.ActionMessage
 import io.github.danbrough.katty.WsMessage
 import io.ktor.server.application.Application
 import io.ktor.server.routing.routing
@@ -10,21 +12,18 @@ import io.ktor.websocket.readText
 import io.ktor.websocket.send
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
-import kotlin.time.Clock
 
 private val log = logServer
 
 
-@OptIn(ExperimentalSerializationApi::class)
-suspend fun Application.wsShell(
+fun Application.wsShell(
   path: String = KattyServer.DEFAULT_WEBSOCKET_PATH
 ) = routing {
   webSocket(path) {
-    send("Connected to katty server! name:${currentCoroutineContext()[CoroutineName]}")
+    send("Connected to katty server! name:${currentCoroutineContext()[CoroutineName]?.name}")
     try {
       for (frame in incoming) {
         when (frame) {
@@ -32,18 +31,17 @@ suspend fun Application.wsShell(
             val rawBytes = frame.readBytes()
 
             // Parse CBOR payload into shared common metadata model
-            val incomingMsg = Cbor.decodeFromByteArray<WsMessage>(rawBytes)
-            log.trace { "Processing Action: ${incomingMsg.action}" }
+            val incomingMsg: WsMessage = Cbor.decodeFromByteArray<WsMessage>(rawBytes)
+            log.trace { "Processing Action: $incomingMsg" }
 
             // Formulate response object
-            val acknowledgment = WsMessage(
-              action = "ACK_${incomingMsg.action}",
+            val acknowledgment = ActionMessage(
+              Action.LOGIN_ACK,
               payload = "Processed successfully",
-              timestamp = Clock.System.now().epochSeconds
             )
 
             // Serialize object to binary array and emit back down the pipeline
-            val responseBytes = Cbor.encodeToByteArray(acknowledgment)
+            val responseBytes = Cbor.encodeToByteArray<WsMessage>(acknowledgment)
             send(Frame.Binary(fin = true, data = responseBytes))
           }
 

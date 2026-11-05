@@ -1,5 +1,7 @@
 package io.github.danbrough.katty.client
 
+import io.github.danbrough.katty.Action
+import io.github.danbrough.katty.ActionMessage
 import io.github.danbrough.katty.KattyContext
 import io.github.danbrough.katty.WsMessage
 import io.ktor.client.HttpClient
@@ -8,14 +10,15 @@ import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readBytes
+import io.ktor.websocket.readText
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import kotlin.coroutines.CoroutineContext
-import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 
 private val log = logClient
 
@@ -31,14 +34,16 @@ class KattyClient(override val key: CoroutineContext.Key<*> = KattyClient) : Kat
     }
   }
 
+  private var session: DefaultClientWebSocketSession? = null
+
   /**
    * Connects to the Ktor CBOR WebSocket server and opens a session
    */
-  @OptIn(ExperimentalSerializationApi::class)
   suspend fun connectAndListen(host: String = "localhost", port: Int = 8080) {
     try {
       client.webSocket(host = host, port = port, path = "/ws") {
         log.info { "Connected to CBOR WebSocket Server successfully." }
+        session = this
 
         // Launch a separate concurrent coroutine job to listen for incoming packets
         val receiveJob = launch {
@@ -48,10 +53,13 @@ class KattyClient(override val key: CoroutineContext.Key<*> = KattyClient) : Kat
                 val rawBytes = frame.readBytes()
 
                 // Deserialize raw CBOR bytes directly into our common data model
-                val serverResponse = Cbor.decodeFromByteArray<WsMessage>(rawBytes)
-                log.debug { "Received from server: [${serverResponse.action}] -> ${serverResponse.payload}" }
+                val serverResponse: WsMessage = Cbor.decodeFromByteArray(rawBytes)
+                log.debug { "Received from server: $serverResponse" }
               } else {
                 log.trace { "Received from server: $frame" }
+                if (frame is Frame.Text) {
+                  log.trace { "Frame.Text = ${frame.readText()}" }
+                }
               }
             }
           } catch (e: Exception) {
@@ -60,10 +68,9 @@ class KattyClient(override val key: CoroutineContext.Key<*> = KattyClient) : Kat
         }
 
         // 2. Demo: Send an initial CBOR binary payload to the server
-        val initialMessage = WsMessage(
-          action = "USER_LOGIN",
+        val initialMessage: WsMessage = ActionMessage(
+          action = Action.LOGIN,
           payload = "Hello from a KMP Multiplatform Client!",
-          timestamp = Clock.System.now().toEpochMilliseconds()
         )
 
         sendCborMessage(initialMessage)
@@ -82,15 +89,20 @@ class KattyClient(override val key: CoroutineContext.Key<*> = KattyClient) : Kat
    * Helper extension function inside the DefaultClientWebSocketSession scope
    * to smoothly abstract away the CBOR serialization details.
    */
-  @OptIn(ExperimentalSerializationApi::class)
-  private suspend fun DefaultClientWebSocketSession.sendCborMessage(message: WsMessage) {
-    if (isActive) {
+  suspend fun sendCborMessage(message: WsMessage) {
+    var wsSession = session
+    while (isActive && wsSession == null) {
+      delay(1.seconds)
+      wsSession = session
+    }
+
+    if (isActive && wsSession != null) {
       // Encode our common object directly into a serialized byte stream
-      val binaryData = Cbor.encodeToByteArray(message)
+      val binaryData = Cbor.encodeToByteArray<WsMessage>(message)
 
       // Dispatch a standard Binary web-socket frame down the pipe
-      send(Frame.Binary(fin = true, data = binaryData))
-      log.debug { "Sent binary action [${message.action}] to server." }
+      wsSession.send(Frame.Binary(fin = true, data = binaryData))
+      log.debug { "Sent message:  [$message] to server." }
     }
   }
 

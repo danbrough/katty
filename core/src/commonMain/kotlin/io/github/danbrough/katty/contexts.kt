@@ -43,3 +43,10 @@ class CommandContext(val cmd: List<String>) : KattyContext {
 }
 
 
+class Message(val message: String, override val key: CoroutineContext.Key<*> = Message) :
+  CoroutineContext.Element {
+  companion object : CoroutineContext.Key<Message>
+
+  override fun toString(): String = "Message[$message]"
+}
+
