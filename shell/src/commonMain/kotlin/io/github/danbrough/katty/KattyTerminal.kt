@@ -28,8 +28,9 @@ private val log = logKattyShell
 open class KattyTerminal(
   val commandHandler: CommandHandler,
   val commandRegistry: MutableMap<String, KattyCommand<*, *>> = mutableMapOf(),
+  val interactive: Boolean = true,
   val history: History = DefaultHistory(),
-  val terminal: Terminal = Terminal(),
+  val terminal: Terminal = Terminal(interactive = interactive),
   override val welcomeMessage: String = "Welcome to Katty",
 ) : AbstractKattyShell() {
 
@@ -217,10 +218,11 @@ open class KattyTerminal(
 
   open suspend fun nonInteractiveCmdLoop() {
     log.trace { "KTerminal::nonInteractiveCmdLoop()" }
-    rawModeScope = terminal.enterRawMode(MouseTracking.Off)
+
 
     try {
       runCatching {
+        rawModeScope = terminal.enterRawMode(MouseTracking.Off)
         while (true) {
           val evt = rawModeScope.readKeyOrNull(1.seconds)
           if (executor.currentJob?.isActive != true) break
