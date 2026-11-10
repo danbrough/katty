@@ -2,10 +2,10 @@ package io.github.danbrough.katty.command
 
 import io.github.danbrough.katty.KattyUtils
 import io.github.danbrough.katty.ShellContext
+import io.github.danbrough.katty.SingleRun
 import io.github.danbrough.katty.logKattyShell
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
@@ -25,6 +25,7 @@ open class CommandExecutor(initialContext: CoroutineContext = EmptyCoroutineCont
    */
   fun execute(
     args: List<String>,
+    singleRun:Boolean = false,
     command: suspend () -> Unit
   ): Job {
 
@@ -33,10 +34,10 @@ open class CommandExecutor(initialContext: CoroutineContext = EmptyCoroutineCont
         val commandContextWithName =
           CoroutineName("Command[${args.joinToString(" ")}]") + commandContext*/
 
-    val job = scope.launch {
+    val ctx = if (singleRun) SingleRun else EmptyCoroutineContext
+    val job = scope.launch(ctx) {
       /*log.error { "CommandExecutor::launch shellContext: ${currentCoroutineContext().elementList()}" }
       log.error { "shellContext: ${currentCoroutineContext()[ShellContext]}  or maybe: ${this@CommandExecutor[ShellContext]}" }*/
-      val cmdJob = currentCoroutineContext().job
 
       //log.trace { "CommandExecutor::launched new command: $commandContext job: $cmdJob job:${supervisorJob} name:${currentCoroutineContext()[CoroutineName]}" }
       try {
@@ -50,13 +51,13 @@ open class CommandExecutor(initialContext: CoroutineContext = EmptyCoroutineCont
     }
 
     jobs.add(job)
+
     //   log.trace { "CommandExecutor[${KattyUtils.threadName()}]:: added job: $job to jobs. jobCount: ${jobs.size}" }
     job.invokeOnCompletion {
       jobs.remove(job)
       log.trace { "CommandExecutor[${KattyUtils.threadName()}]::removed job $job from jobs. jobCount: ${jobs.size} supervisorJob.active=:${supervisorJob.isActive}" }
       //commandContext.close()
     }
-
 
     log.trace { "CommandExecutor::execute [${args.joinToString(" ")}] done" }
     return job
@@ -78,12 +79,14 @@ open class CommandExecutor(initialContext: CoroutineContext = EmptyCoroutineCont
     log.trace { "CommandExecutor::shutdown() ${KattyUtils.threadName()} " }
     close()
     supervisorJob.join()
+    log.trace { "CommandExecutor::shutdown complete" }
   }
 
   override fun close() {
-    log.info { "CommandExecutor::close()" }
+    log.trace { "CommandExecutor::close()" }
     super.close()
     supervisorJob.complete()
+    log.trace { "CommandExecutor::close complete" }
   }
 }
 

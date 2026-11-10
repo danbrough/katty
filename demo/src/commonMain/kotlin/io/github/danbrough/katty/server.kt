@@ -15,7 +15,7 @@ fun demoServerCommand() = commandServer { args ->
 
   info(
     """
-      starting katty webserver.. args: $args           
+      starting katty webserver.. args: $args    
   """.trimIndent()
   )
 

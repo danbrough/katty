@@ -20,6 +20,7 @@ import io.ktor.server.websocket.WebSockets
 import io.ktor.server.websocket.pingPeriod
 import io.ktor.server.websocket.timeout
 import kotlin.coroutines.CoroutineContext
+import kotlin.math.sin
 import kotlin.time.Duration.Companion.seconds
 
 private val log = logServer
@@ -82,7 +83,9 @@ open class KattyServer(
     }
 
   suspend fun start() {
-    log.trace { "KattyServer::start() singleRun:${isSingleRun()}" }
+    val singleRun = isSingleRun()
+    log.trace { "KattyServer::start() singleRun:$singleRun" }
+
     engine = embeddedServer(
       factory = engineFactory,
       rootConfig = serverConfig {
@@ -96,7 +99,7 @@ open class KattyServer(
       }
     )
 
-    engine.startSuspend(wait = false)
+    engine.startSuspend(wait = singleRun)
   }
 
 
@@ -107,6 +110,5 @@ open class KattyServer(
   }
 
 }
-
 
 

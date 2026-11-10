@@ -18,10 +18,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import kotlinx.io.SystemLineSeparator
-import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.seconds
 
 private val log = logKattyShell
@@ -77,7 +75,7 @@ open class KattyTerminal(
   }
 
   override suspend fun runCommand(args: List<String>, singleCommandRun: Boolean) {
-    executor.execute(args) {
+    executor.execute(args,singleCommandRun) {
       cursorPos = 0
       currentLine.clear()
       println()
