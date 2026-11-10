@@ -21,6 +21,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import kotlinx.io.SystemLineSeparator
+import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.seconds
 
 private val log = logKattyShell
@@ -86,7 +87,8 @@ open class KattyTerminal(
         } ?: commandHandler.runCommand(this@KattyTerminal, args)
       }.exceptionOrNull().also {
         if (it == null) {
-          if (singleCommandRun) return@execute
+          if (singleCommandRun)
+            return@execute
           printPrompt(false)
         } else {
           if (it is CancellationException) {
@@ -301,8 +303,10 @@ open class KattyTerminal(
     withContext(CoroutineName("KattyTerminal") + this@KattyTerminal + executor) {
       log.warn { "shellContext:${shellContextOrNull()} terminal: ${currentCoroutineContext()[KattyShellKey]}" }
       if (args.isNotEmpty()) {
-        info("running command: $args")
-        runCommand(args = args, singleCommandRun = true)
+        log.trace { "running command: $args" }
+        withContext(SingleRun) {
+          runCommand(args = args, singleCommandRun = true)
+        }
       }
       if (interactive)
         runLoop()
@@ -311,4 +315,5 @@ open class KattyTerminal(
     }
   }
 }
+
 

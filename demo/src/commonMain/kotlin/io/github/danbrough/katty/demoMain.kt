@@ -12,6 +12,7 @@ import io.github.danbrough.katty.demos.ContextDemo
 import io.github.danbrough.katty.demos.DemoMarkDownCommand
 import io.github.danbrough.katty.demos.DemoMordantCommand
 import io.github.danbrough.katty.demos.DemoThemeCommand
+import io.github.danbrough.katty.demos.LaunchDemoCommand
 import io.github.danbrough.katty.demos.mutableContextDemo
 import io.github.danbrough.katty.demos.scopeDemo
 import kotlinx.coroutines.CancellationException
@@ -61,6 +62,7 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
     mutableContextDemo(),
     demoClientCommand(),
     demoServerCommand(),
+    LaunchDemoCommand,
     basicCommand("forever", "Command that runs forever") {
       var n = 0
       while (true) {

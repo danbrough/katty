@@ -23,7 +23,7 @@ fun Application.wsShell(
   path: String = KattyServer.DEFAULT_WEBSOCKET_PATH
 ) = routing {
   webSocket(path) {
-
+    log.info { "wsShell() new connection .." }
     try {
       for (frame in incoming) {
         when (frame) {

@@ -16,22 +16,25 @@ fun CoroutineContext.elementList(): List<CoroutineContext> =
   }
 
 
+/*
 class CommandContext(val cmd: List<String>) : KattyContext {
   override val key: CoroutineContext.Key<*> = CommandContext
 
   companion object : CoroutineContext.Key<CommandContext> {
 
-    suspend fun get(): CommandContext? = currentCoroutineContext()[CommandContext]
-    suspend fun <C : CoroutineContext, R> withCommandContext(
-      context: C,
-      block: suspend C.() -> R
-    ) = withContext(context) {
-      if (context is AutoCloseable)
-        context.use {
-          it.block()
-        }
-      else context.block()
-    }
+    */
+/*    suspend fun get(): CommandContext? = currentCoroutineContext()[CommandContext]
+        suspend fun <C : CoroutineContext, R> withCommandContext(
+          context: C,
+          block: suspend C.() -> R
+        ) = withContext(context) {
+          if (context is AutoCloseable)
+            context.use {
+              it.block()
+            }
+          else context.block()
+        }*//*
+
   }
 
   var job: Job? = null
@@ -41,6 +44,7 @@ class CommandContext(val cmd: List<String>) : KattyContext {
 
 
 }
+*/
 
 
 class Message(val message: String, override val key: CoroutineContext.Key<*> = Message) :

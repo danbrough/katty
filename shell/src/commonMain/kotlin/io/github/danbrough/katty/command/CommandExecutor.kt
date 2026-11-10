@@ -1,13 +1,10 @@
 package io.github.danbrough.katty.command
 
-import io.github.danbrough.katty.CommandContext
 import io.github.danbrough.katty.KattyUtils
 import io.github.danbrough.katty.ShellContext
-import io.github.danbrough.katty.kattyShellOrNull
 import io.github.danbrough.katty.logKattyShell
-import io.github.danbrough.katty.shellContextOrNull
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
@@ -19,8 +16,8 @@ private val log = logKattyShell
 open class CommandExecutor(initialContext: CoroutineContext = EmptyCoroutineContext) :
   ShellContext(initialContext) {
 
-  val jobs = mutableListOf<CommandContext>()
-  val currentJob: CommandContext?
+  val jobs = mutableListOf<Job>()
+  val currentJob: Job?
     get() = jobs.lastOrNull()
 
   /**
@@ -28,49 +25,41 @@ open class CommandExecutor(initialContext: CoroutineContext = EmptyCoroutineCont
    */
   fun execute(
     args: List<String>,
-    command: suspend CommandContext.() -> Unit
-  ) {
+    command: suspend () -> Unit
+  ): Job {
 
     //log.trace { "CommandExecutor[${KattyUtils.threadName()}]::execute .. launchContext: $context" }
-    val commandContext = CommandContext(args)
-    val commandContextWithName =
-      CoroutineName("Command[${args.joinToString(" ")}]") + commandContext
+    /*    val commandContext = CommandContext(args)
+        val commandContextWithName =
+          CoroutineName("Command[${args.joinToString(" ")}]") + commandContext*/
 
-    scope.launch(this) {
-
-      log.warn { "ShellContext: ${shellContextOrNull()} kattyShell:${kattyShellOrNull()} " }
-
-    }
-
-
-    scope.launch(commandContextWithName) {
+    val job = scope.launch {
       /*log.error { "CommandExecutor::launch shellContext: ${currentCoroutineContext().elementList()}" }
       log.error { "shellContext: ${currentCoroutineContext()[ShellContext]}  or maybe: ${this@CommandExecutor[ShellContext]}" }*/
       val cmdJob = currentCoroutineContext().job
 
       //log.trace { "CommandExecutor::launched new command: $commandContext job: $cmdJob job:${supervisorJob} name:${currentCoroutineContext()[CoroutineName]}" }
       try {
-        commandContext.command()
+        command()
       } catch (e: CancellationException) {
         // Command was cancelled, we can handle cleanup here if needed.
         // The exception is expected behavior.
-        log.trace { "$commandContext cancelled." }
+        log.trace { "command cancelled." }
       }
 
-    }.also { job ->
-      commandContext.job = job
-      jobs.add(commandContext)
-      //   log.trace { "CommandExecutor[${KattyUtils.threadName()}]:: added job: $job to jobs. jobCount: ${jobs.size}" }
-      job.invokeOnCompletion {
-        jobs.remove(commandContext)
-        //log.trace { "CommandExecutor[${KattyUtils.threadName()}]::removed job $job from jobs. jobCount: ${jobs.size} supervisorJob.active=:${supervisorJob.isActive}" }
-        commandContext.close()
-      }
+    }
+
+    jobs.add(job)
+    //   log.trace { "CommandExecutor[${KattyUtils.threadName()}]:: added job: $job to jobs. jobCount: ${jobs.size}" }
+    job.invokeOnCompletion {
+      jobs.remove(job)
+      log.trace { "CommandExecutor[${KattyUtils.threadName()}]::removed job $job from jobs. jobCount: ${jobs.size} supervisorJob.active=:${supervisorJob.isActive}" }
+      //commandContext.close()
     }
 
 
     log.trace { "CommandExecutor::execute [${args.joinToString(" ")}] done" }
-
+    return job
     //yield()
   }
 

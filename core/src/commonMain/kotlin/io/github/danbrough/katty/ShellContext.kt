@@ -34,7 +34,7 @@ open class ShellContext(initialContext: CoroutineContext = EmptyCoroutineContext
   suspend fun <E : CoroutineContext.Element> getOrPut(
     key: CoroutineContext.Key<E>,
     creator: () -> E
-  ):E = context.getOrPut(key, creator) as E
+  ): E = context.getOrPut(key, creator) as E
 
   @Suppress("UNCHECKED_CAST")
   suspend fun <E : CoroutineContext.Element> getFromContext(key: CoroutineContext.Key<E>): E? =
@@ -69,3 +69,8 @@ suspend fun shellContextRemove(key: CoroutineContext.Key<*>) {
   shellContext().removeFromContext(key)
 }
 
+object SingleRun : CoroutineContext.Element, CoroutineContext.Key<SingleRun> {
+  override val key: CoroutineContext.Key<*> = SingleRun
+}
+
+suspend fun isSingleRun() = currentCoroutineContext()[SingleRun] != null

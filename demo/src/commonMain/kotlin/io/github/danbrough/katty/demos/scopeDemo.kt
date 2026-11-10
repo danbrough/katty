@@ -1,6 +1,5 @@
 package io.github.danbrough.katty.demos
 
-import io.github.danbrough.katty.CommandContext.Companion.withCommandContext
 import io.github.danbrough.katty.command.basicCommand
 import io.github.danbrough.katty.logDemo
 import io.github.danbrough.katty.shellContext
@@ -8,10 +7,7 @@ import io.github.danbrough.katty.shellContextAdd
 import io.github.danbrough.katty.shellContextOrNull
 import io.github.danbrough.katty.shellContextRemove
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.job
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
 
 private val log = logDemo
 
@@ -53,11 +49,6 @@ val scopeDemo = basicCommand(
       shellContextRemove(ContextMessage)
     }
 
-    "test" -> {
-      withCommandContext(ContextMessage("Context message created at ${Clock.System.now()}")) {
-        runTest()
-      }
-    }
 
     "thang" -> {
       warn("not implemented")/*    val ctx = currentCoroutineContext()
@@ -66,15 +57,6 @@ val scopeDemo = basicCommand(
     }
 
     else -> {}
-  }
-}
-
-private suspend fun runTest() {
-  val message = currentCoroutineContext()[ContextMessage]?.message
-  log.info { "runTest() message: $message" }
-  for (n in 1..10) {
-    delay(1.seconds)
-    log.info { "runTest():$n still running with message: $message" }
   }
 }
 
