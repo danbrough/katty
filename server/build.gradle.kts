@@ -1,5 +1,7 @@
 plugins {
   id("io.github.danbrough.katty.kmp")
+  id("io.github.danbrough.katty.dokka")
+  id("io.github.danbrough.katty.publishing")
 }
 
 

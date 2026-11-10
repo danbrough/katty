@@ -78,7 +78,7 @@ open class KattyServer(
         masking = false
       }
 
-      wsShell()
+
       applicationConfiguration(this@KattyServer)
     }
 

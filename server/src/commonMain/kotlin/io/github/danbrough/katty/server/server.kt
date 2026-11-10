@@ -10,8 +10,9 @@ import kotlinx.coroutines.currentCoroutineContext
 import org.danbrough.klog.logger
 
 internal val logServer = logger("KATTY_SERVER")
+private val log = logServer
 
-fun commandServer(creator: KattyShell.(args: List<String>) -> KattyServer) =
+fun serverCommand(creator: KattyShell.(args: List<String>) -> KattyServer) =
   basicCommand("server", "server [start | stop]") {
     val args = it.drop(1)
     info("server command: $args singleRun: ${isSingleRun()}")
@@ -29,5 +30,3 @@ fun commandServer(creator: KattyShell.(args: List<String>) -> KattyServer) =
       warn("unknown command: $args")
     }
   }
-
-
