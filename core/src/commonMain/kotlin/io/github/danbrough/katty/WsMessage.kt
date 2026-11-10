@@ -16,6 +16,7 @@ sealed class WsMessage {
   abstract val payload: String
 }
 
+
 @Serializable
 data class ActionMessage(
   val action: Action,

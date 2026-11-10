@@ -90,7 +90,6 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
   val terminal =
     KattyTerminal(
       commandHandler,
-      interactive = false,
       history = DefaultHistory(Path(configDir, "history.txt")),
       welcomeMessage = "Welcome to the katty demo app"
     )

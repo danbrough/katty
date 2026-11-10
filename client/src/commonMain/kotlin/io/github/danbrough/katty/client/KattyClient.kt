@@ -54,11 +54,16 @@ class KattyClient(override val key: CoroutineContext.Key<*> = KattyClient) : Kat
 
                 // Deserialize raw CBOR bytes directly into our common data model
                 val serverResponse: WsMessage = Cbor.decodeFromByteArray(rawBytes)
-                log.debug { "Received from server: $serverResponse" }
+                log.debug { "Received from server wsMessage: $serverResponse" }
               } else {
-                log.trace { "Received from server: $frame" }
-                if (frame is Frame.Text) {
-                  log.trace { "Frame.Text = ${frame.readText()}" }
+                log.trace { "Received from server frame: $frame" }
+                when (frame){
+                  is Frame.Text -> log.trace { "FRAME TEXT: [${frame.readText()}]" }
+                  is Frame.Binary -> log.trace { "FRAME BINARY" }
+                  is Frame.Ping -> log.trace { "FRAME PING" }
+                  is Frame.Pong -> log.trace { "FRAME PONG" }
+                  is Frame.Close -> log.trace { "FRAME CLOSE" }
+                  else -> log.trace { "UNKNOWN FRAME TYPE" }
                 }
               }
             }

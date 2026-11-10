@@ -23,7 +23,7 @@ fun Application.wsShell(
   path: String = KattyServer.DEFAULT_WEBSOCKET_PATH
 ) = routing {
   webSocket(path) {
-    send("Connected to katty server! name:${currentCoroutineContext()[CoroutineName]?.name}")
+
     try {
       for (frame in incoming) {
         when (frame) {
