@@ -23,6 +23,7 @@ fun Application.wsShell(
     log.info { "wsShell() new connection .." }
     try {
       for (frame in incoming) {
+        log.trace { "wsShell::received frame: $frame" }
         when (frame) {
           is Frame.Binary -> {
             val rawBytes = frame.readBytes()

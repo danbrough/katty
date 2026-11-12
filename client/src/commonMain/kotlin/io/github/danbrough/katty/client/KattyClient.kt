@@ -42,7 +42,8 @@ class KattyClient(override val key: CoroutineContext.Key<*> = KattyClient) : Kat
   suspend fun connectAndListen(host: String = "localhost", port: Int = 8080) {
     try {
       client.webSocket(host = host, port = port, path = "/ws") {
-        log.info { "Connected to CBOR WebSocket Server successfully." }
+
+        log.info { "Connected to CBOR WebSocket Server successfully. url: ${this.call.request.url}" }
         session = this
 
         // Launch a separate concurrent coroutine job to listen for incoming packets

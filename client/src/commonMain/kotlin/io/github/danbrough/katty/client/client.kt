@@ -3,7 +3,6 @@ package io.github.danbrough.katty.client
 import io.github.danbrough.katty.Action
 import io.github.danbrough.katty.ActionMessage
 import io.github.danbrough.katty.KattyShell
-import io.github.danbrough.katty.KattyShellKey
 import io.github.danbrough.katty.WsMessage
 import io.github.danbrough.katty.command.basicCommand
 import io.github.danbrough.katty.shellContext
@@ -12,29 +11,30 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
-import org.danbrough.klog.logger
 
-internal val logClient = logger("KATTY_CLIENT")
 private val log = logClient
 private const val USAGE = "client [start | stop | message (content)]"
-fun commandClient(creator: KattyShell.(args: List<String>) -> KattyClient) =
+
+
+fun commandClient(creator: KattyShell.(args: List<String>) -> WsClient) =
   basicCommand("client", USAGE) {
+    val scope = shellContext().scope
     val args = it.drop(1)
     when (val cmd = args.getOrNull(0)) {
       "start" -> {
-        shellContext(KattyClient) {
-          info("starting katty client..")
+        shellContext(WsClient) {
+          info("starting ws client..")
           creator(args)
         }
       }
 
       "stop" -> {
-        info("stopping client: shellContext:${shellContext()} shell:${currentCoroutineContext()[KattyShellKey]}")
-        shellContextRemove(KattyClient)
+        info("stopping client: shellContext:${shellContext()} shell:${currentCoroutineContext()[WsClient]}")
+        shellContextRemove(WsClient)
       }
 
       "test" -> {
-        val message: WsMessage = ActionMessage(Action.MESSAGE,"This is my message")
+        val message: WsMessage = ActionMessage(Action.MESSAGE, "This is my message")
         val bytes = Cbor.encodeToByteArray(message)
         log.info { "message: ${Cbor.decodeFromByteArray<WsMessage>(bytes)}" }
       }
@@ -45,10 +45,11 @@ fun commandClient(creator: KattyShell.(args: List<String>) -> KattyClient) =
           return@basicCommand
         }
         info("sending message: $message...")
-        shellContext(KattyClient) {
-          info("starting katty client..")
+        shellContext(WsClient) {
+          info("starting ws client..")
           creator(args)
-        }.sendCborMessage(ActionMessage(Action.MESSAGE,message) as WsMessage)
+        }.enqueueMessage(ActionMessage(Action.MESSAGE, message))
+        //.sendCborMessage(ActionMessage(Action.MESSAGE, message) as WsMessage)
       }
 
       else -> {
@@ -57,5 +58,6 @@ fun commandClient(creator: KattyShell.(args: List<String>) -> KattyClient) =
       }
     }
   }
+
 
 

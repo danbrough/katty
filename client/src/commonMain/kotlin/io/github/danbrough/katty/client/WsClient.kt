@@ -1,5 +1,7 @@
 package io.github.danbrough.katty.client
 
+import io.github.danbrough.katty.Action
+import io.github.danbrough.katty.ActionMessage
 import io.github.danbrough.katty.KattyContext
 import io.github.danbrough.katty.KattyUtils
 import io.github.danbrough.katty.WsMessage
@@ -62,15 +64,21 @@ class WsClient(
         val wsUrl = url.replaceFirst("https", "wss").replaceFirst("http", "ws")
         log.warn { "WsClient:: connecting to websocket session at $wsUrl.." }
 
-        client.webSocket(wsUrl, requestBuilder) {
+        client.webSocket(host = "localhost", port = 8080, path = "/ws") {
+        //client.webSocket(wsUrl, requestBuilder) {
           session = this
 
           // 2. Concurrently run the outgoing queue worker alongside incoming processing
-          launch(KattyUtils.ioDispatcher) {
+          launch {
             processOutgoingQueue()
           }
 
-          log.trace { "launched processOutgoingQueue()" }
+          val initialMessage: WsMessage = ActionMessage(
+            action = Action.LOGIN,
+            payload = "Hello from a KMP Multiplatform Client!",
+          )
+          enqueueMessage(initialMessage)
+          log.trace { "send initial message ..launched processOutgoingQueue().. reading frames" }
 
           // 3. Process incoming messages (keeps the block alive)
           for (frame in incoming) {
@@ -80,7 +88,7 @@ class WsClient(
             }
           }
         }
-      } catch (e: Exception) {
+      } catch (e: Throwable) {
         println("WebSocket Error: ${e.message}")
       } finally {
         session = null
@@ -99,7 +107,7 @@ class WsClient(
         // Here, we wait for a valid session before delivering, or you can handle disconnection strategies.
         log.trace { "WsClient::processOutgoingQueue() sending $message session: $session" }
 
-        session?.send(Frame.Binary(false, Cbor.encodeToByteArray<WsMessage>(message)))
+        session!!.send(Frame.Binary(true, Cbor.encodeToByteArray<WsMessage>(message)))
       } catch (e: Exception) {
         log.error { "Failed to send message: $e" }
         // Optional: Re-enqueue the message if delivery fails

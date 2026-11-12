@@ -44,7 +44,7 @@ datetime = "0.8.0"
 clikt = "5.1.0"
 # https://github.com/orchestr7/ktoml
 ktoml = "0.7.2"
-kotlinx-serialization = "1.12.0"
+kotlinx-serialization ="1.13.0"
 kotlinx-coroutines = "1.11.0"
 klog = "0.1.12"
 kotlincrypto = "0.8.0"
