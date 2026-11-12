@@ -23,3 +23,5 @@ data class ActionMessage(
   override val payload: String,
   override val id: Uuid = Uuid.generateV7()
 ) : WsMessage()
+
+

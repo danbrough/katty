@@ -34,11 +34,9 @@ class WsClient(
   companion object : CoroutineContext.Key<WsClient>
 
   private val client = HttpClient {
-
     install(WebSockets) {
       pingIntervalMillis = 15_000 // Send app-level ping frames every 15s
     }
-
     config()
   }
 
@@ -120,7 +118,6 @@ class WsClient(
   suspend fun enqueueMessage(message: WsMessage) {
     outgoingQueue.send(message)
   }
-
 
   override fun close() {
     log.info { "WsClient::close()" }

@@ -25,6 +25,8 @@ kotlin {
         implementation(libs.kotlinx.coroutines.core)
         implementation(libs.klog)
         implementation(libs.mordant.markdown)
+        implementation(libs.kotlinx.serialization.cbor)
+        implementation(libs.kotlinx.serialization.json)
       }
     }
 

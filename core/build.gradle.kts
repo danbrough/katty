@@ -37,8 +37,7 @@ kotlin {
       dependencies {
         implementation(libs.kotlinx.coroutines.core)
         implementation(libs.kotlinx.io.core)
-        implementation(libs.ktor.serialization.kotlinx.cbor)
-
+        implementation(libs.kotlinx.serialization.core)
       }
     }
 
