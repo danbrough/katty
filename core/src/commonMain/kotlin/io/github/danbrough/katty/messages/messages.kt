@@ -20,11 +20,6 @@ data object OK : KattyMessage()
 
 interface KattyPayload
 
-/*
-@Serializable
-@SerialName("Thang")
-data class Thang(val name: String) : KattyPayload*/
-
 @Serializable
 @SerialName("DATA")
 data class Data(
@@ -36,18 +31,16 @@ data class Data(
     ?: error("Expected payload of type ${T::class.simpleName}, but got ${payload::class.simpleName}")
 }
 
-val kattySerializersModule = SerializersModule {
+fun kattySerializersModule() = SerializersModule {
   polymorphic(KattyMessage::class) {
     subclass(OK::class)
     subclass(Data::class)
-  }/*  polymorphic(KattyPayload::class) {
-      subclass(Thang::class)
-    }*/
+  }
 }
 
-fun KattyMessage.toJson(stringFormat: StringFormat): String =
+fun KattyMessage.asJson(stringFormat: StringFormat): String =
   stringFormat.encodeToString(PolymorphicSerializer(KattyMessage::class), this)
 
-fun KattyMessage.toCbor(binaryFormat: BinaryFormat): ByteArray =
+fun KattyMessage.asBinary(binaryFormat: BinaryFormat): ByteArray =
   binaryFormat.encodeToByteArray(PolymorphicSerializer(KattyMessage::class), this)
 

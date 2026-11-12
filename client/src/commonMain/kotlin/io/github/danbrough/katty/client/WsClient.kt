@@ -3,7 +3,6 @@ package io.github.danbrough.katty.client
 import io.github.danbrough.katty.Action
 import io.github.danbrough.katty.ActionMessage
 import io.github.danbrough.katty.KattyContext
-import io.github.danbrough.katty.KattyUtils
 import io.github.danbrough.katty.WsMessage
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
@@ -64,8 +63,7 @@ class WsClient(
         val wsUrl = url.replaceFirst("https", "wss").replaceFirst("http", "ws")
         log.warn { "WsClient:: connecting to websocket session at $wsUrl.." }
 
-        client.webSocket(host = "localhost", port = 8080, path = "/ws") {
-        //client.webSocket(wsUrl, requestBuilder) {
+        client.webSocket(wsUrl, requestBuilder) {
           session = this
 
           // 2. Concurrently run the outgoing queue worker alongside incoming processing
