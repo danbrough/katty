@@ -8,7 +8,6 @@ import io.ktor.client.HttpClientConfig
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocket
-import io.ktor.client.plugins.websocket.webSocketSession
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readText
@@ -63,12 +62,7 @@ class WsClient(
         val wsUrl = url.replaceFirst("https", "wss").replaceFirst("http", "ws")
         log.warn { "WsClient:: connecting to websocket session at $wsUrl.." }
 
-        session = client.webSocketSession(wsUrl) {
-          //TODO basicAuth(username = Mv4kConfig.adminUser, password = Mv4kConfig.adminPassword)
-          requestBuilder()
-        }
-
-        client.webSocket(wsUrl) {
+        client.webSocket(wsUrl, requestBuilder) {
           session = this
 
           // 2. Concurrently run the outgoing queue worker alongside incoming processing
