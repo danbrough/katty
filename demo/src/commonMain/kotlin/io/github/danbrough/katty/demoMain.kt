@@ -62,7 +62,6 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
     scopeDemo, ContextDemo,
     mutableContextDemo(),
     demoClientCommand(),
-    demoClientCommandOld(),
     demoServerCommand(),
     LaunchDemoCommand, SerializeDemoCommand,
     basicCommand("forever", "Command that runs forever") {

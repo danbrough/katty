@@ -11,7 +11,9 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
+import org.danbrough.klog.logger
 
+internal val logClient = logger("KATTY_CLIENT")
 private val log = logClient
 private const val USAGE = "client [start | stop | message (content)]"
 
