@@ -19,11 +19,8 @@ fun demoServerCommand() = serverCommand { args ->
       starting katty webserver.. args: $args    
   """.trimIndent()
   )
-
-
   KattyServer(Message("The Server Scope") + shellScope.coroutineContext) {
     wsShell()
-
     routing {
       get("/") {
         call.respondText {

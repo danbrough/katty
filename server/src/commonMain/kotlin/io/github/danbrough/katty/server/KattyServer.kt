@@ -20,7 +20,6 @@ import io.ktor.server.websocket.WebSockets
 import io.ktor.server.websocket.pingPeriod
 import io.ktor.server.websocket.timeout
 import kotlin.coroutines.CoroutineContext
-import kotlin.math.sin
 import kotlin.time.Duration.Companion.seconds
 
 private val log = logServer
