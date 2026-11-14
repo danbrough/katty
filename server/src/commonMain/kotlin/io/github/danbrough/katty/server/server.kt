@@ -7,9 +7,8 @@ import io.github.danbrough.katty.isSingleRun
 import io.github.danbrough.katty.shellContext
 import io.github.danbrough.katty.shellContextRemove
 import kotlinx.coroutines.currentCoroutineContext
-import org.danbrough.klog.logger
 
-internal val logServer = logger("KATTY_SERVER")
+
 private val log = logServer
 
 fun serverCommand(creator: KattyShell.(args: List<String>) -> KattyServer) =

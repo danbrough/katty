@@ -3,6 +3,9 @@ package io.github.danbrough.katty
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
+/**
+ * Thread safe map that respects [AutoCloseable] for removed values or values that were replaced.
+ */
 class ConcurrentMap<K, V> {
 
   private val map = HashMap<K, V>()
@@ -38,6 +41,5 @@ class ConcurrentMap<K, V> {
     }
     map.clear()
   }
-
 
 }

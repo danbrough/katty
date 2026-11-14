@@ -10,9 +10,11 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
+/**
+ * Where objects attached to the lifetime of the [KattyShell] are stored.
+ */
 open class ShellContext(initialContext: CoroutineContext = EmptyCoroutineContext) : KattyContext {
   override val key: CoroutineContext.Key<*> = ShellContext
-
   companion object : CoroutineContext.Key<ShellContext>
 
   open val supervisorJob: CompletableJob = SupervisorJob()

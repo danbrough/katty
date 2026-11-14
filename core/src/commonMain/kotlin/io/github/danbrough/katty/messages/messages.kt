@@ -8,6 +8,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.StringFormat
 import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.plus
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import kotlin.reflect.KClass
@@ -33,18 +34,35 @@ data class Data(
     ?: error("Expected payload of type ${T::class.simpleName}, but got ${payload::class.simpleName}")
 }
 
-inline fun <reified T : KattyPayload> kattySerializersModule(vararg payloads: KClass<T>) =
+fun kattySerializersModule() =
   SerializersModule {
     polymorphic(KattyMessage::class) {
       subclass(OK::class)
       subclass(Data::class)
+
     }
     polymorphic(KattyPayload::class) {
-      payloads.forEach { payload ->
-        subclass(payload)
+    }
+  }
+
+inline fun <reified T : KattyMessage> SerializersModule.withKattyMessages(vararg messages: KClass<T>): SerializersModule =
+  this + SerializersModule {
+    polymorphic(KattyMessage::class) {
+      messages.forEach {
+        subclass(it)
       }
     }
   }
+
+inline fun <reified P : KattyPayload> SerializersModule.withKattyPayloads(vararg payloads: KClass<P>): SerializersModule =
+  this + SerializersModule {
+    polymorphic(KattyPayload::class) {
+      payloads.forEach {
+        subclass(it)
+      }
+    }
+  }
+
 
 fun KattyMessage.asJson(stringFormat: StringFormat): String =
   stringFormat.encodeToString(PolymorphicSerializer(KattyMessage::class), this)

@@ -1,9 +1,8 @@
 package io.github.danbrough.katty.client
 
-import io.github.danbrough.katty.Action
-import io.github.danbrough.katty.ActionMessage
 import io.github.danbrough.katty.KattyContext
-import io.github.danbrough.katty.WsMessage
+import io.github.danbrough.katty.messages.KattyMessage
+import io.github.danbrough.katty.messages.asBinary
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
@@ -11,25 +10,31 @@ import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.websocket.Frame
-import io.ktor.websocket.readText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.cbor.Cbor
-import kotlinx.serialization.encodeToByteArray
+import org.danbrough.klog.logger
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.seconds
 
+
+internal val logClient = logger("KATTY_CLIENT")
 private val log = logClient
 
 class WsClient(
   val scope: CoroutineScope,
   val url: String,
   override val key: CoroutineContext.Key<*> = WsClient,
+  val cbor: Cbor,
   config: HttpClientConfig<*>.() -> Unit = {},
-  val requestBuilder: HttpRequestBuilder.() -> Unit = {}
+  val requestBuilder: HttpRequestBuilder.() -> Unit = {},
+  val sessionHandler: suspend DefaultClientWebSocketSession.(WsClient) -> Unit
 ) : KattyContext {
   companion object : CoroutineContext.Key<WsClient>
 
@@ -37,6 +42,7 @@ class WsClient(
     install(WebSockets) {
       pingIntervalMillis = 15_000 // Send app-level ping frames every 15s
     }
+
     config()
   }
 
@@ -44,7 +50,7 @@ class WsClient(
 
   // 1. Create a backed buffer (queue) for outgoing messages
   // Using an explicit capacity prevents unbounded memory growth if the connection drops
-  private val outgoingQueue = Channel<WsMessage>(
+  private val outgoingQueue = Channel<KattyMessage>(
     capacity = 10, //Channel.BUFFERED,
     onBufferOverflow = BufferOverflow.DROP_OLDEST
   )
@@ -58,39 +64,33 @@ class WsClient(
     if (job?.isActive == true) return
 
     job = scope.launch {
-      try {
-        // Establishes a persistent, reusable WebSockets stream
-        val wsUrl = url.replaceFirst("https", "wss").replaceFirst("http", "ws")
-        log.warn { "WsClient:: connecting to websocket session at $wsUrl.." }
+      // 2. Concurrently run the outgoing queue worker alongside incoming processing
+      launch {
+        processOutgoingQueue()
+      }
 
-        client.webSocket(wsUrl, requestBuilder) {
-          session = this
+      val wsUrl = url.replaceFirst("https", "wss").replaceFirst("http", "ws")
+      log.info { "WsClient:: connecting to websocket session at $wsUrl.." }
 
-          // 2. Concurrently run the outgoing queue worker alongside incoming processing
-          launch {
-            processOutgoingQueue()
+      while (isActive) {
+        try {
+          // Establishes a persistent, reusable WebSockets stream
+          client.webSocket(wsUrl, requestBuilder) {
+            session = this
+            sessionHandler(this@WsClient)
           }
-
-          val initialMessage: WsMessage = ActionMessage(
-            action = Action.LOGIN,
-            payload = "Hello from a KMP Multiplatform Client!",
-          )
-          enqueueMessage(initialMessage)
-          log.trace { "send initial message ..launched processOutgoingQueue().. reading frames" }
-
-          // 3. Process incoming messages (keeps the block alive)
-          for (frame in incoming) {
-            log.trace { "Received: $frame" }
-            if (frame is Frame.Text) {
-              println("Received: ${frame.readText()}")
-            }
+        } catch (e: Throwable) {
+          println("WebSocket Error: ${e.message}")
+          if (isActive) {
+            delay(5.seconds)
+            log.debug { "WsClient::reconnecting .." }
+            session = null
+            continue
           }
+        } finally {
+          session = null
+          log.warn { "WsClient:: WebSocket Disconnected" }
         }
-      } catch (e: Throwable) {
-        println("WebSocket Error: ${e.message}")
-      } finally {
-        session = null
-        log.warn { "WsClient:: WebSocket Disconnected" }
       }
     }
   }
@@ -104,18 +104,16 @@ class WsClient(
         // If session is null (disconnected), this loop pauses or drops based on implementation.
         // Here, we wait for a valid session before delivering, or you can handle disconnection strategies.
         log.trace { "WsClient::processOutgoingQueue() sending $message session: $session" }
-
-        session!!.send(Frame.Binary(true, Cbor.encodeToByteArray<WsMessage>(message)))
+        session!!.send(Frame.Binary(true, message.asBinary(cbor)))
       } catch (e: Exception) {
         log.error { "Failed to send message: $e" }
         // Optional: Re-enqueue the message if delivery fails
-        // outgoingQueue.send(message)
+        outgoingQueue.send(message)
       }
     }
   }
 
-  // 5. The Public Api to add things to the queue safely from any thread/coroutine
-  suspend fun enqueueMessage(message: WsMessage) {
+  suspend fun enqueueMessage(message: KattyMessage) {
     outgoingQueue.send(message)
   }
 

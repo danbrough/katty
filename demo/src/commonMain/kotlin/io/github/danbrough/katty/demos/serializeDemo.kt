@@ -12,6 +12,7 @@ import io.github.danbrough.katty.messages.OK
 import io.github.danbrough.katty.messages.asBinary
 import io.github.danbrough.katty.messages.asJson
 import io.github.danbrough.katty.messages.kattySerializersModule
+import io.github.danbrough.katty.messages.withKattyPayloads
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.cbor.Cbor
@@ -62,7 +63,7 @@ data class Data(
   }
 }*/
 
-val kattySerializersModule = kattySerializersModule(Thang::class)
+val kattySerializersModule = kattySerializersModule().withKattyPayloads(Thang::class)
 val cbor = Cbor {
   serializersModule = kattySerializersModule
 }

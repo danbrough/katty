@@ -19,8 +19,11 @@ import io.ktor.server.routing.IgnoreTrailingSlash
 import io.ktor.server.websocket.WebSockets
 import io.ktor.server.websocket.pingPeriod
 import io.ktor.server.websocket.timeout
+import org.danbrough.klog.logger
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.seconds
+
+internal val logServer = logger("KATTY_SERVER")
 
 private val log = logServer
 

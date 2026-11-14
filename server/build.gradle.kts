@@ -19,6 +19,7 @@ kotlin {
         implementation(libs.ktor.serialization.kotlinx.cbor)
         api(libs.ktor.server.core)
         api(libs.ktor.server.websockets)
+        implementation(libs.ktor.server.core)
         implementation(libs.ktor.server.content.negotiation)
         implementation(libs.ktor.server.forwarded.header)
         //implementation("io.ktor:ktor-server-forwarded-header:3.6.0")
