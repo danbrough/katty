@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.cbor.Cbor
 import org.danbrough.klog.logger
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -107,6 +108,7 @@ class WsClient(
         session!!.send(Frame.Binary(true, message.asBinary(cbor)))
       } catch (e: Exception) {
         log.error { "Failed to send message: $e" }
+        delay(200.milliseconds)
         // Optional: Re-enqueue the message if delivery fails
         outgoingQueue.send(message)
       }

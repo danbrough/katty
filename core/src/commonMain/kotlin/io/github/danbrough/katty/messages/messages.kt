@@ -2,6 +2,7 @@ package io.github.danbrough.katty.messages
 
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.Polymorphic
 import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.SerialName
@@ -11,6 +12,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.plus
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
+import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 
 
@@ -34,31 +36,38 @@ data class Data(
     ?: error("Expected payload of type ${T::class.simpleName}, but got ${payload::class.simpleName}")
 }
 
-fun kattySerializersModule() =
+@OptIn(InternalSerializationApi::class)
+inline fun <reified T : KattyMessage> kattySerializersModule(messages: List<KClass<out T>> = emptyList()) =
   SerializersModule {
     polymorphic(KattyMessage::class) {
       subclass(OK::class)
       subclass(Data::class)
-
+      for (message in messages) {
+        @Suppress("UNCHECKED_CAST")
+        subclass(message as KClass<KattyMessage>, message.serializer())
+      }
     }
-    polymorphic(KattyPayload::class) {
-    }
+    polymorphic(KattyPayload::class) {}
   }
 
-inline fun <reified T : KattyMessage> SerializersModule.withKattyMessages(vararg messages: KClass<T>): SerializersModule =
+@OptIn(InternalSerializationApi::class)
+inline fun <reified T : KattyMessage> SerializersModule.withKattyMessages(vararg messages: KClass<out T>): SerializersModule =
   this + SerializersModule {
     polymorphic(KattyMessage::class) {
       messages.forEach {
-        subclass(it)
+        @Suppress("UNCHECKED_CAST")
+        subclass(it as KClass<KattyMessage>, it.serializer())
       }
     }
   }
 
-inline fun <reified P : KattyPayload> SerializersModule.withKattyPayloads(vararg payloads: KClass<P>): SerializersModule =
+@OptIn(InternalSerializationApi::class)
+inline fun <reified P : KattyPayload> SerializersModule.withKattyPayloads(vararg payloads: KClass<out P>): SerializersModule =
   this + SerializersModule {
     polymorphic(KattyPayload::class) {
       payloads.forEach {
-        subclass(it)
+        @Suppress("UNCHECKED_CAST")
+        subclass(it as KClass<KattyPayload>, it.serializer())
       }
     }
   }
