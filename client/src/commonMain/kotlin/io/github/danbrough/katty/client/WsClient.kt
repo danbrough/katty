@@ -10,7 +10,9 @@ import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.websocket.Frame
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
@@ -18,6 +20,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.cbor.Cbor
 import org.danbrough.klog.logger
 import kotlin.coroutines.CoroutineContext
@@ -49,12 +53,19 @@ class WsClient(
 
   private var session: DefaultClientWebSocketSession? = null
 
-  // 1. Create a backed buffer (queue) for outgoing messages
-  // Using an explicit capacity prevents unbounded memory growth if the connection drops
-  private val outgoingQueue = Channel<KattyMessage>(
-    capacity = 10, //Channel.BUFFERED,
-    onBufferOverflow = BufferOverflow.DROP_OLDEST
+  private class PendingMessage(
+    val message: KattyMessage,
+    val responseDeferred: CompletableDeferred<KattyMessage> = CompletableDeferred()
   )
+
+  // 1. Create a backed buffer (queue) for outgoing messages
+  private val outgoingQueue = Channel<PendingMessage>(
+    capacity = 10,
+    onBufferOverflow = BufferOverflow.SUSPEND
+  )
+
+  private val pendingResponsesMutex = Mutex()
+  private val pendingResponses = mutableListOf<PendingMessage>()
 
   private var job: Job? = null
 
@@ -100,23 +111,40 @@ class WsClient(
   // 4. The underlying Queue Worker
   private suspend fun processOutgoingQueue() {
     // Consuming as a flow ensures safe, reactive extraction
-    outgoingQueue.consumeAsFlow().collect { message ->
+    outgoingQueue.consumeAsFlow().collect { pending ->
       try {
-        // If session is null (disconnected), this loop pauses or drops based on implementation.
-        // Here, we wait for a valid session before delivering, or you can handle disconnection strategies.
-        log.trace { "WsClient::processOutgoingQueue() sending $message session: $session" }
-        session!!.send(Frame.Binary(true, message.asBinary(cbor)))
+        log.trace { "WsClient::processOutgoingQueue() sending ${pending.message} session: $session" }
+        session!!.send(Frame.Binary(true, pending.message.asBinary(cbor)))
       } catch (e: Exception) {
         log.error { "Failed to send message: $e" }
-        delay(200.milliseconds)
-        // Optional: Re-enqueue the message if delivery fails
-        outgoingQueue.send(message)
+        pendingResponsesMutex.withLock {
+          pendingResponses.remove(pending)
+        }
+        pending.responseDeferred.completeExceptionally(e)
       }
     }
   }
 
-  suspend fun enqueueMessage(message: KattyMessage) {
-    outgoingQueue.send(message)
+  suspend fun enqueueMessage(message: KattyMessage): KattyMessage {
+    val pending = PendingMessage(message)
+    pendingResponsesMutex.withLock {
+      pendingResponses.add(pending)
+    }
+    outgoingQueue.send(pending)
+    return try {
+      pending.responseDeferred.await()
+    } finally {
+      pendingResponsesMutex.withLock {
+        pendingResponses.remove(pending)
+      }
+    }
+  }
+
+  suspend fun onResponseReceived(response: KattyMessage) {
+    val pending = pendingResponsesMutex.withLock {
+      if (pendingResponses.isNotEmpty()) pendingResponses.removeAt(0) else null
+    }
+    pending?.responseDeferred?.complete(response)
   }
 
   override fun close() {
