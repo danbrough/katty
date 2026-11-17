@@ -19,9 +19,8 @@ fun demoClientCommand() = basicCommand("client", USAGE) {
   }
 
   fun createWsClient() = WsClient(shellScope, "http://localhost:8080/ws", sendMessage = { message ->
-    this.sendKattyMessage(cbor, message)
-    //this.send(Frame.Binary(fin = true, message.asBinary(cbor)))
-  }) {
+    sendKattyMessage(cbor, message)
+  }) { wsClient ->
     for (frame in incoming) {
       info("received frame: $frame")
 
@@ -34,6 +33,7 @@ fun demoClientCommand() = basicCommand("client", USAGE) {
           val msg = frame.decodeKattyMessage(cbor)
           //val msg = //cbor.decodeFromByteArray<KattyMessage>(frame.data)
           info("received msg: $msg")
+          wsClient.onResponseReceived(msg)
         }
 
         is Frame.Ping -> log.trace { "ping frame" }
