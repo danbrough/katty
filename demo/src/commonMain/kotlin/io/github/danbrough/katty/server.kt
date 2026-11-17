@@ -68,7 +68,7 @@ fun Application.wsShell(
             //val rawBytes = frame.readBytes()
             val msg = frame.decodeKattyMessage(cbor)
             log.debug { "received KattyMessage: $msg" }
-            sendKattyMessage(cbor, StringMessage("Thanks for that message: count: ${count++}"))
+            sendKattyMessage(cbor, StringMessage("Thanks for that message [$msg]: count: ${count++}"))
 
             /*            // Parse CBOR payload into shared common metadata model
                         val incomingMsg: WsMessage = Cbor.decodeFromByteArray<WsMessage>(rawBytes)
