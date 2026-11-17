@@ -2,17 +2,14 @@ package io.github.danbrough.katty.client
 
 import io.github.danbrough.katty.KattyContext
 import io.github.danbrough.katty.messages.KattyMessage
-import io.github.danbrough.katty.messages.asBinary
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.websocket.Frame
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
@@ -22,10 +19,8 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.serialization.cbor.Cbor
 import org.danbrough.klog.logger
 import kotlin.coroutines.CoroutineContext
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -36,9 +31,9 @@ class WsClient(
   val scope: CoroutineScope,
   val url: String,
   override val key: CoroutineContext.Key<*> = WsClient,
-  val cbor: Cbor,
   config: HttpClientConfig<*>.() -> Unit = {},
   val requestBuilder: HttpRequestBuilder.() -> Unit = {},
+  val sendMessage: suspend DefaultClientWebSocketSession.(KattyMessage) -> Unit,
   val sessionHandler: suspend DefaultClientWebSocketSession.(WsClient) -> Unit
 ) : KattyContext {
   companion object : CoroutineContext.Key<WsClient>
@@ -47,7 +42,6 @@ class WsClient(
     install(WebSockets) {
       pingIntervalMillis = 15_000 // Send app-level ping frames every 15s
     }
-
     config()
   }
 
@@ -68,7 +62,6 @@ class WsClient(
   private val pendingResponses = mutableListOf<PendingMessage>()
 
   private var job: Job? = null
-
 
   private fun connect() {
     log.error { "WsClient::connect" }
@@ -114,7 +107,13 @@ class WsClient(
     outgoingQueue.consumeAsFlow().collect { pending ->
       try {
         log.trace { "WsClient::processOutgoingQueue() sending ${pending.message} session: $session" }
-        session!!.send(Frame.Binary(true, pending.message.asBinary(cbor)))
+        var clientSession = session
+        while (clientSession == null) {
+          delay(1.seconds)
+          clientSession = session
+        }
+        clientSession.sendMessage(pending.message)
+        //session!!.send(Frame.Binary(true, pending.message.asBinary(cbor)))
       } catch (e: Exception) {
         log.error { "Failed to send message: $e" }
         pendingResponsesMutex.withLock {

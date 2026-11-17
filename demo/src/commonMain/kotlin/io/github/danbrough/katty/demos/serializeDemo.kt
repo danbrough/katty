@@ -1,9 +1,13 @@
 package io.github.danbrough.katty.demos
 
 import com.github.ajalt.mordant.widgets.HorizontalRule
+import io.github.danbrough.katty.CborFrameCodec
 import io.github.danbrough.katty.KattyShell
 import io.github.danbrough.katty.KattyTerminal
+import io.github.danbrough.katty.StringMessage
+import io.github.danbrough.katty.cbor
 import io.github.danbrough.katty.command.basicCommand
+import io.github.danbrough.katty.json
 import io.github.danbrough.katty.logDemo
 import io.github.danbrough.katty.messages.Data
 import io.github.danbrough.katty.messages.KattyMessage
@@ -26,67 +30,25 @@ val SerializeDemoCommand = basicCommand("serialize", "serialization demo") {
 }
 
 
-/*@Serializable
-abstract class KattyMessage
-
-@Serializable
-@SerialName("OK")
-data object OK : KattyMessage()
-
-
-interface KattyPayload*/
-
-@Serializable
-@SerialName("THANG")
-data class Thang(val name: String) : KattyPayload
-
-/*@Serializable
-@SerialName("DATA")
-data class Data(
-  @Polymorphic val payload: KattyPayload,
-  val id: Int = 2
-) : KattyMessage() {
-  inline fun <reified T : KattyPayload> payloadOrNull(): T? = payload as? T
-
-  inline fun <reified T : KattyPayload> requirePayload(): T =
-    payload as? T
-      ?: error("Expected payload of type ${T::class.simpleName}, but got ${payload::class.simpleName}")
-}*/
-
-/*val kattySerializersModule = SerializersModule {
-  polymorphic(KattyMessage::class) {
-    subclass(OK::class)
-    subclass(Data::class)
-  }
-  polymorphic(KattyPayload::class) {
-    subclass(Thang::class)
-  }
-}*/
-
-val kattySerializersModule = kattySerializersModule().withKattyPayloads(Thang::class)
-val cbor = Cbor {
-  serializersModule = kattySerializersModule
-}
-
-val json = Json {
-  serializersModule = kattySerializersModule
-}
-
-
 fun KattyShell.test() {
 
-  val data = Data(Thang("Hello")).asJson(json)
+  val data = StringMessage("Hello").asJson(json)
   info("data: $data size:${data.length}")
   val message = json.decodeFromString<KattyMessage>(data)
   info("message: $message")
   (this as KattyTerminal).println(HorizontalRule())
 
-  val cData = Data(Thang("Hello")).asBinary(cbor)
+  val cData = StringMessage("Hello").asBinary(cbor)
   info("DATA:cData.size = ${cData.size}")
   val message2 = cbor.decodeFromByteArray<KattyMessage>(cData)
   info("message2: $message2")
   println(HorizontalRule())
-
+  val stringMessage = StringMessage("This is my string message")
+  val bData = CborFrameCodec.encode<KattyMessage>(cbor,stringMessage)
+  info("stringMessage: $stringMessage bData.size = ${bData.size}")
+  val stringMessage2 = CborFrameCodec.decode<KattyMessage>(cbor,bData)
+  info("stringMessage2: $stringMessage2")
+  println(HorizontalRule())
 }
 
 
@@ -98,6 +60,7 @@ fun KattyShell.testOld() {
   println(HorizontalRule())
   val data = OK.asBinary(cbor)
   info("OK:$m  data.size = ${data.size}")
+  println(HorizontalRule())
 }
 
 
@@ -120,7 +83,7 @@ private suspend fun KattyShell.serializeDemo(args: List<String>) {
         info("$data length:${data.length}")*/
 
 
-  }.exceptionOrNull().also {
-    warn("finished message: ${it?.message}")
+  }.exceptionOrNull()?.also {
+    error("finished with error: ${it.message}")
   }
 }

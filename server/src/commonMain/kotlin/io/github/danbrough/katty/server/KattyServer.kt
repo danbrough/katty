@@ -2,7 +2,6 @@ package io.github.danbrough.katty.server
 
 import io.github.danbrough.katty.KattyContext
 import io.github.danbrough.katty.isSingleRun
-import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.application.serverConfig
@@ -13,7 +12,6 @@ import io.ktor.server.engine.ApplicationEngineFactory
 import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
-import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.forwardedheaders.ForwardedHeaders
 import io.ktor.server.routing.IgnoreTrailingSlash
 import io.ktor.server.websocket.WebSockets
@@ -68,10 +66,6 @@ open class KattyServer(
           // Use the first proxy IP in the X-Forwarded-For chain
           useFirstProxy()
         }*/
-      install(ContentNegotiation) {
-        json()
-      }
-
 
       install(WebSockets) {
         pingPeriod = 15.seconds
@@ -79,7 +73,6 @@ open class KattyServer(
         maxFrameSize = Long.MAX_VALUE
         masking = false
       }
-
 
       applicationConfiguration(this@KattyServer)
     }

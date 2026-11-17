@@ -1,7 +1,7 @@
 package io.github.danbrough.katty
 
+import io.github.danbrough.katty.messages.KattyMessage
 import io.github.danbrough.katty.messages.OK
-import io.github.danbrough.katty.messages.asBinary
 import io.github.danbrough.katty.server.KattyServer
 import io.github.danbrough.katty.server.serverCommand
 import io.ktor.server.application.Application
@@ -10,7 +10,6 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.ktor.server.websocket.webSocket
 import io.ktor.websocket.Frame
-import io.ktor.websocket.readBytes
 import io.ktor.websocket.readText
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.currentCoroutineContext
@@ -57,13 +56,19 @@ fun Application.wsShell(
     log.info { "wsShell() new connection .." }
     try {
 
-      send(Frame.Binary(fin = true, OK.asBinary(cbor)))
+
+      sendKattyMessage(cbor, OK)
+      log.trace { "sent ok" }
+      var count = 0
 
       for (frame in incoming) {
         log.trace { "wsShell::received frame: $frame" }
         when (frame) {
           is Frame.Binary -> {
-            val rawBytes = frame.readBytes()
+            //val rawBytes = frame.readBytes()
+            val msg = frame.decodeKattyMessage(cbor)
+            log.debug { "received KattyMessage: $msg" }
+            sendKattyMessage(cbor, StringMessage("Thanks for that message: count: ${count++}"))
 
             /*            // Parse CBOR payload into shared common metadata model
                         val incomingMsg: WsMessage = Cbor.decodeFromByteArray<WsMessage>(rawBytes)
