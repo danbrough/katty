@@ -9,6 +9,7 @@ import io.ktor.server.cio.CIO
 import io.ktor.server.cio.CIOApplicationEngine
 import io.ktor.server.engine.ApplicationEngine
 import io.ktor.server.engine.ApplicationEngineFactory
+import io.ktor.server.engine.BaseApplicationEngine
 import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
@@ -24,6 +25,7 @@ import kotlin.time.Duration.Companion.seconds
 internal val logServer = logger("KATTY_SERVER")
 
 private val log = logServer
+
 
 open class KattyServer(
   val parentContext: CoroutineContext,

@@ -4,6 +4,10 @@ import io.github.danbrough.katty.KattyContext
 import io.github.danbrough.katty.messages.KattyMessage
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
+import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.engine.HttpClientEngineConfig
+import io.ktor.client.engine.HttpClientEngineFactory
+import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocket
@@ -31,14 +35,15 @@ class WsClient(
   val scope: CoroutineScope,
   val url: String,
   override val key: CoroutineContext.Key<*> = WsClient,
-  config: HttpClientConfig<*>.() -> Unit = {},
+  config: HttpClientConfig<HttpClientEngineConfig>.() -> Unit = {},
+  val clientEngine: HttpClientEngineFactory<*> = CIO,
   val requestBuilder: HttpRequestBuilder.() -> Unit = {},
   val sendMessage: suspend DefaultClientWebSocketSession.(KattyMessage) -> Unit,
   val sessionHandler: suspend DefaultClientWebSocketSession.(WsClient) -> Unit
 ) : KattyContext {
   companion object : CoroutineContext.Key<WsClient>
 
-  private val client = HttpClient {
+  private val client = HttpClient(clientEngine) {
     install(WebSockets) {
       pingIntervalMillis = 15_000 // Send app-level ping frames every 15s
     }

@@ -5,11 +5,14 @@ import io.github.danbrough.katty.messages.OK
 import io.github.danbrough.katty.server.KattyServer
 import io.github.danbrough.katty.server.serverCommand
 import io.ktor.server.application.Application
+import io.ktor.server.engine.ApplicationEngineFactory
+import io.ktor.server.engine.BaseApplicationEngine
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.ktor.server.websocket.webSocket
 import io.ktor.websocket.Frame
+import io.ktor.websocket.readBytes
 import io.ktor.websocket.readText
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.currentCoroutineContext
@@ -18,6 +21,12 @@ import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 
 private val log = logDemo
+
+typealias KtorFactory = ApplicationEngineFactory<*, *>
+
+
+
+
 fun demoServerCommand() = serverCommand { args ->
 
   info(
@@ -25,7 +34,7 @@ fun demoServerCommand() = serverCommand { args ->
       starting katty webserver.. args: $args    
   """.trimIndent()
   )
-  KattyServer(Message("The Server Scope") + shellScope.coroutineContext) {
+  KattyServer(Message("The Server Scope") + shellScope.coroutineContext, host = "0.0.0.0") {
 
     wsShell()
     routing {
@@ -57,7 +66,8 @@ fun Application.wsShell(
     try {
 
 
-      sendKattyMessage(cbor, OK)
+      sendMessage(OK)
+
       log.trace { "sent ok" }
       var count = 0
 
@@ -66,9 +76,9 @@ fun Application.wsShell(
         when (frame) {
           is Frame.Binary -> {
             //val rawBytes = frame.readBytes()
-            val msg = frame.decodeKattyMessage(cbor)
+            val msg = CborFrameCodec.decode<KattyMessage>(frame.readBytes())
             log.debug { "received KattyMessage: $msg" }
-            sendKattyMessage(cbor, StringMessage("Thanks for that message [$msg]: count: ${count++}"))
+            sendMessage(StringMessage("Thanks for that message [$msg]: count: ${count++}"))
 
             /*            // Parse CBOR payload into shared common metadata model
                         val incomingMsg: WsMessage = Cbor.decodeFromByteArray<WsMessage>(rawBytes)
@@ -90,7 +100,6 @@ fun Application.wsShell(
             val textMsg = frame.readText()
             log.warn { "Unexpected Text Frame: $textMsg. CBOR requires Binary frames." }
           }
-
           else -> { /* Handle structural frames like Close, Ping, Pong implicitly */
             log.trace { "Received frame: $frame" }
           }

@@ -44,9 +44,9 @@ fun KattyShell.test() {
   info("message2: $message2")
   println(HorizontalRule())
   val stringMessage = StringMessage("This is my string message")
-  val bData = CborFrameCodec.encode<KattyMessage>(cbor,stringMessage)
+  val bData = CborFrameCodec.encode<KattyMessage>(stringMessage)
   info("stringMessage: $stringMessage bData.size = ${bData.size}")
-  val stringMessage2 = CborFrameCodec.decode<KattyMessage>(cbor,bData)
+  val stringMessage2 = CborFrameCodec.decode<KattyMessage>(bData)
   info("stringMessage2: $stringMessage2")
   println(HorizontalRule())
 }

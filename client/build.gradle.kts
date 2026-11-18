@@ -16,7 +16,7 @@ kotlin {
         implementation(libs.ktor.network)
         implementation(libs.ktor.io)
         implementation(libs.ktor.serialization.kotlinx.json)
-        implementation(libs.ktor.serialization.kotlinx.cbor)
+        //implementation(libs.ktor.serialization.kotlinx.cbor)
 
         api(libs.ktor.client.websockets)
         implementation(libs.ktor.client.content.negotiation)
@@ -35,12 +35,6 @@ kotlin {
     jvmMain {
       dependencies {
         implementation(libs.logback.classic)
-      }
-    }
-
-    nativeMain {
-      dependencies {
-        //implementation(libs.kotlincrypto.hash)
       }
     }
   }

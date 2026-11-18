@@ -19,6 +19,8 @@ kotlin {
         implementation(projects.shell)
         implementation(projects.server)
         implementation(projects.client)
+        implementation(libs.ktor.client.cio)
+
         implementation(libs.kotlinx.datetime)
         implementation(libs.kotlinx.io.core)
         implementation(libs.ktoml.core)
@@ -28,6 +30,7 @@ kotlin {
         implementation(libs.kotlinx.serialization.cbor)
         implementation(libs.kotlinx.serialization.json)
         implementation(libs.korlibs.compression)
+        implementation(libs.ktor.server.cio)
 
       }
     }
@@ -35,6 +38,12 @@ kotlin {
     jvmMain {
       dependencies {
         implementation(libs.kotlinx.coroutines.swing)
+      }
+    }
+
+    nativeMain{
+      dependencies {
+        implementation(libs.ktor.client.curl)
       }
     }
   }

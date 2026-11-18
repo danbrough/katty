@@ -4,11 +4,24 @@ import io.github.danbrough.katty.client.WsClient
 import io.github.danbrough.katty.command.basicCommand
 import io.github.danbrough.katty.messages.KattyMessage
 import io.github.danbrough.katty.messages.asBinary
+import io.ktor.client.HttpClientConfig
+import io.ktor.client.engine.HttpClientEngineConfig
+import io.ktor.client.engine.HttpClientEngineFactory
+import io.ktor.websocket.DefaultWebSocketSession
 import io.ktor.websocket.Frame
+import io.ktor.websocket.readBytes
 import io.ktor.websocket.readText
 import kotlinx.serialization.decodeFromByteArray
+import kotlinx.serialization.encodeToByteArray
 
 private val log = logDemo
+
+
+suspend fun DefaultWebSocketSession.sendMessage(m: KattyMessage) =
+  send(Frame.Binary(fin = true, CborFrameCodec.encode(m)))
+
+expect fun ktorClientFactory(): HttpClientEngineFactory<*>
+expect fun HttpClientConfig<HttpClientEngineConfig>.clientConfig()
 
 private const val USAGE = "client [start|stop|message]"
 fun demoClientCommand() = basicCommand("client", USAGE) {
@@ -18,9 +31,13 @@ fun demoClientCommand() = basicCommand("client", USAGE) {
     return@basicCommand
   }
 
-  fun createWsClient() = WsClient(shellScope, "http://localhost:8080/ws", sendMessage = { message ->
-    sendKattyMessage(cbor, message)
-  }) { wsClient ->
+  fun createWsClient(url: String = "http://localhost:8080/ws") = WsClient(
+    shellScope, url,
+    config = { clientConfig() },
+    clientEngine = ktorClientFactory(),
+    sendMessage = { message ->
+      sendMessage(message)
+    }) { wsClient ->
     for (frame in incoming) {
       info("received frame: $frame")
 
@@ -30,7 +47,7 @@ fun demoClientCommand() = basicCommand("client", USAGE) {
         }
 
         is Frame.Binary -> {
-          val msg = frame.decodeKattyMessage(cbor)
+          val msg = CborFrameCodec.decode<KattyMessage>(frame.data)
           //val msg = //cbor.decodeFromByteArray<KattyMessage>(frame.data)
           info("received msg: $msg")
           wsClient.onResponseReceived(msg)
@@ -45,7 +62,12 @@ fun demoClientCommand() = basicCommand("client", USAGE) {
   }
 
   when (cmd) {
-    "start" -> shellContext(WsClient, ::createWsClient)
+    "start" -> {
+      val url = args.getOrNull(1) ?: "http://localhost:8080/ws"
+      shellContext(WsClient) {
+        createWsClient(url)
+      }
+    }
 
     "stop" -> shellContextRemove(WsClient)
 
