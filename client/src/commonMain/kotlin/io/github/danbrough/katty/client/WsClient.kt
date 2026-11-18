@@ -4,7 +4,6 @@ import io.github.danbrough.katty.KattyContext
 import io.github.danbrough.katty.messages.KattyMessage
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
-import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.HttpClientEngineConfig
 import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.client.engine.cio.CIO
@@ -25,6 +24,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.danbrough.klog.logger
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -113,8 +113,10 @@ class WsClient(
       try {
         log.trace { "WsClient::processOutgoingQueue() sending ${pending.message} session: $session" }
         var clientSession = session
+        var delayCount = 0
         while (clientSession == null) {
-          delay(1.seconds)
+          delay(kotlin.math.ln(delayCount.toFloat()).toInt().milliseconds)
+          delayCount++
           clientSession = session
         }
         clientSession.sendMessage(pending.message)

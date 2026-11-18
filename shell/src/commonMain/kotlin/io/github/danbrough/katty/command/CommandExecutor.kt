@@ -25,7 +25,7 @@ open class CommandExecutor(initialContext: CoroutineContext = EmptyCoroutineCont
    */
   fun execute(
     args: List<String>,
-    singleRun:Boolean = false,
+    singleRun: Boolean = false,
     command: suspend () -> Unit
   ): Job {
 
@@ -55,8 +55,7 @@ open class CommandExecutor(initialContext: CoroutineContext = EmptyCoroutineCont
     //   log.trace { "CommandExecutor[${KattyUtils.threadName()}]:: added job: $job to jobs. jobCount: ${jobs.size}" }
     job.invokeOnCompletion {
       jobs.remove(job)
-      log.trace { "CommandExecutor[${KattyUtils.threadName()}]::removed job $job from jobs. jobCount: ${jobs.size} supervisorJob.active=:${supervisorJob.isActive}" }
-      //commandContext.close()
+      //log.trace { "CommandExecutor[${KattyUtils.threadName()}]::removed job $job from jobs. jobCount: ${jobs.size} supervisorJob.active=:${supervisorJob.isActive}" }
     }
 
     log.trace { "CommandExecutor::execute [${args.joinToString(" ")}] done" }

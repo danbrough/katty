@@ -17,19 +17,12 @@ kotlinx-atomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "kotli
 korlibs-compression = "6.0.0"
 kotlinx-atomicfu = "0.33.0"
 kotlin = "2.4.21"
-##  ⬆ = "2.5.0-Beta1"
-##  ⬆ = "2.5.0-Beta2"
-##  ⬆ = "2.5.0-RC"
 # https://github.com/Kotlin/kotlinx-io
 kotlinx-io = "0.9.3"
 # https://github.com/vanniktech/gradle-maven-publish-plugin
 publish = "0.37.0"
 
 agp = "9.5.1"
-##⬆= "9.6.0-alpha01"
-##⬆= "9.6.0-alpha02"
-##⬆= "9.6.0-alpha03"
-##⬆= "9.6.0-alpha04"
 
 # https://github.com/Kotlin/dokka
 dokka = "2.3.0"
@@ -42,7 +35,6 @@ shadow = "9.6.1"
 # https://github.com/ajalt/mordant
 mordant = "3.1.1"
 datetime = "0.8.0"
-##    ⬆ = "0.8.0-0.6.x-compat"
 clikt = "5.1.0"
 # https://github.com/orchestr7/ktoml
 ktoml = "0.7.2"

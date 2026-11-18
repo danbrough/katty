@@ -5,7 +5,6 @@ import io.github.danbrough.katty.messages.SuccessMessage
 import io.github.danbrough.katty.server.KattyServer
 import io.github.danbrough.katty.server.serverCommand
 import io.ktor.server.application.Application
-import io.ktor.server.engine.ApplicationEngineFactory
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
@@ -21,18 +20,9 @@ import kotlin.time.Clock
 
 private val log = logDemo
 
-typealias KtorFactory = ApplicationEngineFactory<*, *>
 
-
-fun demoServerCommand() = serverCommand { args ->
-
-  info(
-    """
-      starting katty webserver.. args: $args    
-  """.trimIndent()
-  )
-  KattyServer(Message("The Server Scope") + shellScope.coroutineContext, host = "0.0.0.0") {
-
+suspend fun ShellContext.serverCreate() =
+  KattyServer(currentCoroutineContext() + scope.coroutineContext, host = "0.0.0.0") {
     wsShell()
     routing {
       get("/") {
@@ -50,10 +40,9 @@ fun demoServerCommand() = serverCommand { args ->
         }
       }
     }
-  }
+  }.also { it.start() }
 
-}
-
+fun demoServerCommand() = serverCommand()
 
 fun Application.wsShell(
   path: String = KattyServer.DEFAULT_WEBSOCKET_PATH

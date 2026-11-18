@@ -23,12 +23,18 @@ open class ShellContext(initialContext: CoroutineContext = EmptyCoroutineContext
   open val supervisorJob: CompletableJob = SupervisorJob()
   open val scope: CoroutineScope = CoroutineScope(supervisorJob + this + initialContext)
 
-  private val context: ConcurrentMap<CoroutineContext.Key<*>, CoroutineContext.Element> =
+  private val context: ConcurrentMap<CoroutineContext.Key<*>, Any> =
     ConcurrentMap()
-
 
   suspend fun addToContext(e: CoroutineContext.Element) {
     context.put(e.key, e)
+  }
+
+  suspend fun <E : CoroutineContext.Element> addToContext(
+    key: CoroutineContext.Key<E>,
+    provider: suspend () -> E
+  ) {
+    context.put(key, ContextProvider(provider))
   }
 
   suspend fun removeFromContext(key: CoroutineContext.Key<*>) {
@@ -42,8 +48,14 @@ open class ShellContext(initialContext: CoroutineContext = EmptyCoroutineContext
   ): E = context.getOrPut(key, creator) as E
 
   @Suppress("UNCHECKED_CAST")
-  suspend fun <E : CoroutineContext.Element> getFromContext(key: CoroutineContext.Key<E>): E? =
-    context[key] as? E
+  suspend fun <E : CoroutineContext.Element> getFromContextOrNull(key: CoroutineContext.Key<E>): E? =
+    context[key]?.let {
+      it as? E ?: (it as ContextProvider<E>).provide()
+    }
+
+  @Suppress("UNCHECKED_CAST")
+  suspend inline fun <reified E : CoroutineContext.Element> getFromContext(key: CoroutineContext.Key<E>): E =
+    getFromContextOrNull(key) ?: KattyError.errorMissingContext(key)
 
   /**
    * Close the AutoClosable elements of the coroutine context
@@ -55,10 +67,10 @@ open class ShellContext(initialContext: CoroutineContext = EmptyCoroutineContext
 
 suspend fun shellContextOrNull(): ShellContext? = currentCoroutineContext()[ShellContext]
 
-suspend fun shellContext(): ShellContext =
-  shellContextOrNull() ?: KattyError.errorMissingContext<ShellContext>()
+suspend inline fun shellContext(): ShellContext =
+  shellContextOrNull() ?: KattyError.errorMissingContext(ShellContext)
 
-suspend fun <E : CoroutineContext.Element> shellContext(key: CoroutineContext.Key<E>): E? =
+suspend inline fun <reified E : CoroutineContext.Element> shellContext(key: CoroutineContext.Key<E>): E? =
   shellContextOrNull()?.getFromContext(key)
 
 suspend fun <E : CoroutineContext.Element> shellContext(
@@ -80,10 +92,9 @@ object SingleRun : CoroutineContext.Element, CoroutineContext.Key<SingleRun> {
 
 suspend fun isSingleRun() = currentCoroutineContext()[SingleRun] != null
 
-class ContextProvider<T : CoroutineContext.Element>(
-  override val key: CoroutineContext.Key<T>,
+private class ContextProvider<T : CoroutineContext.Element>(
   val creator: suspend () -> T
-) : AutoCloseable, CoroutineContext.Element {
+) : AutoCloseable {
   private val lock = Mutex()
   private lateinit var t: T
 
@@ -110,9 +121,6 @@ suspend fun <T : CoroutineContext.Element> shellContextRegisterProvider(
   key: CoroutineContext.Key<T>,
   creator: suspend () -> T
 ) {
-  shellContext().addToContext(ContextProvider(key, creator))
+  shellContext().addToContext(key, creator)
 }
-
-suspend fun <T : CoroutineContext.Element> shellContextGetOrNull(key: CoroutineContext.Key<ContextProvider<T>>): T? =
-  shellContext().getFromContext(key)?.provide()
 

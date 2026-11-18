@@ -26,6 +26,8 @@ data class ResultMessage(val success: Boolean, val message: String? = null) : Ka
 
 val SuccessMessage = ResultMessage(true)
 
+class MessageCodec(val encode: (KattyMessage) -> ByteArray, val decode: (ByteArray) -> KattyMessage)
+
 interface KattyPayload
 
 @Serializable

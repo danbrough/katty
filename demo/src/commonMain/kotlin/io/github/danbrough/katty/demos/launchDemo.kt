@@ -6,8 +6,6 @@ import io.github.danbrough.katty.command.basicCommand
 import io.github.danbrough.katty.isSingleRun
 import io.github.danbrough.katty.kattyShell
 import io.github.danbrough.katty.logDemo
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.seconds
@@ -18,10 +16,9 @@ val LaunchDemoCommand = basicCommand("launch", "launches a coroutine") {
 }
 
 
-
 private suspend fun KattyShell.launchDemo(args: List<String>) {
   info("running launch demo .. singleRun:${isSingleRun()}")
-  val shellScope = kattyShell().shellScope
+  val shellScope = kattyShell().shellContext.scope
   muted("shellScope: $shellScope")
   val job = shellScope.launch(KattyUtils.ioDispatcher) {
     info("started launched job ..")

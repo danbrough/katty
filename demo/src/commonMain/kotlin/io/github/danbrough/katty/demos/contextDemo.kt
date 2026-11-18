@@ -1,11 +1,11 @@
 package io.github.danbrough.katty.demos
 
-import io.github.danbrough.katty.ContextProvider
 import io.github.danbrough.katty.KattyContext
+import io.github.danbrough.katty.KattyError
 import io.github.danbrough.katty.command.basicCommand
 import io.github.danbrough.katty.logDemo
 import io.github.danbrough.katty.shellContext
-import io.github.danbrough.katty.shellContextGetOrNull
+import io.github.danbrough.katty.shellContextRegisterProvider
 import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
 
@@ -32,13 +32,23 @@ class MySpecialContext(override val key: CoroutineContext.Key<*> = MySpecialCont
   var count = 0
 }
 
-val mySpecialContextProvider = ContextProvider(MySpecialContext) {
+val mySpecialContextProvider = {
   MySpecialContext()
 }
 
 
+var firstTime = true
+
 val ContextDemo = basicCommand("context", "Context demos") {
   val args = it.drop(1)
+
+  if (firstTime) {
+    shellContextRegisterProvider(MySpecialContext) {
+      log.error { "CREATING MY SPECIAL CONTEXT" }
+      MySpecialContext()
+    }
+    firstTime = false
+  }
 
   val shell = shellContext()
 
@@ -49,7 +59,17 @@ val ContextDemo = basicCommand("context", "Context demos") {
   log.debug { "shellContext: $shell" }
   info("stuff: $stuff")
 
-  val provider = shellContextGetOrNull<ContextProvider<MySpecialContext>>(MySpecialContext)
+
+
+  when (args.getOrNull(0)) {
+    "test" -> {
+      val myContext = shellContext(MySpecialContext) ?: KattyError.errorMissingContext(
+        MySpecialContext
+      )
+      info("my special context.count = ${myContext.count}")
+      myContext.count++
+    }
+  }
 
   success("ran context demo")
 }

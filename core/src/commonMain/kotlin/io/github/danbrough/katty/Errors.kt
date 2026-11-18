@@ -20,7 +20,7 @@ sealed class KattyError(override val message: String) : Exception(message) {
 
     fun errorExit(): Nothing = throw ExitException()
 
-    inline fun <reified C : CoroutineContext> errorMissingContext(message: String = "Missing context: ${C::class.simpleName}"): Nothing =
-      throw MissingContextException(message, C::class)
+    inline fun <reified E : CoroutineContext.Element> errorMissingContext(key: CoroutineContext.Key<E>): Nothing =
+      throw MissingContextException("Missing key: $key", E::class)
   }
 }

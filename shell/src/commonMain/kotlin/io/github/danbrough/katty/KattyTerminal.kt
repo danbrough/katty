@@ -16,7 +16,6 @@ import io.github.danbrough.katty.command.CommandExecutor
 import io.github.danbrough.katty.command.CommandHandler
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
 import kotlinx.io.SystemLineSeparator
@@ -35,8 +34,9 @@ open class KattyTerminal(
 
   val executor: CommandExecutor = CommandExecutor(this)
 
-  override val shellScope: CoroutineScope
-    get() = executor.scope
+  override val shellContext: ShellContext
+    get() = executor
+
 
   init {
 
@@ -75,7 +75,7 @@ open class KattyTerminal(
   }
 
   override suspend fun runCommand(args: List<String>, singleCommandRun: Boolean) {
-    executor.execute(args,singleCommandRun) {
+    executor.execute(args, singleCommandRun) {
       cursorPos = 0
       currentLine.clear()
       println()
