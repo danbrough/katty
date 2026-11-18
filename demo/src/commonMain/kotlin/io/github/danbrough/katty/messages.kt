@@ -13,10 +13,15 @@ import kotlinx.serialization.json.Json
 @Serializable
 data class StringMessage(val msg: String) : KattyMessage()
 
+
+
+
+fun demoSerializersModule() = kattySerializersModule<KattyMessage>().withKattyMessages(StringMessage::class)
+
 val cbor = Cbor {
-  serializersModule = kattySerializersModule<KattyMessage>().withKattyMessages(StringMessage::class)
+  serializersModule = demoSerializersModule()
 }
 
 val json = Json {
-  serializersModule = kattySerializersModule<KattyMessage>().withKattyMessages(StringMessage::class)
+  serializersModule = demoSerializersModule()
 }

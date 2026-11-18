@@ -1,12 +1,11 @@
 package io.github.danbrough.katty
 
 import io.github.danbrough.katty.messages.KattyMessage
-import io.github.danbrough.katty.messages.OK
+import io.github.danbrough.katty.messages.SuccessMessage
 import io.github.danbrough.katty.server.KattyServer
 import io.github.danbrough.katty.server.serverCommand
 import io.ktor.server.application.Application
 import io.ktor.server.engine.ApplicationEngineFactory
-import io.ktor.server.engine.BaseApplicationEngine
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
@@ -23,8 +22,6 @@ import kotlin.time.Clock
 private val log = logDemo
 
 typealias KtorFactory = ApplicationEngineFactory<*, *>
-
-
 
 
 fun demoServerCommand() = serverCommand { args ->
@@ -66,7 +63,7 @@ fun Application.wsShell(
     try {
 
 
-      sendMessage(OK)
+      sendMessage(SuccessMessage)
 
       log.trace { "sent ok" }
       var count = 0
@@ -100,6 +97,7 @@ fun Application.wsShell(
             val textMsg = frame.readText()
             log.warn { "Unexpected Text Frame: $textMsg. CBOR requires Binary frames." }
           }
+
           else -> { /* Handle structural frames like Close, Ping, Pong implicitly */
             log.trace { "Received frame: $frame" }
           }

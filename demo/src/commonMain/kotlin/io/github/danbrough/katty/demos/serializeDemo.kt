@@ -9,19 +9,11 @@ import io.github.danbrough.katty.cbor
 import io.github.danbrough.katty.command.basicCommand
 import io.github.danbrough.katty.json
 import io.github.danbrough.katty.logDemo
-import io.github.danbrough.katty.messages.Data
 import io.github.danbrough.katty.messages.KattyMessage
-import io.github.danbrough.katty.messages.KattyPayload
-import io.github.danbrough.katty.messages.OK
+import io.github.danbrough.katty.messages.SuccessMessage
 import io.github.danbrough.katty.messages.asBinary
 import io.github.danbrough.katty.messages.asJson
-import io.github.danbrough.katty.messages.kattySerializersModule
-import io.github.danbrough.katty.messages.withKattyPayloads
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
-import kotlinx.serialization.json.Json
 
 private val log = logDemo
 
@@ -53,12 +45,12 @@ fun KattyShell.test() {
 
 
 fun KattyShell.testOld() {
-  val m = OK.asJson(json)
+  val m = SuccessMessage.asJson(json)
   info("OK:$m  m.size = ${m.length}")
   val ok = json.decodeFromString<KattyMessage>(m)
   success("got ok: $ok")
   println(HorizontalRule())
-  val data = OK.asBinary(cbor)
+  val data = SuccessMessage.asBinary(cbor)
   info("OK:$m  data.size = ${data.size}")
   println(HorizontalRule())
 }

@@ -6,6 +6,8 @@ import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -15,6 +17,7 @@ import kotlin.coroutines.EmptyCoroutineContext
  */
 open class ShellContext(initialContext: CoroutineContext = EmptyCoroutineContext) : KattyContext {
   override val key: CoroutineContext.Key<*> = ShellContext
+
   companion object : CoroutineContext.Key<ShellContext>
 
   open val supervisorJob: CompletableJob = SupervisorJob()
@@ -76,3 +79,40 @@ object SingleRun : CoroutineContext.Element, CoroutineContext.Key<SingleRun> {
 }
 
 suspend fun isSingleRun() = currentCoroutineContext()[SingleRun] != null
+
+class ContextProvider<T : CoroutineContext.Element>(
+  override val key: CoroutineContext.Key<T>,
+  val creator: suspend () -> T
+) : AutoCloseable, CoroutineContext.Element {
+  private val lock = Mutex()
+  private lateinit var t: T
+
+  suspend fun provide(): T {
+    if (::t.isInitialized) return t
+    lock.withLock {
+      if (::t.isInitialized) return t
+      t = creator()
+    }
+    return t
+  }
+
+  override fun close() {
+    if (::t.isInitialized) {
+      t.also {
+        if (it is AutoCloseable)
+          it.close()
+      }
+    }
+  }
+}
+
+suspend fun <T : CoroutineContext.Element> shellContextRegisterProvider(
+  key: CoroutineContext.Key<T>,
+  creator: suspend () -> T
+) {
+  shellContext().addToContext(ContextProvider(key, creator))
+}
+
+suspend fun <T : CoroutineContext.Element> shellContextGetOrNull(key: CoroutineContext.Key<ContextProvider<T>>): T? =
+  shellContext().getFromContext(key)?.provide()
+

@@ -19,9 +19,12 @@ import kotlin.reflect.KClass
 @Serializable
 abstract class KattyMessage
 
+
+@SerialName("RESULT")
 @Serializable
-@SerialName("OK")
-data object OK : KattyMessage()
+data class ResultMessage(val success: Boolean, val message: String? = null) : KattyMessage()
+
+val SuccessMessage = ResultMessage(true)
 
 interface KattyPayload
 
@@ -40,7 +43,7 @@ data class Data(
 inline fun <reified T : KattyMessage> kattySerializersModule(messages: List<KClass<out T>> = emptyList()) =
   SerializersModule {
     polymorphic(KattyMessage::class) {
-      subclass(OK::class)
+      subclass(ResultMessage::class)
       subclass(Data::class)
       for (message in messages) {
         @Suppress("UNCHECKED_CAST")
