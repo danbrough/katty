@@ -25,5 +25,6 @@ interface CommandHandler {
    * Return the string length of the prompt and the formatted prompt itself
    */
   fun prompt(): Pair<Int, String> = DEFAULT_PROMPT_STRLEN to DEFAULT_PROMPT
+
 }
 

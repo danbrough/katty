@@ -62,13 +62,15 @@ open class CommandExecutor() : ShellContext() {
   suspend fun shutdown() {
     log.trace { "CommandExecutor::shutdown() ${KattyUtils.threadName()} " }
     close()
-    supervisorJob.join()
+    //log.trace { "CommandExecutor::supervisorJob.join()" }
+    //supervisorJob.join()
     log.trace { "CommandExecutor::shutdown complete" }
   }
 
   override fun close() {
     log.trace { "CommandExecutor::close()" }
     super.close()
+    log.trace { "CommandExecutor::supervisorJob.complete()" }
     supervisorJob.complete()
     log.trace { "CommandExecutor::close complete" }
   }

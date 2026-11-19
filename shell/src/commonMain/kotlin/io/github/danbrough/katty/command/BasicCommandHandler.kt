@@ -35,9 +35,12 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
     }
   }
 
+  suspend fun initialize() {
+    commands.values.forEach { it.initialize() }
+  }
+
   override suspend fun runCommand(
-    shell: KattyShell,
-    args: List<String>
+    shell: KattyShell, args: List<String>
   ) {
     val cmdName = args.firstOrNull()?.trim() ?: return showHelp(shell)
 

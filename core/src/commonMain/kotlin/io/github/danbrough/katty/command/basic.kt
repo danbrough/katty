@@ -1,9 +1,10 @@
 package io.github.danbrough.katty.command
 
 import io.github.danbrough.katty.KattyShell
-import io.github.danbrough.katty.ShellContext
 
 open class BaseCommand<A : Any, R : Any>(private val job: (suspend KattyShell.(arg: A) -> R)? = null) {
+
+  open suspend fun initialize() = Unit
   open suspend operator fun invoke(shell: KattyShell, a: A): R =
     job?.invoke(shell, a) ?: error("no job provided")
 }
@@ -12,13 +13,13 @@ typealias BasicCommandJob = suspend KattyShell.(List<String>) -> Unit
 
 
 open class BasicCommand(
-  private val helpText: String? = null, private val commandJob: BasicCommandJob? = null
+  private val helpText: String? = null, commandJob: BasicCommandJob? = null
 ) : BaseCommand<List<String>, Unit>(commandJob) {
 
   /**
    * Provide a description about this command
    */
-  fun helpText(): String? = helpText
+  open fun helpText(): String? = helpText
 
 }
 

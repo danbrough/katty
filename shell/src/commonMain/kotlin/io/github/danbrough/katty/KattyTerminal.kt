@@ -12,6 +12,7 @@ import com.github.ajalt.mordant.rendering.Widget
 import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.widgets.Caption
 import com.github.ajalt.mordant.widgets.HorizontalRule
+import io.github.danbrough.katty.command.BasicCommandHandler
 import io.github.danbrough.katty.command.CommandExecutor
 import io.github.danbrough.katty.command.CommandHandler
 import kotlinx.coroutines.CancellationException
@@ -205,8 +206,11 @@ open class KattyTerminal(
         }
       }.exceptionOrNull()?.also {
         if (it is KattyError.ExitException) {
-          log.info { "got an exit exception .. current job: ${executor.currentJob}" }
-          if (executor.cancelCurrentJob()) continue
+          log.info { "KattyTerminal::got an exit exception .. current job: ${executor.currentJob}" }
+          if (executor.cancelCurrentJob()) {
+            log.info { "KattyTerminal::executor.cancelCurrentJob() succeeded" }
+            continue
+          }
         }
         throw it
       }
@@ -253,7 +257,7 @@ open class KattyTerminal(
   }.exceptionOrNull().also { err ->
     when (err) {
       is CancellationException, is KattyError.ExitException -> {
-        log.trace { "cancelled or exited: ${err.message}" }
+        log.trace { "KattyTerminal::cancelled or exited: ${err.message}" }
       }
 
       null -> {}
@@ -294,22 +298,26 @@ open class KattyTerminal(
 
     val interactive = removeArgIf("-i") || args.isEmpty()
     log.trace { "interactive: $interactive args.count: ${args.size}" }
+    shellContext.addToContext(this@KattyTerminal)
 
-    shellContext.addToContext(this)
+    withContext(shellContext) {
+      (commandHandler as? BasicCommandHandler)?.initialize()
 
-
-    //withContext(CoroutineName("KattyTerminal") + this@KattyTerminal + executor) {
-
-    if (args.isNotEmpty()) {
-      log.trace { "running command: $args" }
-      withContext(SingleRun) {
-        runCommand(args = args, singleCommandRun = true)
+      commandRegistry.values.forEach {
+        it.initialize()
       }
+
+      if (args.isNotEmpty()) {
+        log.trace { "running command: $args" }
+        withContext(SingleRun) {
+          runCommand(args = args, singleCommandRun = true)
+        }
+      }
+      if (interactive)
+        runLoop()
+      else
+        nonInteractiveCmdLoop()
     }
-    if (interactive)
-      runLoop()
-    else
-      nonInteractiveCmdLoop()
   }
   //}
 }
