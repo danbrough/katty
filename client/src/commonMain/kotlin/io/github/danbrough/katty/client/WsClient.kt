@@ -7,7 +7,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngineConfig
 import io.ktor.client.engine.HttpClientEngineFactory
-import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocket
@@ -33,13 +32,15 @@ import kotlin.time.Duration.Companion.seconds
 internal val logClient = logger("KATTY_CLIENT")
 private val log = logClient
 
+//expect fun HttpClientConfig<HttpClientEngineConfig>.clientConfig()
+
 class WsClient(
   val scope: CoroutineScope,
   val url: String,
   override val key: CoroutineContext.Key<*> = WsClient,
   val codec: MessageCodec,
-  config: HttpClientConfig<HttpClientEngineConfig>.() -> Unit = {},
-  val clientEngine: HttpClientEngineFactory<*> = CIO,
+  val clientEngine: HttpClientEngineFactory<*>,
+  clientConfig: HttpClientConfig<HttpClientEngineConfig>.() -> Unit = {},
   val requestBuilder: HttpRequestBuilder.() -> Unit = {},
   val sessionHandler: suspend DefaultClientWebSocketSession.(WsClient) -> Unit
 ) : KattyContext {
@@ -49,7 +50,8 @@ class WsClient(
     install(WebSockets) {
       pingIntervalMillis = 15_000 // Send app-level ping frames every 15s
     }
-    config()
+
+    clientConfig()
   }
 
   private var session: DefaultClientWebSocketSession? = null
@@ -61,8 +63,7 @@ class WsClient(
 
   // 1. Create a backed buffer (queue) for outgoing messages
   private val outgoingQueue = Channel<PendingMessage>(
-    capacity = 10,
-    onBufferOverflow = BufferOverflow.SUSPEND
+    capacity = 10, onBufferOverflow = BufferOverflow.SUSPEND
   )
 
   private val pendingResponsesMutex = Mutex()
@@ -92,7 +93,7 @@ class WsClient(
             sessionHandler(this@WsClient)
           }
         } catch (e: Throwable) {
-          println("WebSocket Error: ${e.message}")
+          println("WebSocket Error: ${e.message} - ${e.stackTraceToString()}")
           if (isActive) {
             delay(5.seconds)
             log.debug { "WsClient::reconnecting .." }

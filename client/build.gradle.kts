@@ -23,7 +23,7 @@ kotlin {
 
         //implementation("io.ktor:ktor-server-forwarded-header:3.6.0")
         implementation(libs.ktor.client.auth)
-        implementation(libs.ktor.client.cio)
+
         implementation(libs.ktor.http)
         //implementation(libs.kotlincrypto.md)
         implementation(libs.kotlincrypto.sha2)
@@ -34,6 +34,7 @@ kotlin {
 
     jvmMain {
       dependencies {
+        implementation(libs.ktor.client.cio)
         implementation(libs.logback.classic)
       }
     }
