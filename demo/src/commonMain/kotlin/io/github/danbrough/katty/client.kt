@@ -33,9 +33,8 @@ fun demoClientCommand() = basicCommand("client", USAGE) {
     url,
     config = { clientConfig() },
     clientEngine = ktorClientFactory(),
-    sendMessage = { message ->
-      sendMessage(message)
-    }) { wsClient ->
+    codec = CborFrameCodec,
+  ) { wsClient ->
     for (frame in incoming) {
       info("received frame: $frame")
 
@@ -46,7 +45,6 @@ fun demoClientCommand() = basicCommand("client", USAGE) {
 
         is Frame.Binary -> {
           val msg = CborFrameCodec.decode<KattyMessage>(frame.data)
-          //val msg = //cbor.decodeFromByteArray<KattyMessage>(frame.data)
           info("received msg: $msg")
           wsClient.onResponseReceived(msg)
         }

@@ -19,14 +19,16 @@ import kotlin.reflect.KClass
 @Serializable
 abstract class KattyMessage
 
-
 @SerialName("RESULT")
 @Serializable
 data class ResultMessage(val success: Boolean, val message: String? = null) : KattyMessage()
 
 val SuccessMessage = ResultMessage(true)
 
-class MessageCodec(val encode: (KattyMessage) -> ByteArray, val decode: (ByteArray) -> KattyMessage)
+interface MessageCodec {
+  fun encode(message: KattyMessage): ByteArray
+  fun decode(data: ByteArray): KattyMessage
+}
 
 interface KattyPayload
 
@@ -48,8 +50,7 @@ inline fun <reified T : KattyMessage> kattySerializersModule(messages: List<KCla
       subclass(ResultMessage::class)
       subclass(Data::class)
       for (message in messages) {
-        @Suppress("UNCHECKED_CAST")
-        subclass(message as KClass<KattyMessage>, message.serializer())
+        @Suppress("UNCHECKED_CAST") subclass(message as KClass<KattyMessage>, message.serializer())
       }
     }
     polymorphic(KattyPayload::class) {}
@@ -60,8 +61,7 @@ inline fun <reified T : KattyMessage> SerializersModule.withKattyMessages(vararg
   this + SerializersModule {
     polymorphic(KattyMessage::class) {
       messages.forEach {
-        @Suppress("UNCHECKED_CAST")
-        subclass(it as KClass<KattyMessage>, it.serializer())
+        @Suppress("UNCHECKED_CAST") subclass(it as KClass<KattyMessage>, it.serializer())
       }
     }
   }
@@ -71,8 +71,7 @@ inline fun <reified P : KattyPayload> SerializersModule.withKattyPayloads(vararg
   this + SerializersModule {
     polymorphic(KattyPayload::class) {
       payloads.forEach {
-        @Suppress("UNCHECKED_CAST")
-        subclass(it as KClass<KattyPayload>, it.serializer())
+        @Suppress("UNCHECKED_CAST") subclass(it as KClass<KattyPayload>, it.serializer())
       }
     }
   }

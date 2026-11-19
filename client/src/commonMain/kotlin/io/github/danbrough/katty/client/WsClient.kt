@@ -2,6 +2,7 @@ package io.github.danbrough.katty.client
 
 import io.github.danbrough.katty.KattyContext
 import io.github.danbrough.katty.messages.KattyMessage
+import io.github.danbrough.katty.messages.MessageCodec
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngineConfig
@@ -11,6 +12,7 @@ import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.websocket.Frame
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -35,10 +37,10 @@ class WsClient(
   val scope: CoroutineScope,
   val url: String,
   override val key: CoroutineContext.Key<*> = WsClient,
+  val codec: MessageCodec,
   config: HttpClientConfig<HttpClientEngineConfig>.() -> Unit = {},
   val clientEngine: HttpClientEngineFactory<*> = CIO,
   val requestBuilder: HttpRequestBuilder.() -> Unit = {},
-  val sendMessage: suspend DefaultClientWebSocketSession.(KattyMessage) -> Unit,
   val sessionHandler: suspend DefaultClientWebSocketSession.(WsClient) -> Unit
 ) : KattyContext {
   companion object : CoroutineContext.Key<WsClient>
@@ -119,7 +121,9 @@ class WsClient(
           delayCount++
           clientSession = session
         }
-        clientSession.sendMessage(pending.message)
+
+        clientSession.send(Frame.Binary(fin = true, codec.encode(pending.message)))
+
         //session!!.send(Frame.Binary(true, pending.message.asBinary(cbor)))
       } catch (e: Exception) {
         log.error { "Failed to send message: $e" }

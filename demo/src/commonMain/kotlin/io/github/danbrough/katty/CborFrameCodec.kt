@@ -1,12 +1,13 @@
 package io.github.danbrough.katty// src/commonMain/kotlin/CborFrameCodec.kt
+import io.github.danbrough.katty.messages.KattyMessage
+import io.github.danbrough.katty.messages.MessageCodec
 import korlibs.io.compression.compress
 import korlibs.io.compression.deflate.Deflate
 import korlibs.io.compression.uncompress
-import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 
-object CborFrameCodec {
+object CborFrameCodec : MessageCodec {
 
 
   const val FLAG_RAW: Byte = 0x00
@@ -56,6 +57,10 @@ object CborFrameCodec {
 
     return cbor.decodeFromByteArray(cborBytes)
   }
+
+  override fun encode(message: KattyMessage): ByteArray = encode<KattyMessage>(message)
+  override fun decode(data: ByteArray): KattyMessage = decode<KattyMessage>(data)
 }
+
 
 
