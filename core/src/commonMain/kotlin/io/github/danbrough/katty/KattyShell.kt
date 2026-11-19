@@ -1,6 +1,5 @@
 package io.github.danbrough.katty
 
-import kotlinx.coroutines.currentCoroutineContext
 import kotlin.coroutines.CoroutineContext
 
 
@@ -28,7 +27,7 @@ interface KattyShell : KattyContext {
 
 object KattyShellKey : CoroutineContext.Key<KattyShell>
 
-suspend fun kattyShellOrNull(): KattyShell? = currentCoroutineContext()[KattyShellKey]
+suspend fun kattyShellOrNull(): KattyShell? = shellContext(KattyShellKey)
 suspend fun kattyShell(): KattyShell = kattyShellOrNull() ?: error("No KattyShell in context")
 
 abstract class AbstractKattyShell : KattyShell {

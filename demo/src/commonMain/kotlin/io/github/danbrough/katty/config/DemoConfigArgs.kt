@@ -1,6 +1,5 @@
 package io.github.danbrough.katty.config
 
-import com.akuleshov7.ktoml.Toml
 import com.akuleshov7.ktoml.TomlInputConfig
 import com.akuleshov7.ktoml.parsers.TomlParser
 import com.akuleshov7.ktoml.tree.nodes.TomlArrayOfTablesElement
@@ -11,12 +10,9 @@ import com.akuleshov7.ktoml.tree.nodes.TomlKeyValuePrimitive
 import com.akuleshov7.ktoml.tree.nodes.TomlNode
 import com.akuleshov7.ktoml.tree.nodes.TomlStubEmptyNode
 import com.akuleshov7.ktoml.tree.nodes.TomlTable
-import io.github.danbrough.katty.DemoAppConfig
 import io.github.danbrough.katty.KattyTerminal
 import io.github.danbrough.katty.command.BasicCommand
 import kotlinx.io.files.Path
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 
 val DemoConfigArgs = BasicCommand("demo configuration args") {
   this as KattyTerminal
@@ -55,10 +51,6 @@ suspend fun KattyTerminal.demoConfigArgs(args: List<String>) {
     terminal.printSectionTitle("Server Comments", it)
   }
 
-  val config: DemoAppConfig = Toml.decodeFromString(configToml.tomlString())
-  terminal.printSectionTitle("Server Config", config.toString())
-  terminal.printSectionTitle("Server Config Toml", Toml.encodeToString(config))
-
 
   val configArgs = args.map { arg ->
     arg.split("-+".toRegex()).filter { it.isNotBlank() }.joinToString(".")
@@ -78,7 +70,6 @@ suspend fun KattyTerminal.demoConfigArgs(args: List<String>) {
     when (val keyValue = configToml.findNode(arg.first.split('.'))) {
       is TomlKeyValuePrimitive -> {
         println("ARG: $arg key value: ${keyValue.value} type: ${keyValue.value::class.simpleName}")
-
       }
 
       is TomlArrayOfTablesElement -> println("ARG: $arg TomlArrayOfTablesElement")
@@ -90,13 +81,7 @@ suspend fun KattyTerminal.demoConfigArgs(args: List<String>) {
       null -> println("ARG: $arg not found")
     }
 
-
   }
-
-
-  val serializer = DemoAppConfig.serializer()
-  val d = serializer.descriptor
-  println("Serial name: ${d.serialName}")
 }
 
 private fun TomlNode.applyArgs(argName: List<String>, argValue: String?) {

@@ -31,7 +31,7 @@ fun demoClientCommand() = basicCommand("client", USAGE) {
   fun createWsClient(url: String = "http://localhost:8080/ws") = WsClient(
     shellContext.scope,
     url,
-    config = { clientConfig() },
+    clientConfig = { clientConfig() },
     clientEngine = ktorClientFactory(),
     codec = CborFrameCodec,
   ) { wsClient ->

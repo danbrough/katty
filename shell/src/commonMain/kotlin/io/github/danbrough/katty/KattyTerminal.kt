@@ -15,8 +15,6 @@ import com.github.ajalt.mordant.widgets.HorizontalRule
 import io.github.danbrough.katty.command.CommandExecutor
 import io.github.danbrough.katty.command.CommandHandler
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
 import kotlinx.io.SystemLineSeparator
 import kotlin.time.Duration.Companion.seconds
@@ -29,17 +27,16 @@ open class KattyTerminal(
   val interactive: Boolean = true,
   val history: History = DefaultHistory(),
   val terminal: Terminal = Terminal(interactive = interactive),
+  val executor: CommandExecutor = CommandExecutor(),
   override val welcomeMessage: String = "Welcome to Katty",
 ) : AbstractKattyShell() {
 
-  val executor: CommandExecutor = CommandExecutor(this)
 
   override val shellContext: ShellContext
     get() = executor
 
 
   init {
-
     history.loadHistory()
   }
 
@@ -296,22 +293,25 @@ open class KattyTerminal(
     }
 
     val interactive = removeArgIf("-i") || args.isEmpty()
-    log.trace { "interactive: $interactive args.count: ${args.size} shellContext:${shellContextOrNull()}" }
+    log.trace { "interactive: $interactive args.count: ${args.size}" }
 
-    withContext(CoroutineName("KattyTerminal") + this@KattyTerminal + executor) {
-      log.warn { "shellContext:${shellContextOrNull()} terminal: ${currentCoroutineContext()[KattyShellKey]}" }
-      if (args.isNotEmpty()) {
-        log.trace { "running command: $args" }
-        withContext(SingleRun) {
-          runCommand(args = args, singleCommandRun = true)
-        }
+    shellContext.addToContext(this)
+
+
+    //withContext(CoroutineName("KattyTerminal") + this@KattyTerminal + executor) {
+
+    if (args.isNotEmpty()) {
+      log.trace { "running command: $args" }
+      withContext(SingleRun) {
+        runCommand(args = args, singleCommandRun = true)
       }
-      if (interactive)
-        runLoop()
-      else
-        nonInteractiveCmdLoop()
     }
+    if (interactive)
+      runLoop()
+    else
+      nonInteractiveCmdLoop()
   }
+  //}
 }
 
 

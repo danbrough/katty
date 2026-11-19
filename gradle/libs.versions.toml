@@ -52,7 +52,7 @@ klog = "0.1.12"
 kotlincrypto = "0.8.0"
 ktor = "3.6.1"
 
-logback = "1.6.7"
+logback = "1.6.8"
 
 [libraries]
 

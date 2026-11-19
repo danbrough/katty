@@ -19,6 +19,17 @@ class ConcurrentMap<K, V> {
     map[key] = value
   }
 
+  suspend fun putOrError(key: K, value: V) = mutex.withLock {
+    map[key]?.also {
+      if (it == value) {
+        println("ConcurrentMap::key $key is already set")
+        return@withLock
+      }
+      error("Key $key is already set")
+    }
+    map[key] = value
+  }
+
   suspend operator fun get(key: K): V? = mutex.withLock {
     map[key]
   }

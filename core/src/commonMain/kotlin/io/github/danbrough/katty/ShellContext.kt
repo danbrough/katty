@@ -10,31 +10,28 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * Where objects attached to the lifetime of the [KattyShell] are stored.
  */
-open class ShellContext(initialContext: CoroutineContext = EmptyCoroutineContext) : KattyContext {
+open class ShellContext() : KattyContext {
   override val key: CoroutineContext.Key<*> = ShellContext
 
   companion object : CoroutineContext.Key<ShellContext>
 
   open val supervisorJob: CompletableJob = SupervisorJob()
-  open val scope: CoroutineScope = CoroutineScope(supervisorJob + this + initialContext)
+  open val scope: CoroutineScope = CoroutineScope(supervisorJob + this)
 
-  private val context: ConcurrentMap<CoroutineContext.Key<*>, Any> =
-    ConcurrentMap()
+  private val context: ConcurrentMap<CoroutineContext.Key<*>, Any> = ConcurrentMap()
 
   suspend fun addToContext(e: CoroutineContext.Element) {
     context.put(e.key, e)
   }
 
   suspend fun <E : CoroutineContext.Element> addToContext(
-    key: CoroutineContext.Key<E>,
-    provider: suspend () -> E
+    key: CoroutineContext.Key<E>, provider: suspend () -> E
   ) {
-    context.put(key, ContextProvider(provider))
+    context.putOrError(key, ContextProvider(provider))
   }
 
   suspend fun removeFromContext(key: CoroutineContext.Key<*>) {
@@ -43,8 +40,7 @@ open class ShellContext(initialContext: CoroutineContext = EmptyCoroutineContext
 
   @Suppress("UNCHECKED_CAST")
   suspend fun <E : CoroutineContext.Element> getOrPut(
-    key: CoroutineContext.Key<E>,
-    creator: () -> E
+    key: CoroutineContext.Key<E>, creator: () -> E
   ): E = context.getOrPut(key, creator) as E
 
   @Suppress("UNCHECKED_CAST")
@@ -74,8 +70,7 @@ suspend inline fun <reified E : CoroutineContext.Element> shellContext(key: Coro
   shellContextOrNull()?.getFromContext(key)
 
 suspend fun <E : CoroutineContext.Element> shellContext(
-  key: CoroutineContext.Key<E>,
-  creator: () -> E
+  key: CoroutineContext.Key<E>, creator: () -> E
 ): E = shellContext().getOrPut(key, creator)
 
 suspend fun shellContextAdd(e: CoroutineContext.Element) {
@@ -110,16 +105,14 @@ private class ContextProvider<T : CoroutineContext.Element>(
   override fun close() {
     if (::t.isInitialized) {
       t.also {
-        if (it is AutoCloseable)
-          it.close()
+        if (it is AutoCloseable) it.close()
       }
     }
   }
 }
 
 suspend fun <T : CoroutineContext.Element> shellContextRegisterProvider(
-  key: CoroutineContext.Key<T>,
-  creator: suspend () -> T
+  key: CoroutineContext.Key<T>, creator: suspend () -> T
 ) {
   shellContext().addToContext(key, creator)
 }

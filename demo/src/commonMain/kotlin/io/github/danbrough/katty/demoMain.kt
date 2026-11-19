@@ -36,17 +36,16 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
     SystemFileSystem.createDirectories(configDir, true)
   }
 
-  val app = DemoApp()
-  //app.loadConfig(Path("./demo/src/commonMain/resources/config.toml")) TODO
-
-
   val commandHandler: BasicCommandHandler = object : BasicCommandHandler() {
     val username = KattyUtils.getEnv("USER") ?: "user"
+
+    val promptColor1 = TextColors.rgb("FFD153")
+    val promptColor2 = TextColors.rgb("82AAFF")
 
     override fun prompt(): Pair<Int, String> {
       val parts = listOf("$username@katty ", Bashy.currentDir.toString(), " $ ")
       return parts.sumOf { it.length } to TextStyles.bold(
-        TextColors.brightCyan(parts[0]) + TextColors.blue(
+        promptColor1(parts[0]) + promptColor2(
           parts[1] + parts[2]
         )
       )
@@ -72,33 +71,18 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
         delay(1.seconds)
       }
     },
-    basicCommand("testApp", "Check we can access the DemoApp and the KTerminal from the context") {
-      info(
-        """
-        testApp::KattyShell is ${currentCoroutineContext()[KattyShellKey]} shellContext:${shellContextOrNull()}
-        DemoApp:${currentCoroutineContext()[DemoApp]}
-        
-        """.trimIndent()
-      )
-      KattyUtils.atExit {
-        println("DOING THIS AT EXIT")
-      }
-      delay(5.seconds)
-      info("testApp finished")
-    },
   )
 
   commandHandler.registerBashyCommands()
   commandHandler.registerConfigCommands()
 
-  val terminal =
-    KattyTerminal(
-      commandHandler,
-      history = DefaultHistory(Path(configDir, "history.txt")),
-      welcomeMessage = "Welcome to the katty demo app"
-    )
+  val terminal = KattyTerminal(
+    commandHandler,
+    history = DefaultHistory(Path(configDir, "history.txt")),
+    welcomeMessage = "Welcome to the katty demo app"
+  )
 
-  terminal.executor.addToContext(KattyServer) {
+  terminal.shellContext.addToContext(KattyServer) {
     KattyServer(currentCoroutineContext()) {
       wsShell()
     }.also { it.start() }
@@ -108,8 +92,7 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
   runCatching {
     terminal.main(args.toList())
   }.exceptionOrNull()?.also {
-    if (it !is CancellationException)
-      println(it.stackTraceToString())
+    if (it !is CancellationException) println(it.stackTraceToString())
   }
 
 }
