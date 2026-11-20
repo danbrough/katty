@@ -237,6 +237,7 @@ open class KattyTerminal(
       }.exceptionOrNull()?.also {
         if (it !is KattyError.ExitException && it !is CancellationException)
           danger(it.message ?: "Error in postCmdLoop")
+        shellContext.supervisorJob.join()
         return
       }
     } finally {
