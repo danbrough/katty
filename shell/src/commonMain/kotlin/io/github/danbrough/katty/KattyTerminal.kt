@@ -83,8 +83,7 @@ open class KattyTerminal(
         } ?: commandHandler.runCommand(this@KattyTerminal, args)
       }.exceptionOrNull().also {
         if (it == null) {
-          if (singleCommandRun)
-            return@execute
+          if (singleCommandRun) return@execute
           printPrompt(false)
         } else {
           if (it is CancellationException) {
@@ -95,10 +94,8 @@ open class KattyTerminal(
           if (singleCommandRun) return@execute
 
           terminal.println(HorizontalRule())
-          if (it is KattyError.CommandNotFound)
-            terminal.println(terminal.theme.danger(it.message))
-          else
-            terminal.println(terminal.theme.danger(it.stackTraceToString()))
+          if (it is KattyError.CommandNotFound) terminal.println(terminal.theme.danger(it.message))
+          else terminal.println(terminal.theme.danger(it.stackTraceToString()))
 
           terminal.println(HorizontalRule())
           commandHandler.showHelp(this@KattyTerminal)
@@ -119,8 +116,7 @@ open class KattyTerminal(
   }
 
   protected suspend fun processKeyEvent(event: KeyboardEvent): InputReceiver.Status<Any> {
-    if (cursorPos == 0)
-      printPrompt(newLine = false)
+    if (cursorPos == 0) printPrompt(newLine = false)
 
     keyboardActions.firstOrNull { it.matcher(event) }?.also {
       it.invoke(this@KattyTerminal, event)
@@ -223,24 +219,22 @@ open class KattyTerminal(
 
     try {
       runCatching {
-        rawModeScope = terminal.enterRawMode(MouseTracking.Off)
-        while (true) {
-          val evt = rawModeScope.readKeyOrNull(1.seconds)
-          if (executor.currentJob?.isActive != true) break
-          if (evt != null) {
-            if (evt.isCtrlC || evt.isCtrlD) {
-              executor.cancelCurrentJob()
-              break
+        if (terminal.terminalInfo.interactive) {
+          rawModeScope = terminal.enterRawMode(MouseTracking.Off)
+          while (true) {
+            val evt = rawModeScope.readKeyOrNull(1.seconds)
+            if (executor.currentJob?.isActive != true) break
+            if (evt != null) {
+              if (evt.isCtrlC || evt.isCtrlD) {
+                executor.cancelCurrentJob()
+                break
+              }
             }
           }
         }
-      }.exceptionOrNull()?.also {
-        if (it !is KattyError.ExitException && it !is CancellationException)
-          danger(it.message ?: "Error in postCmdLoop")
-        shellContext.supervisorJob.join()
-        return
       }
     } finally {
+      shellContext.supervisorJob.join()
       onClose()
     }
   }
@@ -274,8 +268,7 @@ open class KattyTerminal(
     log.debug { "KattyTerminal::onClose()" }
     runCatching {
       if (::rawModeScope.isInitialized) rawModeScope.close()
-      if (history.saveHistory())
-        println("History saved.")
+      if (history.saveHistory()) println("History saved.")
       cursorPos = 0
     }.exceptionOrNull()?.also {
       it.printStackTrace()
@@ -314,10 +307,8 @@ open class KattyTerminal(
           runCommand(args = args, singleCommandRun = true)
         }
       }
-      if (interactive)
-        runLoop()
-      else
-        nonInteractiveCmdLoop()
+      if (interactive) runLoop()
+      else nonInteractiveCmdLoop()
     }
   }
   //}
