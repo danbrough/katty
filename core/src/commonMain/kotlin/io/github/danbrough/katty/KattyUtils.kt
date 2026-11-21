@@ -19,7 +19,7 @@ expect object KattyUtils {
 
   fun resolveHostName(hostName: String): List<String>
 
-  fun atExit(block: () -> Unit): Unit
+  fun atExit(block: () -> Unit)
 
   fun getLastModifiedTime(path: Path): Long
 

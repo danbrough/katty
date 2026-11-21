@@ -1,10 +1,6 @@
-@file:OptIn(ExperimentalWasmDsl::class, ExperimentalMainFunctionArgumentsDsl::class)
-
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalMainFunctionArgumentsDsl
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsExec
 import org.jetbrains.kotlin.konan.target.KonanTarget
 
@@ -21,18 +17,33 @@ kotlin {
     commonMain {
       dependencies {
         implementation(projects.shell)
+        implementation(projects.server)
+        implementation(projects.client)
+        implementation(libs.ktor.client.cio)
+
         implementation(libs.kotlinx.datetime)
         implementation(libs.kotlinx.io.core)
         implementation(libs.ktoml.core)
         implementation(libs.kotlinx.coroutines.core)
         implementation(libs.klog)
         implementation(libs.mordant.markdown)
+        implementation(libs.kotlinx.serialization.cbor)
+        implementation(libs.kotlinx.serialization.json)
+        implementation(libs.korlibs.compression)
+        implementation(libs.ktor.server.cio)
+
       }
     }
 
     jvmMain {
       dependencies {
         implementation(libs.kotlinx.coroutines.swing)
+      }
+    }
+
+    nativeMain{
+      dependencies {
+        implementation(libs.ktor.client.curl)
       }
     }
   }

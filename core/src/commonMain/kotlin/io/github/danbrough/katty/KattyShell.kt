@@ -1,71 +1,48 @@
 package io.github.danbrough.katty
 
-import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
 
-/*
-// 1. Define an abstract base class extending AbstractCoroutineContextElement
-abstract class MyCustomElement : AbstractCoroutineContextElement(MyCustomElement) {
 
-  // 2. Define a companion object acting as the singleton key for this base type
-  companion object Key : CoroutineContext.Key<MyCustomElement>
+interface KattyShell : KattyContext {
 
-  // Abstract property or method your subclasses will implement
-  abstract val identifier: String
-}
+  val shellContext: ShellContext
 
-// 3. Create subclasses extending your custom element base class
-class AuthElement(val token: String) : MyCustomElement() {
-  override val identifier: String = "Auth"
-}
-
-class AnalyticsElement(val trackingId: String) : MyCustomElement() {
-  override val identifier: String = "Analytics"
-}
-
-suspend fun testElement() {
-  // Creating a context with one of your subclasses
-  val authContext = CoroutineName("MyScope") + AuthElement("secret_token_123")
-  coroutineScope {
-    launch(authContext) {
-      // Retrieve using the base class Key singleton
-      val element = coroutineContext[MyCustomElement]
-
-      if (element is AuthElement) {
-        println("Found Auth token: ${element.token}") // Output: Found Auth token: secret_token_123
-      }
-
-      // If you chain a different subclass, it replaces the existing one under that Key
-      withContext(AnalyticsElement("analytics_id_abc")) {
-        val nestedElement = coroutineContext[MyCustomElement]
-        println("Nested identifier: ${nestedElement?.identifier}") // Output: Nested identifier: Analytics
-      }
-    }
-  }
-}
-*/
-
-
-abstract class KattyShell() : AbstractCoroutineContextElement(KattyShell) {
-  companion object : CoroutineContext.Key<KattyShell>
-
-  var cursorPos: Int = 0
-  var promptLength: Int = 0
-
-  var currentLine: StringBuilder = StringBuilder()
+  val currentLine: StringBuilder
   val linePos: Int
+  var cursorPos: Int
+  val promptLength: Int
+  fun warn(message: String)
+  fun muted(message: String)
+  fun danger(message: String)
+  fun success(message: String)
+  fun info(message: String)
+  fun print(message: String)
+  fun println(message: String)
+  fun println()
+
+  suspend fun printPrompt(newLine: Boolean = true)
+
+  suspend fun runCommand(args: List<String>, singleCommandRun: Boolean = false)
+}
+
+object KattyShellKey : CoroutineContext.Key<KattyShell>
+
+suspend fun kattyShellOrNull(): KattyShell? = shellContext(KattyShellKey)
+suspend fun kattyShell(): KattyShell = kattyShellOrNull() ?: error("No KattyShell in context")
+
+abstract class AbstractKattyShell : KattyShell {
+
+  override val key: CoroutineContext.Key<*> = KattyShellKey
+
+  override var cursorPos: Int = 0
+  override var promptLength: Int = 0
+
+  override val currentLine: StringBuilder = StringBuilder()
+
+  override val linePos: Int
     get() = cursorPos - promptLength
 
-  abstract fun warn(message: String)
-  abstract fun muted(message: String)
-  abstract fun danger(message: String)
-  abstract fun success(message: String)
-  abstract fun info(message: String)
-  abstract fun print(message: String)
-  abstract fun println(message: String)
-  abstract fun println()
+  protected open val welcomeMessage: String = "Welcome to Katty"
 
-  abstract suspend fun printPrompt(newLine: Boolean = true)
 
-  abstract suspend fun runCommand(args: List<String>, singleCommandRun: Boolean = false)
 }

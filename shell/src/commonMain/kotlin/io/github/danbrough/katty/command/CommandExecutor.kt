@@ -1,57 +1,50 @@
-package io.github.danbrough.katty
+package io.github.danbrough.katty.command
 
+import io.github.danbrough.katty.KattyUtils
+import io.github.danbrough.katty.ShellContext
+import io.github.danbrough.katty.SingleRun
+import io.github.danbrough.katty.logKattyShell
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlin.coroutines.EmptyCoroutineContext
 
 private val log = logKattyShell
 
 open class CommandExecutor() : ShellContext() {
 
-  val supervisorJob = SupervisorJob()
-  override val scope: CoroutineScope = CoroutineScope(supervisorJob)
-
-  val jobs = mutableListOf<CommandContext>()
-  val currentJob: CommandContext?
+  val jobs = mutableListOf<Job>()
+  val currentJob: Job?
     get() = jobs.lastOrNull()
-
 
   /**
    * Starts a new command. If one is already running, it will be cancelled first.
    */
   fun execute(
-    args: List<String>,
-    command: suspend CommandContext.() -> Unit
-  ) {
-    //log.trace { "CommandExecutor[${KattyUtils.threadName()}]::execute .. launchContext: $context" }
-    val commandContext = CommandContext(args)
+    args: List<String>, singleRun: Boolean = false, command: suspend () -> Unit
+  ): Job {
 
-    scope.launch(commandContext + context) {
-      val cmdJob = currentCoroutineContext().job
-      //log.trace { "CommandExecutor::launched new command: $commandContext job: $cmdJob" }
+    val ctx = if (singleRun) SingleRun else EmptyCoroutineContext
+    val job = scope.launch(ctx) {
+
       try {
-
-          commandContext.command()
-
+        command()
       } catch (e: CancellationException) {
         // Command was cancelled, we can handle cleanup here if needed.
         // The exception is expected behavior.
-        log.trace { "$commandContext cancelled." }
-      }
-    }.also { job ->
-      commandContext.job = job
-      jobs.add(commandContext)
-      //   log.trace { "CommandExecutor[${KattyUtils.threadName()}]:: added job: $job to jobs. jobCount: ${jobs.size}" }
-      job.invokeOnCompletion {
-        jobs.remove(commandContext)
-        //   log.trace { "CommandExecutor[${KattyUtils.threadName()}]::removed job $job from jobs. jobCount: ${jobs.size}" }
-        commandContext.close()
+        log.trace { "command cancelled." }
       }
     }
 
+    jobs.add(job)
+
+    job.invokeOnCompletion {
+      jobs.remove(job)
+    }
+
+    //log.trace { "CommandExecutor::execute [${args.joinToString(" ")}] done" }
+    return job
     //yield()
   }
 
@@ -59,10 +52,7 @@ open class CommandExecutor() : ShellContext() {
   /**
    * Cancels the executor for immediate shutdown
    */
-  fun cancelCurrentJob(): Boolean {
-    //log.trace { "CommandExecutor::cancelCurrentJob() jobCount: ${jobs.size}" }
-    return currentJob?.job?.cancel()?.let { true } ?: false
-  }
+  fun cancelCurrentJob(): Boolean = currentJob?.job?.cancel()?.let { true } ?: false
 
 
   /**
@@ -72,14 +62,17 @@ open class CommandExecutor() : ShellContext() {
   suspend fun shutdown() {
     log.trace { "CommandExecutor::shutdown() ${KattyUtils.threadName()} " }
     close()
-    supervisorJob.join()
+    //log.trace { "CommandExecutor::supervisorJob.join()" }
+    //supervisorJob.join()
+    log.trace { "CommandExecutor::shutdown complete" }
   }
 
-
   override fun close() {
-    //log.info { "CommandExecutor::close()" }
+    log.trace { "CommandExecutor::close()" }
     super.close()
+    log.trace { "CommandExecutor::supervisorJob.complete()" }
     supervisorJob.complete()
+    log.trace { "CommandExecutor::close complete" }
   }
 }
 

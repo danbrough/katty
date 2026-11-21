@@ -145,10 +145,11 @@ private suspend fun SimpleTerminal.rawMode(block: suspend (RawModeScope) -> Unit
       }
     }
 
-class ContextMessage(val message: String) : CoroutineContext.Element {
+data class ContextMessage(val message: String) : CoroutineContext.Element {
   companion object : CoroutineContext.Key<ContextMessage>
 
   override val key: CoroutineContext.Key<*> = ContextMessage
+
 }
 
 suspend fun SimpleTerminal.test(cmdScope: CoroutineScope, args: List<String>) {

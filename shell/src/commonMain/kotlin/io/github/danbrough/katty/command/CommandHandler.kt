@@ -1,6 +1,8 @@
-package io.github.danbrough.katty
+package io.github.danbrough.katty.command
 
 import com.github.ajalt.mordant.rendering.TextStyles
+import io.github.danbrough.katty.ArgumentTokenizer
+import io.github.danbrough.katty.KattyShell
 
 private val DEFAULT_PROMPT = TextStyles.bold("# ")
 private const val DEFAULT_PROMPT_STRLEN = 2
@@ -23,5 +25,6 @@ interface CommandHandler {
    * Return the string length of the prompt and the formatted prompt itself
    */
   fun prompt(): Pair<Int, String> = DEFAULT_PROMPT_STRLEN to DEFAULT_PROMPT
+
 }
 

@@ -1,5 +1,6 @@
 package io.github.danbrough.katty
 
+import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
 
 sealed class KattyError(override val message: String) : Exception(message) {
@@ -15,13 +16,11 @@ sealed class KattyError(override val message: String) : Exception(message) {
   class InvalidCommandArgs(override val message: String) : KattyError(message)
 
   companion object {
-    fun errorInvalidCommandUsage(message: String): Nothing = throw KattyError.InvalidCommandArgs(
-      message
-    )
+    fun errorInvalidCommandUsage(message: String): Nothing = throw InvalidCommandArgs(message)
 
-    fun errorExit(): Nothing = throw KattyError.ExitException()
+    fun errorExit(): Nothing = throw ExitException()
 
-    inline fun <reified C : KattyContext> errorMissingContext(message: String = "Missing context: ${C::class.simpleName}"): Nothing =
-      throw KattyError.MissingContextException(message, C::class)
+    inline fun <reified E : CoroutineContext.Element> errorMissingContext(key: CoroutineContext.Key<E>): Nothing =
+      throw MissingContextException("Missing key: $key", E::class)
   }
 }

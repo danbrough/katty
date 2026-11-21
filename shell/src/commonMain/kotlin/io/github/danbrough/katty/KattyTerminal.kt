@@ -12,18 +12,30 @@ import com.github.ajalt.mordant.rendering.Widget
 import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.widgets.Caption
 import com.github.ajalt.mordant.widgets.HorizontalRule
+import io.github.danbrough.katty.command.BasicCommandHandler
+import io.github.danbrough.katty.command.CommandExecutor
+import io.github.danbrough.katty.command.CommandHandler
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 import kotlinx.io.SystemLineSeparator
+import kotlin.time.Duration.Companion.seconds
 
 private val log = logKattyShell
 
 open class KattyTerminal(
-  var commandHandler: CommandHandler,
+  val commandHandler: CommandHandler,
+  val commandRegistry: MutableMap<String, KattyCommand<*, *>> = mutableMapOf(),
+  val interactive: Boolean = true,
   val history: History = DefaultHistory(),
-  val terminal: Terminal = Terminal(),
-  val executor: CommandExecutor = CommandExecutor()
-) : KattyShell() {
+  val terminal: Terminal = Terminal(interactive = interactive),
+  val executor: CommandExecutor = CommandExecutor(),
+  override val welcomeMessage: String = "Welcome to Katty",
+) : AbstractKattyShell() {
+
+
+  override val shellContext: ShellContext
+    get() = executor
+
 
   init {
     history.loadHistory()
@@ -61,28 +73,30 @@ open class KattyTerminal(
   }
 
   override suspend fun runCommand(args: List<String>, singleCommandRun: Boolean) {
-    executor.execute(args) {
+    executor.execute(args, singleCommandRun) {
       cursorPos = 0
       currentLine.clear()
       println()
-
       runCatching {
-        commandHandler.runCommand(this@KattyTerminal, args)
+        commandRegistry[args[0]]?.also { cmd ->
+          cmd.run(this@KattyTerminal, args)
+        } ?: commandHandler.runCommand(this@KattyTerminal, args)
       }.exceptionOrNull().also {
         if (it == null) {
-          if (!singleCommandRun)
-            printPrompt(false)
+          if (singleCommandRun) return@execute
+          printPrompt(false)
         } else {
           if (it is CancellationException) {
             log.trace { "runCommand::caught a CancellationException" }
+          } else log.error { "runCommand::exception $it" }
+
+          if (singleCommandRun) {
             return@execute
           }
 
           terminal.println(HorizontalRule())
-          if (it is KattyError.CommandNotFound)
-            terminal.println(terminal.theme.danger(it.message))
-          else
-            terminal.println(terminal.theme.danger(it.stackTraceToString()))
+          if (it is KattyError.CommandNotFound) terminal.println(terminal.theme.danger(it.message))
+          else terminal.println(terminal.theme.danger(it.stackTraceToString()))
 
           terminal.println(HorizontalRule())
           commandHandler.showHelp(this@KattyTerminal)
@@ -103,8 +117,7 @@ open class KattyTerminal(
   }
 
   protected suspend fun processKeyEvent(event: KeyboardEvent): InputReceiver.Status<Any> {
-    if (cursorPos == 0)
-      printPrompt(newLine = false)
+    if (cursorPos == 0) printPrompt(newLine = false)
 
     keyboardActions.firstOrNull { it.matcher(event) }?.also {
       it.invoke(this@KattyTerminal, event)
@@ -158,7 +171,7 @@ open class KattyTerminal(
     terminal.println(
       Caption(
         HorizontalRule(),
-        bottom = TextColors.brightGreen("Welcome to Katty"),
+        bottom = TextColors.brightGreen(welcomeMessage),
         bottomAlign = TextAlign.LEFT
       )
     )
@@ -190,11 +203,48 @@ open class KattyTerminal(
         }
       }.exceptionOrNull()?.also {
         if (it is KattyError.ExitException) {
-          log.info { "got an exit exception .. current job: ${executor.currentJob}" }
-          if (executor.cancelCurrentJob()) continue
+          log.info { "KattyTerminal::got an exit exception .. current job: ${executor.currentJob}" }
+          if (executor.cancelCurrentJob()) {
+            log.info { "KattyTerminal::executor.cancelCurrentJob() succeeded" }
+            continue
+          }
         }
         throw it
       }
+    }
+  }
+
+  open suspend fun nonInteractiveCmdLoop() {
+    log.trace { "KTerminal::nonInteractiveCmdLoop() interactive: ${terminal.terminalInfo.interactive}" }
+
+    try {
+      runCatching {
+        if (terminal.terminalInfo.interactive) {
+          rawModeScope = terminal.enterRawMode(MouseTracking.Off)
+          while (true) {
+            val evt = rawModeScope.readKeyOrNull(1.seconds)
+            if (executor.currentJob?.isActive != true) break
+            if (evt != null) {
+              if (evt.isCtrlC || evt.isCtrlD) {
+                //executor.cancelCurrentJob()
+                log.trace { "got ctrl-c or ctrl-d" }
+                return
+              }
+            }
+          }
+        } else {
+          log.trace { "shellContext.supervisorJob.join()" }
+          shellContext.supervisorJob.join()
+        }
+      }.exceptionOrNull()?.also {
+        if (it !is KattyError.ExitException && it !is CancellationException)
+          danger(it.message ?: "Error in postCmdLoop")
+        shellContext.supervisorJob.join()
+        return
+      }
+    } finally {
+      log.trace { "calling onClose" }
+      onClose()
     }
   }
 
@@ -211,7 +261,7 @@ open class KattyTerminal(
   }.exceptionOrNull().also { err ->
     when (err) {
       is CancellationException, is KattyError.ExitException -> {
-        log.trace { "cancelled or exited: ${err.message}" }
+        log.trace { "KattyTerminal::cancelled or exited: ${err.message}" }
       }
 
       null -> {}
@@ -224,10 +274,10 @@ open class KattyTerminal(
   }
 
   protected open suspend fun onClose() {
+    log.debug { "KattyTerminal::onClose()" }
     runCatching {
       if (::rawModeScope.isInitialized) rawModeScope.close()
-      if (history.saveHistory())
-        println("History saved.")
+      if (history.saveHistory()) println("History saved.")
       cursorPos = 0
     }.exceptionOrNull()?.also {
       it.printStackTrace()
@@ -251,22 +301,26 @@ open class KattyTerminal(
 
     val interactive = removeArgIf("-i") || args.isEmpty()
     log.trace { "interactive: $interactive args.count: ${args.size}" }
+    shellContext.addToContext(this@KattyTerminal)
 
-    withContext(this) {
+    withContext(shellContext) {
+      (commandHandler as? BasicCommandHandler)?.initialize()
+
+      commandRegistry.values.forEach {
+        it.initialize()
+      }
+
       if (args.isNotEmpty()) {
         log.trace { "running command: $args" }
-        runCommand(args = args, singleCommandRun = true)
-        if (!interactive) {
-          executor.shutdown()
-          return@withContext
+        withContext(SingleRun) {
+          runCommand(args = args, singleCommandRun = true)
         }
       }
-      runLoop()
+      if (interactive) runLoop()
+      else nonInteractiveCmdLoop()
     }
   }
-
-  suspend fun push(commandHandler: CommandHandler) {
-    this.commandHandler = commandHandler
-  }
+  //}
 }
+
 

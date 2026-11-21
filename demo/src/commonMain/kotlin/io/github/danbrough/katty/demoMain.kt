@@ -3,20 +3,23 @@ package io.github.danbrough.katty
 
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
-import com.github.ajalt.mordant.terminal.Terminal
 import io.github.danbrough.katty.command.BasicCommand
 import io.github.danbrough.katty.command.BasicCommandHandler
 import io.github.danbrough.katty.command.basicCommand
 import io.github.danbrough.katty.config.registerConfigCommands
+import io.github.danbrough.katty.demos.AppDemoCommand
 import io.github.danbrough.katty.demos.ContextDemo
 import io.github.danbrough.katty.demos.DemoMarkDownCommand
 import io.github.danbrough.katty.demos.DemoMordantCommand
 import io.github.danbrough.katty.demos.DemoThemeCommand
+import io.github.danbrough.katty.demos.LaunchDemoCommand
+import io.github.danbrough.katty.demos.SerializeDemoCommand
+import io.github.danbrough.katty.demos.mutableContextDemo
 import io.github.danbrough.katty.demos.scopeDemo
+import io.github.danbrough.katty.server.KattyServer
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import org.danbrough.klog.logger
@@ -25,6 +28,7 @@ import kotlin.time.Duration.Companion.seconds
 internal val logDemo = logger("KATTY_DEMO")
 
 suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, BasicCommand>) {
+
   val configDir = Path(KattyUtils.getEnv("HOME")!!, ".katty")
 
   if (!SystemFileSystem.exists(configDir)) {
@@ -32,17 +36,16 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
     SystemFileSystem.createDirectories(configDir, true)
   }
 
-  val app = DemoApp()
-  //app.loadConfig(Path("./demo/src/commonMain/resources/config.toml")) TODO
-
-
   val commandHandler: BasicCommandHandler = object : BasicCommandHandler() {
     val username = KattyUtils.getEnv("USER") ?: "user"
+
+    val promptColor1 = TextColors.rgb("FFD153")
+    val promptColor2 = TextColors.rgb("82AAFF")
 
     override fun prompt(): Pair<Int, String> {
       val parts = listOf("$username@katty ", Bashy.currentDir.toString(), " $ ")
       return parts.sumOf { it.length } to TextStyles.bold(
-        TextColors.brightCyan(parts[0]) + TextColors.blue(
+        promptColor1(parts[0]) + promptColor2(
           parts[1] + parts[2]
         )
       )
@@ -57,6 +60,10 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
     "mordantDemo" to DemoMordantCommand,
     "themeDemo" to DemoThemeCommand,
     scopeDemo, ContextDemo,
+    mutableContextDemo(),
+    demoClientCommand(),
+    demoServerCommand(),
+    LaunchDemoCommand, SerializeDemoCommand,
     basicCommand("forever", "Command that runs forever") {
       var n = 0
       while (true) {
@@ -64,32 +71,29 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
         delay(1.seconds)
       }
     },
-    basicCommand("testApp", "Check we can access the DemoApp and the KTerminal from the context") {
-      println("the app is ${kattyApp<DemoApp>()}")
-      println("terminal is ${currentCoroutineContext()[KattyShell]}")
-      KattyUtils.atExit {
-        println("DOING THIS AT EXIT")
-      }
-    },
   )
 
   commandHandler.registerBashyCommands()
   commandHandler.registerConfigCommands()
 
-  val terminal =
-    KattyTerminal(
-      commandHandler,
-      terminal = Terminal(),
-      history = DefaultHistory(Path(configDir, "history.txt"))
-    )
+  val terminal = KattyTerminal(
+    commandHandler,
+    history = DefaultHistory(Path(configDir, "history.txt")),
+    welcomeMessage = "Welcome to the katty demo app"
+  )
+
+  terminal.shellContext.addToContext(KattyServer) {
+    KattyServer(currentCoroutineContext()) {
+      wsShell()
+    }.also { it.start() }
+  }
+  terminal.commandRegistry["appDemo"] = AppDemoCommand
 
   runCatching {
-    withContext(app) {
-      terminal.main(args.toList())
-    }
+    terminal.main(args.toList())
   }.exceptionOrNull()?.also {
-    if (it !is CancellationException)
-      println(it.stackTraceToString())
+    if (it !is CancellationException) println(it.stackTraceToString())
   }
 
 }
+

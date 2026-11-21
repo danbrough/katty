@@ -100,7 +100,6 @@ val KattyTheme = Theme {
   flags.putAll(
     mapOf(
       "progressbar.pulse" to true,
-
       "markdown.code.block.border" to true,
       "markdown.table.ascii" to false,
     )
