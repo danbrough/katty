@@ -88,10 +88,11 @@ open class KattyTerminal(
         } else {
           if (it is CancellationException) {
             log.trace { "runCommand::caught a CancellationException" }
+          } else log.error { "runCommand::exception $it" }
+
+          if (singleCommandRun) {
             return@execute
           }
-
-          if (singleCommandRun) return@execute
 
           terminal.println(HorizontalRule())
           if (it is KattyError.CommandNotFound) terminal.println(terminal.theme.danger(it.message))
@@ -214,8 +215,7 @@ open class KattyTerminal(
   }
 
   open suspend fun nonInteractiveCmdLoop() {
-    log.trace { "KTerminal::nonInteractiveCmdLoop()" }
-
+    log.trace { "KTerminal::nonInteractiveCmdLoop() interactive: ${terminal.terminalInfo.interactive}" }
 
     try {
       runCatching {
@@ -226,15 +226,24 @@ open class KattyTerminal(
             if (executor.currentJob?.isActive != true) break
             if (evt != null) {
               if (evt.isCtrlC || evt.isCtrlD) {
-                executor.cancelCurrentJob()
-                break
+                //executor.cancelCurrentJob()
+                log.trace { "got ctrl-c or ctrl-d" }
+                return
               }
             }
           }
+        } else {
+          log.trace { "shellContext.supervisorJob.join()" }
+          shellContext.supervisorJob.join()
         }
+      }.exceptionOrNull()?.also {
+        if (it !is KattyError.ExitException && it !is CancellationException)
+          danger(it.message ?: "Error in postCmdLoop")
+        shellContext.supervisorJob.join()
+        return
       }
     } finally {
-      shellContext.supervisorJob.join()
+      log.trace { "calling onClose" }
       onClose()
     }
   }
