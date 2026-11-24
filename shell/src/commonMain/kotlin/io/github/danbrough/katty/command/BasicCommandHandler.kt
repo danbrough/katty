@@ -19,9 +19,9 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
     it.length to TextStyles.bold(TextColors.brightGreen(it))
   }
 
-  private val commands = mutableMapOf<String, BasicCommand>()
+  private val commands = mutableMapOf<String, BaseCommand<List<String>, Unit>>()
 
-  fun registerCommands(vararg cmd: Pair<String, BasicCommand>) {
+  fun registerCommands(vararg cmd: Pair<String, BaseCommand<List<String>, Unit>>) {
     commands.putAll(cmd)
   }
 
@@ -30,7 +30,7 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
   }
 
   override suspend fun showHelp(shell: KattyShell) {
-    commands.mapValues { it.value.helpText() }.filter { it.value != null }.forEach {
+    commands.mapValues { it.value.helpText }.filter { it.value != null }.forEach {
       shell.info(TextColors.green(TextStyles.bold(it.key) + ":\t${it.value}"))
     }
   }
