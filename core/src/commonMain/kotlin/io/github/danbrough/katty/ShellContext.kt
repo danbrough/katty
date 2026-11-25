@@ -2,6 +2,7 @@
 
 package io.github.danbrough.katty
 
+import io.github.danbrough.katty.command.BaseCommand
 import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -117,3 +118,25 @@ suspend fun <T : CoroutineContext.Element> shellContextRegisterProvider(
   shellContext().addToContext(key, creator)
 }
 
+inline fun <reified T : CoroutineContext.Element> shellContextCommand(
+  cmdName: String,
+  key: CoroutineContext.Key<T>,
+  helpText: String? = null,
+  noinline creator: suspend () -> T,
+) = cmdName to object : BaseCommand<List<String>, Unit>() {
+
+  override val helpText: String? = helpText
+
+  override suspend fun initialize() {
+    shellContextRegisterProvider(key, creator)
+  }
+
+
+  override suspend fun invoke(shell: KattyShell, a: List<String>): Unit = shell.run {
+    when (val action = a.getOrNull(1)) {
+      "remove" -> shellContextRemove(key)
+      null, "start" -> shellContext<T>(key)
+      else -> warn("$cmdName: invalid action: $action")
+    }
+  }
+}

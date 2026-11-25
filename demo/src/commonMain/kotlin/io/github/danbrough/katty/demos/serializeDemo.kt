@@ -1,7 +1,7 @@
 package io.github.danbrough.katty.demos
 
 import com.github.ajalt.mordant.widgets.HorizontalRule
-import io.github.danbrough.katty.CborFrameCodec
+import io.github.danbrough.katty.CborMessageCodec
 import io.github.danbrough.katty.KattyShell
 import io.github.danbrough.katty.KattyTerminal
 import io.github.danbrough.katty.StringMessage
@@ -36,9 +36,9 @@ fun KattyShell.test() {
   info("message2: $message2")
   println(HorizontalRule())
   val stringMessage = StringMessage("This is my string message")
-  val bData = CborFrameCodec.encode<KattyMessage>(stringMessage)
+  val bData = CborMessageCodec.encode<KattyMessage>(stringMessage)
   info("stringMessage: $stringMessage bData.size = ${bData.size}")
-  val stringMessage2 = CborFrameCodec.decode<KattyMessage>(bData)
+  val stringMessage2 = CborMessageCodec.decode<KattyMessage>(bData)
   info("stringMessage2: $stringMessage2")
   println(HorizontalRule())
 }

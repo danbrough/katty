@@ -16,9 +16,7 @@ import io.github.danbrough.katty.demos.LaunchDemoCommand
 import io.github.danbrough.katty.demos.SerializeDemoCommand
 import io.github.danbrough.katty.demos.mutableContextDemo
 import io.github.danbrough.katty.demos.scopeDemo
-import io.github.danbrough.katty.server.KattyServer
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
@@ -82,11 +80,6 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
     welcomeMessage = "Welcome to the katty demo app"
   )
 
-  terminal.shellContext.addToContext(KattyServer) {
-    KattyServer(currentCoroutineContext()) {
-      wsShell()
-    }.also { it.start() }
-  }
   terminal.commandRegistry["appDemo"] = AppDemoCommand
 
   runCatching {

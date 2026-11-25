@@ -32,7 +32,6 @@ import kotlin.time.Duration.Companion.seconds
 internal val logClient = logger("KATTY_CLIENT")
 private val log = logClient
 
-//expect fun HttpClientConfig<HttpClientEngineConfig>.clientConfig()
 
 class WsClient(
   val scope: CoroutineScope,

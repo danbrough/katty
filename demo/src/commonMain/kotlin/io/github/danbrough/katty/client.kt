@@ -14,7 +14,7 @@ private val log = logDemo
 
 
 suspend fun DefaultWebSocketSession.sendMessage(m: KattyMessage) =
-  send(Frame.Binary(fin = true, CborFrameCodec.encode(m)))
+  send(Frame.Binary(fin = true, CborMessageCodec.encode(m)))
 
 expect fun ktorClientFactory(): HttpClientEngineFactory<*>
 expect fun HttpClientConfig<HttpClientEngineConfig>.clientConfig()
@@ -33,7 +33,7 @@ fun demoClientCommand() = basicCommand("client", USAGE) {
     url,
     clientConfig = { clientConfig() },
     clientEngine = ktorClientFactory(),
-    codec = CborFrameCodec,
+    codec = CborMessageCodec,
   ) { wsClient ->
     for (frame in incoming) {
       info("received frame: $frame")
@@ -44,7 +44,7 @@ fun demoClientCommand() = basicCommand("client", USAGE) {
         }
 
         is Frame.Binary -> {
-          val msg = CborFrameCodec.decode<KattyMessage>(frame.data)
+          val msg = CborMessageCodec.decode<KattyMessage>(frame.data)
           info("received msg: $msg")
           wsClient.onResponseReceived(msg)
         }

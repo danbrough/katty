@@ -5,7 +5,6 @@ import org.jetbrains.kotlin.konan.target.HostManager
 plugins {
   id("org.jetbrains.kotlin.multiplatform")
   id("org.jetbrains.kotlin.plugin.serialization")
-  // id("org.jetbrains.kotlinx.atomicfu")
 }
 
 kotlin {

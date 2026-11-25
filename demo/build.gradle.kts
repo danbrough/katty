@@ -6,7 +6,6 @@ import org.jetbrains.kotlin.konan.target.KonanTarget
 
 plugins {
   id("io.github.danbrough.katty.kmp")
-  alias(libs.plugins.kotlinx.serialization)
   alias(libs.plugins.shadow)
 }
 
@@ -19,6 +18,7 @@ kotlin {
         implementation(projects.shell)
         implementation(projects.server)
         implementation(projects.client)
+        implementation(projects.codec)
         implementation(libs.ktor.client.cio)
 
         implementation(libs.kotlinx.datetime)
@@ -29,7 +29,6 @@ kotlin {
         implementation(libs.mordant.markdown)
         implementation(libs.kotlinx.serialization.cbor)
         implementation(libs.kotlinx.serialization.json)
-        implementation(libs.korlibs.compression)
         implementation(libs.ktor.server.cio)
 
       }
@@ -41,7 +40,7 @@ kotlin {
       }
     }
 
-    nativeMain{
+    nativeMain {
       dependencies {
         implementation(libs.ktor.client.curl)
       }

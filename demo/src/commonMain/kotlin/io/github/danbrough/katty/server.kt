@@ -3,7 +3,6 @@ package io.github.danbrough.katty
 import io.github.danbrough.katty.messages.KattyMessage
 import io.github.danbrough.katty.messages.SuccessMessage
 import io.github.danbrough.katty.server.KattyServer
-import io.github.danbrough.katty.server.serverCommand
 import io.ktor.server.application.Application
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
@@ -42,7 +41,11 @@ suspend fun ShellContext.serverCreate() =
     }
   }.also { it.start() }
 
-fun demoServerCommand() = serverCommand()
+fun demoServerCommand() = shellContextCommand("server", KattyServer, "server [start|remove]") {
+  KattyServer(currentCoroutineContext()) {
+    wsShell()
+  }.also { it.start() }
+}
 
 fun Application.wsShell(
   path: String = KattyServer.DEFAULT_WEBSOCKET_PATH
@@ -61,8 +64,8 @@ fun Application.wsShell(
         log.trace { "wsShell::received frame: $frame" }
         when (frame) {
           is Frame.Binary -> {
-            //val rawBytes = frame.readBytes()
-            val msg = CborFrameCodec.decode<KattyMessage>(frame.readBytes())
+
+            val msg = CborMessageCodec.decode<KattyMessage>(frame.readBytes())
             log.debug { "received KattyMessage: $msg" }
             sendMessage(StringMessage("Thanks for that message [$msg]: count: ${count++}"))
 
