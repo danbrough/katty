@@ -29,7 +29,6 @@ kotlin {
         implementation(libs.mordant.markdown)
         implementation(libs.kotlinx.serialization.cbor)
         implementation(libs.kotlinx.serialization.json)
-        implementation(libs.ktor.server.cio)
 
       }
     }

@@ -20,9 +20,8 @@ import kotlin.time.Clock
 private val log = logDemo
 
 
-suspend fun ShellContext.serverCreate() =
-  KattyServer(currentCoroutineContext() + scope.coroutineContext, host = "0.0.0.0") {
-    wsShell()
+fun demoServerCommand() = shellContextCommand("server", KattyServer, "server [start|remove]") {
+  KattyServer(shellContext().scope.coroutineContext) {
     routing {
       get("/") {
         call.respondText {
@@ -39,10 +38,6 @@ suspend fun ShellContext.serverCreate() =
         }
       }
     }
-  }.also { it.start() }
-
-fun demoServerCommand() = shellContextCommand("server", KattyServer, "server [start|remove]") {
-  KattyServer(currentCoroutineContext()) {
     wsShell()
   }.also { it.start() }
 }

@@ -23,23 +23,21 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.danbrough.klog.logger
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 
-internal val logClient = logger("KATTY_CLIENT")
 private val log = logClient
 
 
 class WsClient(
   val scope: CoroutineScope,
   val url: String,
-  override val key: CoroutineContext.Key<*> = WsClient,
   val codec: MessageCodec,
-  val clientEngine: HttpClientEngineFactory<*>,
-  clientConfig: HttpClientConfig<HttpClientEngineConfig>.() -> Unit = {},
+  val clientEngine: HttpClientEngineFactory<*> = ktorClientFactory(),
+  override val key: CoroutineContext.Key<*> = WsClient,
+  clientConfig: HttpClientConfig<HttpClientEngineConfig>.() -> Unit = HttpClientConfig<HttpClientEngineConfig>::clientEngineConfig,
   val requestBuilder: HttpRequestBuilder.() -> Unit = {},
   val sessionHandler: suspend DefaultClientWebSocketSession.(WsClient) -> Unit
 ) : KattyContext {

@@ -3,9 +3,6 @@ package io.github.danbrough.katty
 import io.github.danbrough.katty.client.WsClient
 import io.github.danbrough.katty.command.basicCommand
 import io.github.danbrough.katty.messages.KattyMessage
-import io.ktor.client.HttpClientConfig
-import io.ktor.client.engine.HttpClientEngineConfig
-import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.websocket.DefaultWebSocketSession
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readText
@@ -15,9 +12,6 @@ private val log = logDemo
 
 suspend fun DefaultWebSocketSession.sendMessage(m: KattyMessage) =
   send(Frame.Binary(fin = true, CborMessageCodec.encode(m)))
-
-expect fun ktorClientFactory(): HttpClientEngineFactory<*>
-expect fun HttpClientConfig<HttpClientEngineConfig>.clientConfig()
 
 private const val USAGE = "client [start|stop|message]"
 fun demoClientCommand() = basicCommand("client", USAGE) {
@@ -31,8 +25,6 @@ fun demoClientCommand() = basicCommand("client", USAGE) {
   fun createWsClient(url: String = "http://localhost:8080/ws") = WsClient(
     shellContext.scope,
     url,
-    clientConfig = { clientConfig() },
-    clientEngine = ktorClientFactory(),
     codec = CborMessageCodec,
   ) { wsClient ->
     for (frame in incoming) {

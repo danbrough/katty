@@ -12,6 +12,7 @@ class BinaryMessageCodec(val cbor: BinaryFormat) : MessageCodec {
 
 
   companion object {
+
     const val FLAG_RAW: Byte = 0x00
     const val FLAG_DEFLATE: Byte = 0x01
   }
