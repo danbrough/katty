@@ -79,7 +79,10 @@ open class KattyTerminal(
       println()
       runCatching {
         commandRegistry[args[0]]?.also { cmd ->
-          cmd.run(this@KattyTerminal, args)
+          @Suppress("UNCHECKED_CAST") (cmd as KattyCommand<List<String>, Unit>).invoke(
+            KattyCommandContext(this, args)
+          )
+
         } ?: commandHandler.runCommand(this@KattyTerminal, args)
       }.exceptionOrNull().also {
         if (it == null) {
@@ -237,8 +240,9 @@ open class KattyTerminal(
           shellContext.supervisorJob.join()
         }
       }.exceptionOrNull()?.also {
-        if (it !is KattyError.ExitException && it !is CancellationException)
-          danger(it.message ?: "Error in postCmdLoop")
+        if (it !is KattyError.ExitException && it !is CancellationException) danger(
+          it.message ?: "Error in postCmdLoop"
+        )
         shellContext.supervisorJob.join()
         return
       }

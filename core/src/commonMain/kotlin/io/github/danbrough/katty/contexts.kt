@@ -1,10 +1,5 @@
 package io.github.danbrough.katty
 
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 
 interface KattyContext : CoroutineContext.Element, AutoCloseable {
@@ -16,7 +11,6 @@ fun CoroutineContext.elementList(): List<CoroutineContext> =
   fold(mutableListOf()) { acc, element ->
     acc.apply { add(element) }
   }
-
 
 
 /*

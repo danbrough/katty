@@ -11,9 +11,6 @@ interface CommandHandler {
 
   val parent: CommandHandler?
 
-  suspend fun runCommand(shell: KattyShell, cmdLine: String) =
-    runCommand(shell, parseCommandLine(cmdLine))
-
   suspend fun runCommand(shell: KattyShell, args: List<String>)
 
   suspend fun showHelp(shell: KattyShell) = Unit

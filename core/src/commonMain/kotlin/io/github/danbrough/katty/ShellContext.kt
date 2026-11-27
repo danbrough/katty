@@ -121,20 +121,19 @@ suspend fun <T : CoroutineContext.Element> shellContextRegisterProvider(
 inline fun <reified T : CoroutineContext.Element> shellContextCommand(
   cmdName: String,
   key: CoroutineContext.Key<T>,
-  helpText: String? = null,
+  helpText: String = "$cmdName [start|stop]",
   noinline creator: suspend () -> T,
-) = cmdName to object : BaseCommand<List<String>, Unit>() {
+) = object : BaseCommand<List<String>, Unit>() {
 
-  override val helpText: String? = helpText
+  override val helpText: String = helpText
 
   override suspend fun initialize() {
     shellContextRegisterProvider(key, creator)
   }
 
-
   override suspend fun invoke(shell: KattyShell, a: List<String>): Unit = shell.run {
     when (val action = a.getOrNull(1)) {
-      "remove" -> shellContextRemove(key)
+      "stop" -> shellContextRemove(key)
       null, "start" -> shellContext<T>(key)
       else -> warn("$cmdName: invalid action: $action")
     }

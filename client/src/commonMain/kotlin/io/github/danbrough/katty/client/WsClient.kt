@@ -4,9 +4,6 @@ import io.github.danbrough.katty.KattyContext
 import io.github.danbrough.katty.messages.KattyMessage
 import io.github.danbrough.katty.messages.MessageCodec
 import io.ktor.client.HttpClient
-import io.ktor.client.HttpClientConfig
-import io.ktor.client.engine.HttpClientEngineConfig
-import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocket
@@ -30,26 +27,26 @@ import kotlin.time.Duration.Companion.seconds
 
 private val log = logClient
 
+val httpClient: HttpClient by lazy {
+  HttpClient(ktorClientFactory()) {
+    install(WebSockets) {
+      pingIntervalMillis = 15_000 // Send app-level ping frames every 15s
+    }
+
+    clientEngineConfig()
+  }
+}
 
 class WsClient(
   val scope: CoroutineScope,
   val url: String,
   val codec: MessageCodec,
-  val clientEngine: HttpClientEngineFactory<*> = ktorClientFactory(),
   override val key: CoroutineContext.Key<*> = WsClient,
-  clientConfig: HttpClientConfig<HttpClientEngineConfig>.() -> Unit = HttpClientConfig<HttpClientEngineConfig>::clientEngineConfig,
   val requestBuilder: HttpRequestBuilder.() -> Unit = {},
   val sessionHandler: suspend DefaultClientWebSocketSession.(WsClient) -> Unit
 ) : KattyContext {
   companion object : CoroutineContext.Key<WsClient>
 
-  private val client = HttpClient(clientEngine) {
-    install(WebSockets) {
-      pingIntervalMillis = 15_000 // Send app-level ping frames every 15s
-    }
-
-    clientConfig()
-  }
 
   private var session: DefaultClientWebSocketSession? = null
 
@@ -85,7 +82,7 @@ class WsClient(
       while (isActive) {
         try {
           // Establishes a persistent, reusable WebSockets stream
-          client.webSocket(wsUrl, requestBuilder) {
+          httpClient.webSocket(wsUrl, requestBuilder) {
             session = this
             sessionHandler(this@WsClient)
           }

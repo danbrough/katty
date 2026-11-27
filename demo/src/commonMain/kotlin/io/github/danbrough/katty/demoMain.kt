@@ -7,7 +7,6 @@ import io.github.danbrough.katty.command.BasicCommand
 import io.github.danbrough.katty.command.BasicCommandHandler
 import io.github.danbrough.katty.command.basicCommand
 import io.github.danbrough.katty.config.registerConfigCommands
-import io.github.danbrough.katty.demos.AppDemoCommand
 import io.github.danbrough.katty.demos.ContextDemo
 import io.github.danbrough.katty.demos.DemoMarkDownCommand
 import io.github.danbrough.katty.demos.DemoMordantCommand
@@ -60,8 +59,8 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
     scopeDemo, ContextDemo,
     mutableContextDemo(),
     demoClientCommand(),
-    demoServerCommand(),
     LaunchDemoCommand, SerializeDemoCommand,
+    "server" to demoServerCommand(),
     basicCommand("forever", "Command that runs forever") {
       var n = 0
       while (true) {
@@ -79,8 +78,6 @@ suspend fun demoMain(args: Array<String>, vararg extraCommands: Pair<String, Bas
     history = DefaultHistory(Path(configDir, "history.txt")),
     welcomeMessage = "Welcome to the katty demo app"
   )
-
-  terminal.commandRegistry["appDemo"] = AppDemoCommand
 
   runCatching {
     terminal.main(args.toList())

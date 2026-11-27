@@ -1,29 +1,34 @@
 package io.github.danbrough.katty
 
-import io.github.danbrough.katty.KattyCommand.Context
+import kotlinx.coroutines.currentCoroutineContext
+import kotlin.coroutines.CoroutineContext
 
 
-abstract class KattyCommand<C : Context, R>(protected val command: (suspend C.() -> R)? = null) {
+class KattyCommandContext<A>(
+  val shell: KattyShell, val arg: A, override val key: CoroutineContext.Key<*> = KattyCommandContext
+) : KattyShell by shell, CoroutineContext.Element {
+  companion object : CoroutineContext.Key<KattyCommandContext<*>>
+}
 
-  open class Context(
-    shell: KattyShell, val args: List<String>
-  ) : KattyShell by shell
+suspend fun kattyCommandContext(): KattyCommandContext<List<String>> =
+  kattyCommandContext<List<String>>()
 
-  open val help: String = "No help available"
+@Suppress("UNCHECKED_CAST")
+suspend inline fun <T> kattyCommandContext(): KattyCommandContext<T> =
+  currentCoroutineContext()[KattyCommandContext] as? KattyCommandContext<T>
+    ?: KattyError.errorMissingContext(KattyCommandContext)
 
-  suspend fun run(shell: KattyShell, args: List<String>): R = invoke(context(shell, args))
+
+abstract class KattyCommand<A, R>(
+  open val help: String? = null,
+  protected val command: (suspend KattyCommandContext<A>.() -> R)? = null
+) {
+
+  lateinit var context: KattyCommandContext<A>
 
   open suspend fun initialize() = Unit
 
-  abstract suspend fun context(shell: KattyShell, args: List<String>): C
-
-  open suspend operator fun invoke(context: C): R =
+  open suspend operator fun invoke(context: KattyCommandContext<A>): R =
     command?.invoke(context) ?: error("No command specified")
 }
 
-open class KattyCommandBasic<C : Context>(
-  val contextBuilder: (KattyShell, List<String>) -> C, command: (suspend C.() -> Unit)? = null
-) : KattyCommand<C, Unit>(command) {
-  override suspend fun context(shell: KattyShell, args: List<String>): C =
-    contextBuilder(shell, args)
-}
