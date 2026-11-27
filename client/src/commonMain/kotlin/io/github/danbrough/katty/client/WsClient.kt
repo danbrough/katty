@@ -1,6 +1,5 @@
 package io.github.danbrough.katty.client
 
-import io.github.danbrough.katty.KattyContext
 import io.github.danbrough.katty.messages.KattyMessage
 import io.github.danbrough.katty.messages.MessageCodec
 import io.ktor.client.HttpClient
@@ -44,7 +43,7 @@ class WsClient(
   override val key: CoroutineContext.Key<*> = WsClient,
   val requestBuilder: HttpRequestBuilder.() -> Unit = {},
   val sessionHandler: suspend DefaultClientWebSocketSession.(WsClient) -> Unit
-) : KattyContext {
+) : AutoCloseable, CoroutineContext.Element {
   companion object : CoroutineContext.Key<WsClient>
 
 

@@ -10,8 +10,8 @@ import com.akuleshov7.ktoml.tree.nodes.TomlKeyValuePrimitive
 import com.akuleshov7.ktoml.tree.nodes.TomlNode
 import com.akuleshov7.ktoml.tree.nodes.TomlStubEmptyNode
 import com.akuleshov7.ktoml.tree.nodes.TomlTable
+import io.github.danbrough.katty.BasicCommand
 import io.github.danbrough.katty.KattyTerminal
-import io.github.danbrough.katty.command.BasicCommand
 import kotlinx.io.files.Path
 
 val DemoConfigArgs = BasicCommand("demo configuration args") {

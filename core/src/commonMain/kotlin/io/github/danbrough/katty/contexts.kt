@@ -2,15 +2,14 @@ package io.github.danbrough.katty
 
 import kotlin.coroutines.CoroutineContext
 
-interface KattyContext : CoroutineContext.Element, AutoCloseable {
+interface KattyContext : AutoCloseable {
   override fun close() = Unit
 }
 
 
-fun CoroutineContext.elementList(): List<CoroutineContext> =
-  fold(mutableListOf()) { acc, element ->
-    acc.apply { add(element) }
-  }
+fun CoroutineContext.elementList(): List<CoroutineContext> = fold(mutableListOf()) { acc, element ->
+  acc.apply { add(element) }
+}
 
 
 /*
@@ -19,8 +18,7 @@ class CommandContext(val cmd: List<String>) : KattyContext {
 
   companion object : CoroutineContext.Key<CommandContext> {
 
-    */
-/*    suspend fun get(): CommandContext? = currentCoroutineContext()[CommandContext]
+    *//*    suspend fun get(): CommandContext? = currentCoroutineContext()[CommandContext]
         suspend fun <C : CoroutineContext, R> withCommandContext(
           context: C,
           block: suspend C.() -> R

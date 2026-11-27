@@ -1,7 +1,6 @@
 package io.github.danbrough.katty
 
 import io.github.danbrough.katty.client.WsClient
-import io.github.danbrough.katty.command.basicCommand
 import io.github.danbrough.katty.messages.KattyMessage
 import io.ktor.websocket.DefaultWebSocketSession
 import io.ktor.websocket.Frame

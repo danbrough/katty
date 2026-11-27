@@ -2,8 +2,9 @@ package io.github.danbrough.katty.command
 
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
+import io.github.danbrough.katty.BasicCommand
+import io.github.danbrough.katty.BasicCommandJob
 import io.github.danbrough.katty.KattyCommand
-import io.github.danbrough.katty.KattyCommandContext
 import io.github.danbrough.katty.KattyError
 import io.github.danbrough.katty.KattyShell
 import io.github.danbrough.katty.logKattyShell
@@ -14,11 +15,6 @@ import kotlinx.io.writeString
 
 private val log = logKattyShell
 
-typealias BasicCommandJob = suspend KattyCommandContext<List<String>>.() -> Unit
-typealias BasicCommand = KattyCommand<List<String>, Unit>
-
-fun basicCommand(cmdName: String, helpText: String, job: BasicCommandJob) =
-  cmdName to BasicCommand(helpText, job)
 
 open class BasicCommandHandler(override val parent: CommandHandler? = null) : CommandHandler {
 
@@ -53,7 +49,9 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
 
     shell.run {
       if (commands.contains(cmdName)) {
-        commands[cmdName]?.invoke(this, args)
+        commands[cmdName]?.run {
+          invoke(createContext(shell, args))
+        }
       } else {
         throw KattyError.CommandNotFound(cmdName)
       }

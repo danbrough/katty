@@ -1,6 +1,6 @@
 package io.github.danbrough.katty.server
 
-import io.github.danbrough.katty.KattyContext
+import io.github.danbrough.katty.KattyCommandContext
 import io.github.danbrough.katty.isSingleRun
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -9,7 +9,6 @@ import io.ktor.server.cio.CIO
 import io.ktor.server.cio.CIOApplicationEngine
 import io.ktor.server.engine.ApplicationEngine
 import io.ktor.server.engine.ApplicationEngineFactory
-import io.ktor.server.engine.BaseApplicationEngine
 import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
@@ -18,6 +17,7 @@ import io.ktor.server.routing.IgnoreTrailingSlash
 import io.ktor.server.websocket.WebSockets
 import io.ktor.server.websocket.pingPeriod
 import io.ktor.server.websocket.timeout
+import kotlinx.coroutines.currentCoroutineContext
 import org.danbrough.klog.logger
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.seconds
@@ -34,7 +34,7 @@ open class KattyServer(
   val engineFactory: ApplicationEngineFactory<*, *> = CIO,
   private val engineConfiguration: ApplicationEngine.Configuration.() -> Unit = {},
   private val applicationConfiguration: suspend Application.(KattyServer) -> Unit = {}
-) : KattyContext {
+) : AutoCloseable, CoroutineContext.Element {
   companion object : CoroutineContext.Key<KattyServer> {
     const val DEFAULT_WEBSOCKET_PATH = "/ws"
     const val DEFAULT_WEBSERVER_PORT = 8080
@@ -81,7 +81,8 @@ open class KattyServer(
 
   suspend fun start() {
     val singleRun = isSingleRun()
-    log.trace { "KattyServer::start() singleRun:$singleRun" }
+    log.trace { "KattyServer::start() singleRun:$singleRun commandContext: ${currentCoroutineContext()[KattyCommandContext]}" }
+
 
     engine = embeddedServer(
       factory = engineFactory,

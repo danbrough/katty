@@ -2,7 +2,7 @@ package io.github.danbrough.katty.config
 
 import com.akuleshov7.ktoml.TomlInputConfig
 import com.akuleshov7.ktoml.tree.nodes.parseValue
-import io.github.danbrough.katty.command.BasicCommand
+import io.github.danbrough.katty.BasicCommand
 
 val DemoParseValueCommand = BasicCommand("Parsing test") {
   val args = input

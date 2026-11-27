@@ -2,7 +2,7 @@ package io.github.danbrough.katty.demos
 
 import io.github.danbrough.katty.KattyShell
 import io.github.danbrough.katty.KattyUtils
-import io.github.danbrough.katty.command.basicCommand
+import io.github.danbrough.katty.basicCommand
 import io.github.danbrough.katty.isSingleRun
 import io.github.danbrough.katty.kattyShell
 import io.github.danbrough.katty.logDemo

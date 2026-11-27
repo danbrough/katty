@@ -12,7 +12,6 @@ import com.github.ajalt.mordant.rendering.Widget
 import com.github.ajalt.mordant.terminal.Terminal
 import com.github.ajalt.mordant.widgets.Caption
 import com.github.ajalt.mordant.widgets.HorizontalRule
-import io.github.danbrough.katty.command.BasicCommand
 import io.github.danbrough.katty.command.BasicCommandHandler
 import io.github.danbrough.katty.command.CommandExecutor
 import io.github.danbrough.katty.command.CommandHandler
@@ -80,7 +79,12 @@ open class KattyTerminal(
       println()
       runCatching {
         commandRegistry[args[0]]?.also { cmd ->
-          @Suppress("UNCHECKED_CAST") (cmd as BasicCommand).invoke(this, args)
+          @Suppress("UNCHECKED_CAST")
+          cmd as BasicCommand
+          val ctx = cmd.createContext(this, args)
+          withContext(ctx) {
+            cmd.invoke(ctx)
+          }
 
         } ?: commandHandler.runCommand(this@KattyTerminal, args)
       }.exceptionOrNull().also {

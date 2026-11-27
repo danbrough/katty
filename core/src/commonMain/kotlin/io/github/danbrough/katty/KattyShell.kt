@@ -3,7 +3,7 @@ package io.github.danbrough.katty
 import kotlin.coroutines.CoroutineContext
 
 
-interface KattyShell : KattyContext {
+interface KattyShell {
 
   val shellContext: ShellContext
 
@@ -25,12 +25,12 @@ interface KattyShell : KattyContext {
   suspend fun runCommand(args: List<String>, singleCommandRun: Boolean = false)
 }
 
-object KattyShellKey : CoroutineContext.Key<KattyShell>
+object KattyShellKey : CoroutineContext.Key<AbstractKattyShell>
 
 suspend fun kattyShellOrNull(): KattyShell? = shellContext(KattyShellKey)
 suspend fun kattyShell(): KattyShell = kattyShellOrNull() ?: error("No KattyShell in context")
 
-abstract class AbstractKattyShell : KattyShell {
+abstract class AbstractKattyShell : KattyShell, CoroutineContext.Element {
 
   override val key: CoroutineContext.Key<*> = KattyShellKey
 

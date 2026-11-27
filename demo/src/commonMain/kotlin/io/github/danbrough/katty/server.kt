@@ -21,6 +21,7 @@ private val log = logDemo
 
 
 fun demoServerCommand() = shellContextCommand("server", KattyServer, "server [start|remove]") {
+  log.warn { "KattyServer::commandContext: ${kattyCommandContextOrNull()}" }
   KattyServer(shellContext().scope.coroutineContext) {
     routing {
       get("/") {

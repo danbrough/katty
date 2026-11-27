@@ -14,7 +14,7 @@ import kotlin.coroutines.CoroutineContext
 /**
  * Where objects attached to the lifetime of the [KattyShell] are stored.
  */
-open class ShellContext() : KattyContext {
+open class ShellContext() : AutoCloseable, CoroutineContext.Element {
   override val key: CoroutineContext.Key<*> = ShellContext
 
   companion object : CoroutineContext.Key<ShellContext>
@@ -113,9 +113,8 @@ private class ContextProvider<T : CoroutineContext.Element>(
 
 suspend fun <T : CoroutineContext.Element> shellContextRegisterProvider(
   key: CoroutineContext.Key<T>, creator: suspend () -> T
-) {
-  shellContext().addToContext(key, creator)
-}
+) = shellContext().addToContext(key, creator)
+
 
 inline fun <reified T : CoroutineContext.Element> shellContextCommand(
   cmdName: String,
@@ -125,11 +124,14 @@ inline fun <reified T : CoroutineContext.Element> shellContextCommand(
 ) = object : KattyCommand<List<String>, Unit>(helpText) {
 
   override suspend fun initialize() {
-    shellContextRegisterProvider(key, creator)
+    shellContextRegisterProvider(key) {
+      println("shellContextCommand .. creator has commandContext: ${kattyCommandContextOrNull()}")
+      creator()
+    }
   }
 
-  override suspend fun invoke(shell: KattyShell, a: List<String>): Unit = shell.run {
-    when (val action = a.getOrNull(1)) {
+  override suspend fun invoke(context: KattyCommandContext<List<String>>): Unit = context.run {
+    when (val action = input.getOrNull(1)) {
       "stop" -> shellContextRemove(key)
       null, "start" -> shellContext<T>(key)
       else -> warn("$cmdName: invalid action: $action")

@@ -5,8 +5,8 @@ import io.github.danbrough.katty.CborMessageCodec
 import io.github.danbrough.katty.KattyShell
 import io.github.danbrough.katty.KattyTerminal
 import io.github.danbrough.katty.StringMessage
+import io.github.danbrough.katty.basicCommand
 import io.github.danbrough.katty.cbor
-import io.github.danbrough.katty.command.basicCommand
 import io.github.danbrough.katty.json
 import io.github.danbrough.katty.logDemo
 import io.github.danbrough.katty.messages.KattyMessage
