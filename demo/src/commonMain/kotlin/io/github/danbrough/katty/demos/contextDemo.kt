@@ -41,9 +41,9 @@ val mySpecialContextProvider = {
 var firstTime = true
 
 val ContextDemo = basicCommand("context", "Context demos") {
-  val args = it.drop(1)
-
-
+  val args = input
+  info("args: $args")
+  
   val shell = shellContext()
   info("shell: $shell")
   info("terminal: ${kattyShell()}")

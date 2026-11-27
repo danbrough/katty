@@ -12,7 +12,7 @@ import kotlin.time.Duration.Companion.seconds
 
 private val log = logDemo
 val LaunchDemoCommand = basicCommand("launch", "launches a coroutine") {
-  launchDemo(it.drop(1))
+  launchDemo(input.drop(1))
 }
 
 

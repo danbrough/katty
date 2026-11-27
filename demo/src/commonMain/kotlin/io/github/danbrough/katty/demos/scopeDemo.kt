@@ -19,7 +19,8 @@ private const val USAGE =
 val scopeDemo = basicCommand(
   "scopeDemo",
   USAGE,
-) { args ->
+) {
+  val args = input
   println("args: ${args.joinToString(",")} job: ${currentCoroutineContext().job}")
   val cmd = args.getOrNull(1) ?: run {
     info(USAGE)

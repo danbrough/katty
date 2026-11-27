@@ -47,8 +47,7 @@ private val orange = rgb("#b4832f")
 
 val DemoMordantCommand =
   BasicCommand("mordant demo") {
-    this as KattyTerminal
-    demoMordant(terminal)
+    demoMordant((shell as KattyTerminal).terminal)
   }
 
 fun demoMordant(

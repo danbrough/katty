@@ -15,7 +15,7 @@ suspend fun DefaultWebSocketSession.sendMessage(m: KattyMessage) =
 
 private const val USAGE = "client [start|stop|message]"
 fun demoClientCommand() = basicCommand("client", USAGE) {
-  val args = it.drop(1)
+  val args = input.drop(1)
   val cmd = args.getOrNull(0) ?: run {
     warn(USAGE)
     return@basicCommand

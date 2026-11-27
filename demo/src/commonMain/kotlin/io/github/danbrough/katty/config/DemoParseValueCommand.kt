@@ -4,7 +4,8 @@ import com.akuleshov7.ktoml.TomlInputConfig
 import com.akuleshov7.ktoml.tree.nodes.parseValue
 import io.github.danbrough.katty.command.BasicCommand
 
-val DemoParseValueCommand = BasicCommand("Parsing test") { args ->
+val DemoParseValueCommand = BasicCommand("Parsing test") {
+  val args = input
   val config = TomlInputConfig(allowEmptyValues = true)
   args.drop(1).forEach {
     val value = it.parseValue(0, config)

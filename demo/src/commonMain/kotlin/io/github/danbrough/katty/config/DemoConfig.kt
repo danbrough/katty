@@ -24,8 +24,7 @@ import kotlinx.io.writeString
 
 val DemoConfigCommand = BasicCommand("config demo") {
   println("config demo")
-  this as KattyTerminal
-  mergeDemo()
+  (shell as KattyTerminal).mergeDemo()
 }
 
 

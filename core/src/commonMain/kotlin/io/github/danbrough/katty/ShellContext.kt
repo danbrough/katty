@@ -2,7 +2,6 @@
 
 package io.github.danbrough.katty
 
-import io.github.danbrough.katty.command.BaseCommand
 import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -123,9 +122,7 @@ inline fun <reified T : CoroutineContext.Element> shellContextCommand(
   key: CoroutineContext.Key<T>,
   helpText: String = "$cmdName [start|stop]",
   noinline creator: suspend () -> T,
-) = object : BaseCommand<List<String>, Unit>() {
-
-  override val helpText: String = helpText
+) = object : KattyCommand<List<String>, Unit>(helpText) {
 
   override suspend fun initialize() {
     shellContextRegisterProvider(key, creator)

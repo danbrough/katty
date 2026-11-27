@@ -15,8 +15,7 @@ import io.github.danbrough.katty.command.BasicCommand
 import kotlinx.io.files.Path
 
 val DemoConfigArgs = BasicCommand("demo configuration args") {
-  this as KattyTerminal
-  demoConfigArgs(it)
+  (shell as KattyTerminal).demoConfigArgs(input)
 }
 
 suspend fun Path.readText(): String = TODO()

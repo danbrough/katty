@@ -4,7 +4,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlin.coroutines.CoroutineContext
 
 
-open class KattyCommandContext<A>(shell: KattyShell, open val arg: A) : KattyShell by shell,
+open class KattyCommandContext<A>(val shell: KattyShell, open val input: A) : KattyShell by shell,
   CoroutineContext.Element {
   companion object : CoroutineContext.Key<KattyCommandContext<*>>
 }
@@ -19,15 +19,15 @@ suspend inline fun <T> kattyCommandContext(): KattyCommandContext<T> =
 
 
 open class KattyCommand<A, R>(
-  val shell: KattyShell,
-  open var help: String? = null,
+  open var helpText: String? = null,
   open var command: (suspend KattyCommandContext<A>.() -> R)? = null
 ) {
 
   open suspend fun initialize() = Unit
-  open suspend fun createContext(a: A): KattyCommandContext<A> = KattyCommandContext(shell, a)
+  open suspend fun createContext(shell: KattyShell, input: A): KattyCommandContext<A> =
+    KattyCommandContext(shell, input)
 
-  open suspend operator fun invoke(a: A): R =
-    command?.invoke(createContext(a)) ?: error("No command specified")
+  open suspend operator fun invoke(shell: KattyShell, input: A): R =
+    command?.invoke(createContext(shell, input)) ?: error("No command specified")
 }
 

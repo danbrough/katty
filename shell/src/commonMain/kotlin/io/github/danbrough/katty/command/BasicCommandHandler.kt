@@ -2,6 +2,8 @@ package io.github.danbrough.katty.command
 
 import com.github.ajalt.mordant.rendering.TextColors
 import com.github.ajalt.mordant.rendering.TextStyles
+import io.github.danbrough.katty.KattyCommand
+import io.github.danbrough.katty.KattyCommandContext
 import io.github.danbrough.katty.KattyError
 import io.github.danbrough.katty.KattyShell
 import io.github.danbrough.katty.logKattyShell
@@ -12,6 +14,11 @@ import kotlinx.io.writeString
 
 private val log = logKattyShell
 
+typealias BasicCommandJob = suspend KattyCommandContext<List<String>>.() -> Unit
+typealias BasicCommand = KattyCommand<List<String>, Unit>
+
+fun basicCommand(cmdName: String, helpText: String, job: BasicCommandJob) =
+  cmdName to BasicCommand(helpText, job)
 
 open class BasicCommandHandler(override val parent: CommandHandler? = null) : CommandHandler {
 
@@ -19,14 +26,14 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
     it.length to TextStyles.bold(TextColors.brightGreen(it))
   }
 
-  private val commands = mutableMapOf<String, BaseCommand<List<String>, Unit>>()
+  private val commands = mutableMapOf<String, BasicCommand>()
 
-  fun registerCommands(vararg cmd: Pair<String, BaseCommand<List<String>, Unit>>) {
+  fun registerCommands(vararg cmd: Pair<String, BasicCommand>) {
     commands.putAll(cmd)
   }
 
   operator fun set(name: String, description: String, job: BasicCommandJob) {
-    registerCommands(name to BasicCommand(description, job))
+    registerCommands(name to KattyCommand(helpText = description, job))
   }
 
   override suspend fun showHelp(shell: KattyShell) {

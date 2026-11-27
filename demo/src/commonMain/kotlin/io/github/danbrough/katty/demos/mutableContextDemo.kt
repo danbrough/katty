@@ -9,7 +9,7 @@ private var count = 0
 
 private const val USAGE = "mutableDemo: (get | set | remove)"
 fun mutableContextDemo() = basicCommand("mutableDemo", USAGE) {
-  val args = it.toMutableList().drop(1)
+  val args = input.toMutableList().drop(1)
   val action = args.getOrNull(0) ?: run {
     info(USAGE)
     return@basicCommand

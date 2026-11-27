@@ -10,7 +10,7 @@ import io.github.danbrough.katty.KattyTerminal
 import io.github.danbrough.katty.command.BasicCommand
 
 val DemoThemeCommand = BasicCommand("theme demo") {
-  (this as KattyTerminal).demoTheme()
+  (shell as KattyTerminal).demoTheme()
 }
 
 fun KattyTerminal.demoTheme() {

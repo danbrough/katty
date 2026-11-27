@@ -20,17 +20,16 @@ import kotlinx.io.readLine
 import kotlin.time.Clock
 
 
-fun BasicCommandHandler.registerBashyCommands() =
-  registerCommands(
-    "pwd" to Bashy.PwdCommand,
-    "date" to Bashy.DateCommand,
-    "ls" to Bashy.LsCommand,
-    "cd" to Bashy.CdCommand,
-    Bashy.ExitCommand,
-    Bashy.RegexCommand,
-    Bashy.ExecCommand,
-    Bashy.EchoCommand,
-  )
+fun BasicCommandHandler.registerBashyCommands() = registerCommands(
+  "pwd" to Bashy.PwdCommand,
+  "date" to Bashy.DateCommand,
+  "ls" to Bashy.LsCommand,
+  "cd" to Bashy.CdCommand,
+  Bashy.ExitCommand,
+  Bashy.RegexCommand,
+  Bashy.ExecCommand,
+  Bashy.EchoCommand,
+)
 
 
 /**
@@ -91,8 +90,8 @@ object Bashy {
   }
 
   val LsCommand =
-    BasicCommand("usage: ls [dir]. prints the contents of the current or the specified directory") { args ->
-
+    BasicCommand("usage: ls [dir]. prints the contents of the current or the specified directory") {
+      val args = input
       val dir = if (args.size == 1) currentDir else {
         val arg = args[1]
         if (arg == ".") currentDir
@@ -102,13 +101,11 @@ object Bashy {
       }
 
       SystemFileSystem.list(SystemFileSystem.resolve(Path(dir)))
-        .map { it to SystemFileSystem.metadataOrNull(it) }
-        .joinToString("\n") {
+        .map { it to SystemFileSystem.metadataOrNull(it) }.joinToString("\n") {
           val resolvedPath = SystemFileSystem.resolve(it.first)
           //println("resolved path: $resolvedPath path: ${it.first} equal: ${resolvedPath == it.first}")
           val style =
-            if (it.first.toString() != resolvedPath.toString()) TextColors.brightGreen else if (it.second?.isDirectory == true) TextColors.green else
-              TextColors.white
+            if (it.first.toString() != resolvedPath.toString()) TextColors.brightGreen else if (it.second?.isDirectory == true) TextColors.green else TextColors.white
           style(it.first.name)
         }.also {
           println(it)
@@ -117,7 +114,8 @@ object Bashy {
     }
 
 
-  val CdCommand = BasicCommand("usage: cd [dir]. changes the current directory") { args ->
+  val CdCommand = BasicCommand("usage: cd [dir]. changes the current directory") {
+    val args = input
 
     val home = KattyUtils.getEnv("HOME")?.let { SystemFileSystem.resolve(Path(it)) } ?: currentDir
 
@@ -128,8 +126,7 @@ object Bashy {
         "." -> currentDir
         ".." -> Path(currentDir, "..")
         else -> if (args[1].startsWith(SystemPathSeparator)) Path(args[1]) else Path(
-          currentDir,
-          args[1]
+          currentDir, args[1]
         )
       }
       currentDir = SystemFileSystem.resolve(currentDir)
@@ -138,9 +135,9 @@ object Bashy {
   }
 
   val RegexCommand = basicCommand(
-    "regex",
-    "Runs a regex against the input args. usage: regex regex [input args..] "
-  ) { args ->
+    "regex", "Runs a regex against the input args. usage: regex regex [input args..] "
+  ) {
+    val args = input
     if (args.size < 3) return@basicCommand
     val regex = args[1].toRegex()
     for (i in 2 until args.size) {
@@ -159,14 +156,15 @@ object Bashy {
     KattyError.errorExit()
   }
 
-  val ExecCommand = basicCommand("exec", "executes a command in the shell") { args ->
+  val ExecCommand = basicCommand("exec", "executes a command in the shell") {
+    val args = input
     KattyUtils.exec(args).use { source ->
-      while (true)
-        source.readLine()?.also { println(it) } ?: break
+      while (true) source.readLine()?.also { println(it) } ?: break
     }
   }
 
-  val EchoCommand = basicCommand("echo", "prints arguments to stdout") { args ->
+  val EchoCommand = basicCommand("echo", "prints arguments to stdout") {
+    val args = input
     info(args.drop(1).joinToString(" "))
   }
 }

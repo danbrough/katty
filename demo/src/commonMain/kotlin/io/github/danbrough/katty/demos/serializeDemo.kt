@@ -18,7 +18,7 @@ import kotlinx.serialization.decodeFromByteArray
 private val log = logDemo
 
 val SerializeDemoCommand = basicCommand("serialize", "serialization demo") {
-  serializeDemo(it.drop(1))
+  serializeDemo(input.drop(1))
 }
 
 
