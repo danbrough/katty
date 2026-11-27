@@ -1,7 +1,7 @@
 package io.github.danbrough.katty.server
 
-import io.github.danbrough.katty.KattyCommandContext
 import io.github.danbrough.katty.isSingleRun
+import io.github.danbrough.katty.kattyCommandContext
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.application.serverConfig
@@ -17,7 +17,6 @@ import io.ktor.server.routing.IgnoreTrailingSlash
 import io.ktor.server.websocket.WebSockets
 import io.ktor.server.websocket.pingPeriod
 import io.ktor.server.websocket.timeout
-import kotlinx.coroutines.currentCoroutineContext
 import org.danbrough.klog.logger
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.seconds
@@ -79,9 +78,9 @@ open class KattyServer(
       applicationConfiguration(this@KattyServer)
     }
 
-  suspend fun start() {
+  open suspend fun start() {
     val singleRun = isSingleRun()
-    log.trace { "KattyServer::start() singleRun:$singleRun commandContext: ${currentCoroutineContext()[KattyCommandContext]}" }
+    log.trace { "KattyServer::start() singleRun:$singleRun commandContext: ${kattyCommandContext()}" }
 
 
     engine = embeddedServer(
@@ -102,7 +101,7 @@ open class KattyServer(
 
 
   override fun close() {
-    log.info { "ServerContext::close() .. stopping engine .." }
+    log.info { "KattyServer::close() .. stopping engine .." }
     if (::engine.isInitialized)
       engine.stop()
   }

@@ -66,8 +66,8 @@ suspend fun shellContextOrNull(): ShellContext? = currentCoroutineContext()[Shel
 suspend inline fun shellContext(): ShellContext =
   shellContextOrNull() ?: KattyError.errorMissingContext(ShellContext)
 
-suspend inline fun <reified E : CoroutineContext.Element> shellContext(key: CoroutineContext.Key<E>): E? =
-  shellContextOrNull()?.getFromContext(key)
+suspend inline fun <reified E : CoroutineContext.Element> shellContext(key: CoroutineContext.Key<E>): E =
+  shellContext().getFromContext(key)
 
 suspend fun <E : CoroutineContext.Element> shellContext(
   key: CoroutineContext.Key<E>, creator: () -> E
@@ -124,10 +124,7 @@ inline fun <reified T : CoroutineContext.Element> shellContextCommand(
 ) = object : KattyCommand<List<String>, Unit>(helpText) {
 
   override suspend fun initialize() {
-    shellContextRegisterProvider(key) {
-      println("shellContextCommand .. creator has commandContext: ${kattyCommandContextOrNull()}")
-      creator()
-    }
+    shellContextRegisterProvider(key, creator)
   }
 
   override suspend fun invoke(context: KattyCommandContext<List<String>>): Unit = context.run {

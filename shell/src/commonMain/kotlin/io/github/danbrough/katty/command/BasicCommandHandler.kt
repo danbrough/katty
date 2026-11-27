@@ -8,6 +8,7 @@ import io.github.danbrough.katty.KattyCommand
 import io.github.danbrough.katty.KattyError
 import io.github.danbrough.katty.KattyShell
 import io.github.danbrough.katty.logKattyShell
+import kotlinx.coroutines.withContext
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
@@ -50,7 +51,10 @@ open class BasicCommandHandler(override val parent: CommandHandler? = null) : Co
     shell.run {
       if (commands.contains(cmdName)) {
         commands[cmdName]?.run {
-          invoke(createContext(shell, args))
+          val context = createContext(shell, args)
+          withContext(context) {
+            invoke(context)
+          }
         }
       } else {
         throw KattyError.CommandNotFound(cmdName)

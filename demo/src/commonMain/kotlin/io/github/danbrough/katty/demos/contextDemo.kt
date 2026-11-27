@@ -1,8 +1,8 @@
 package io.github.danbrough.katty.demos
 
 import io.github.danbrough.katty.KattyContext
-import io.github.danbrough.katty.KattyError
 import io.github.danbrough.katty.basicCommand
+import io.github.danbrough.katty.kattyCommandContext
 import io.github.danbrough.katty.kattyShell
 import io.github.danbrough.katty.logDemo
 import io.github.danbrough.katty.shellContext
@@ -47,6 +47,7 @@ val ContextDemo = basicCommand("context", "Context demos") {
   val shell = shellContext()
   info("shell: $shell")
   info("terminal: ${kattyShell()}")
+  info("commandContext: ${kattyCommandContext()}")
 
   if (firstTime) {
     shellContext.addToContext(MySpecialContext, mySpecialContextProvider)
@@ -60,7 +61,7 @@ val ContextDemo = basicCommand("context", "Context demos") {
 
   info("stuff: $stuff")
 
-  val myContext = shellContext(MySpecialContext) ?: KattyError.errorMissingContext(MySpecialContext)
+  val myContext = shellContext(MySpecialContext)
   info("my special context.count = ${myContext.count}")
   myContext.count++
 

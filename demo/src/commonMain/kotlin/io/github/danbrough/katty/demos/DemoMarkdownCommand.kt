@@ -43,5 +43,5 @@ val DemoMarkDownCommand = BasicCommand("demo markdown") {
     ```
   """.trimIndent()
   )
-  (this as KattyTerminal).println(content)
+  (shell as KattyTerminal).println(content)
 }
