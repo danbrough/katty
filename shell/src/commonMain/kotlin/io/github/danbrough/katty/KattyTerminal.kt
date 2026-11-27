@@ -79,9 +79,7 @@ open class KattyTerminal(
       println()
       runCatching {
         commandRegistry[args[0]]?.also { cmd ->
-          @Suppress("UNCHECKED_CAST") (cmd as KattyCommand<List<String>, Unit>).invoke(
-            KattyCommandContext(this, args)
-          )
+          @Suppress("UNCHECKED_CAST") (cmd as KattyCommand<List<String>, Unit>).invoke(args)
 
         } ?: commandHandler.runCommand(this@KattyTerminal, args)
       }.exceptionOrNull().also {
