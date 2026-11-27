@@ -12,9 +12,9 @@ open class KattyCommandContext<A>(val shell: KattyShell, open val input: A) :
   override val key: CoroutineContext.Key<*> = KattyCommandContext
 }
 
-suspend fun kattyCommandContext(): BasicCommandContext = kattyCommandContext<List<String>>()
-suspend fun kattyCommandContextOrNull(): BasicCommandContext? =
-  kattyCommandContextOrNull<List<String>>()
+suspend fun kattyCommandContextDefault(): BasicCommandContext = kattyCommandContext()
+suspend fun kattyCommandContextDefaultOrNull(): BasicCommandContext? =
+  kattyCommandContextOrNull()
 
 
 suspend inline fun <T> kattyCommandContext(): KattyCommandContext<T> =

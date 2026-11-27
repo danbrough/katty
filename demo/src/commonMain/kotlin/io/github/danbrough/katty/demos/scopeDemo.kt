@@ -1,7 +1,7 @@
 package io.github.danbrough.katty.demos
 
 import io.github.danbrough.katty.basicCommand
-import io.github.danbrough.katty.kattyCommandContextOrNull
+import io.github.danbrough.katty.kattyCommandContextDefaultOrNull
 import io.github.danbrough.katty.logDemo
 import io.github.danbrough.katty.shellContext
 import io.github.danbrough.katty.shellContextAdd
@@ -31,7 +31,7 @@ val scopeDemo = basicCommand(
 
   when (args[1]) {
     "shell" -> {
-      log.debug { "shellCOntext:${shellContextOrNull()} commandContext:${kattyCommandContextOrNull()}" }
+      log.debug { "shellCOntext:${shellContextOrNull()} commandContext:${kattyCommandContextDefaultOrNull()}" }
     }
 
     "session" -> {

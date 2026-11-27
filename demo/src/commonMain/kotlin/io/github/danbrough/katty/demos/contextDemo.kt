@@ -2,7 +2,7 @@ package io.github.danbrough.katty.demos
 
 import io.github.danbrough.katty.KattyContext
 import io.github.danbrough.katty.basicCommand
-import io.github.danbrough.katty.kattyCommandContext
+import io.github.danbrough.katty.kattyCommandContextDefault
 import io.github.danbrough.katty.kattyShell
 import io.github.danbrough.katty.logDemo
 import io.github.danbrough.katty.shellContext
@@ -47,7 +47,7 @@ val ContextDemo = basicCommand("context", "Context demos") {
   val shell = shellContext()
   info("shell: $shell")
   info("terminal: ${kattyShell()}")
-  info("commandContext: ${kattyCommandContext()}")
+  info("commandContext: ${kattyCommandContextDefault()}")
 
   if (firstTime) {
     shellContext.addToContext(MySpecialContext, mySpecialContextProvider)

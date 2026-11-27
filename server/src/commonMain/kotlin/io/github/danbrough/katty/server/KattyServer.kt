@@ -1,7 +1,7 @@
 package io.github.danbrough.katty.server
 
 import io.github.danbrough.katty.isSingleRun
-import io.github.danbrough.katty.kattyCommandContext
+import io.github.danbrough.katty.kattyCommandContextDefault
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.application.serverConfig
@@ -80,7 +80,7 @@ open class KattyServer(
 
   open suspend fun start() {
     val singleRun = isSingleRun()
-    log.trace { "KattyServer::start() singleRun:$singleRun commandContext: ${kattyCommandContext()}" }
+    log.trace { "KattyServer::start() singleRun:$singleRun commandContext: ${kattyCommandContextDefault()}" }
 
 
     engine = embeddedServer(

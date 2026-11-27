@@ -21,7 +21,7 @@ private val log = logDemo
 
 
 fun demoServerCommand() = shellContextCommand("server", KattyServer, "server [start|remove]") {
-  val cmdContext = kattyCommandContext()
+  val cmdContext = kattyCommandContextDefault()
   log.warn { "KattyServer::commandContext: $cmdContext" }
 
 
